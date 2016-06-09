@@ -11,7 +11,7 @@ namespace OrleansIndexing
 {
     [StatelessWorker]
     [StorageProvider(ProviderName = "IndexingStore")]
-    public class IndexHandler<T> : Grain<IndexHandlerState>, IIndexHandler where T : Grain
+    public class IndexHandler<T> : Grain<IndexHandlerState>, IIndexHandler<T> where T : Grain
     {
         private Immutable<IDictionary<string, IIndex>> _indexes;
         private Immutable<IDictionary<string, IIndexOps>> _indexOps;

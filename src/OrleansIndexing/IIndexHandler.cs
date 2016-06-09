@@ -35,4 +35,12 @@ namespace OrleansIndexing
         /// the indexes controlled by this index handler</returns>
         Task<Immutable<IDictionary<string, IIndex>>> GetIndexes();
     }
+
+    /// <summary>
+    /// The grain interface for the index handler grain,
+    /// which indexes a single grain.
+    /// </summary>
+    public interface IIndexHandler<T> : IIndexHandler where T : Grain
+    {
+    }
 }
