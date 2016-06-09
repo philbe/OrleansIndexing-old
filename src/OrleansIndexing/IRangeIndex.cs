@@ -49,6 +49,6 @@ namespace OrleansIndexing
         /// should not be invoked from other grains.
         /// </summary>
         /// <param name="compLambda">the comparison function</param>
-        void SetComparisonLambda(Func<K, long> compLambda);
+        //void SetComparisonLambda(Func<K, long> compLambda);
     }
 }
