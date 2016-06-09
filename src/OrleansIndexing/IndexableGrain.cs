@@ -13,7 +13,7 @@ namespace OrleansIndexing
     /// For making a grain indexable, two steps should be taken:
     ///     1- the grain should extend IndexableGrain
     ///     2- the grain is reponsible for calling UpdateIndexes
-    ///        whenever the indexes should be updated
+    ///        whenever the indexes need to be updated
     /// </summary>
     public abstract class IndexableGrain : Grain
     {
@@ -26,11 +26,7 @@ namespace OrleansIndexing
         /// an immutable copy of before images of the indexed fields
         /// </summary>
         private Immutable<IDictionary<string, object>> _beforeImages;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
+        
         public override async Task OnActivateAsync()
         {
             IIndexHandler handler = GetIndexHandler();

@@ -31,6 +31,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -46,6 +47,7 @@
     <Compile Include="IMemberUpdate.cs" />
     <Compile Include="IndexableGrain.cs" />
     <Compile Include="IndexHandler.cs" />
+    <Compile Include="IndexHandlerState.cs" />
     <Compile Include="IndexOps.cs" />
     <Compile Include="MemberUpdate.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

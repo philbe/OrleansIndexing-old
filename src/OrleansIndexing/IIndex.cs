@@ -15,7 +15,7 @@ namespace OrleansIndexing
         /// </summary>
         /// <param name="iUpdate">contains the data for the update</param>
         /// <returns>true, if the index update was successful, otherwise false</returns>
-        Task<bool> ApplyIndexUpdates(Immutable<IMemberUpdate> iUpdate);
+        Task<bool> ApplyIndexUpdate(Immutable<IMemberUpdate> iUpdate);
 
         /// <summary>
         /// Each index has an IIndexOps specific to it, which this method returns it.

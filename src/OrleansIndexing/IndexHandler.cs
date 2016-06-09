@@ -36,7 +36,7 @@ namespace OrleansIndexing
             IList<Task<bool>> updateIndexTasks = new List<Task<bool>>();
             foreach (KeyValuePair<string, IMemberUpdate> updt in updates)
             {
-                updateIndexTasks.Add(idxs[updt.Key].ApplyIndexUpdates(updt.Value.AsImmutable()));
+                updateIndexTasks.Add(idxs[updt.Key].ApplyIndexUpdate(updt.Value.AsImmutable()));
             }
             await Task.WhenAll(updateIndexTasks);
             bool allSuccessful = true;
