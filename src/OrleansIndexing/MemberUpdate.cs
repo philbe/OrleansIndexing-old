@@ -11,9 +11,9 @@ namespace OrleansIndexing
     /// MemberUpdate is a generic implementation of IMemberUpdate
     /// that relies on a copy of beforeImage and afterImage, without
     /// keeping any semantic information about the actual change that
-    /// happeneded.
+    /// happened.
     /// This class assumes that befImg and aftImg passed to it won't be
-    /// altered later on and they are immutable.
+    /// altered later on, so they are immutable.
     /// </summary>
     public class MemberUpdate : IMemberUpdate
     {
@@ -36,9 +36,9 @@ namespace OrleansIndexing
         }
 
         /// <summary>
-        /// Exposes the stored before image.
+        /// Exposes the stored before-image.
         /// </summary>
-        /// <returns>the before image of the indexed attribute(s),
+        /// <returns>the before-image of the indexed attribute(s)
         /// that is before applying the current update</returns>
         public object GetBefImg()
         {

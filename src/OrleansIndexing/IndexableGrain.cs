@@ -10,10 +10,10 @@ namespace OrleansIndexing
     /// IndexableGrain class is the super-class of all grains that
     /// need to have indexing capability.
     /// 
-    /// For making a grain indexable, two steps should be taken:
-    ///     1- the grain should extend IndexableGrain
-    ///     2- the grain is reponsible for calling UpdateIndexes
-    ///        whenever the indexes need to be updated
+    /// To make a grain indexable, two steps should be taken:
+    ///     1- the grain class should extend IndexableGrain
+    ///     2- the grain class is reponsible for calling UpdateIndexes
+    ///        whenever one or more indexes need to be updated
     /// </summary>
     public abstract class IndexableGrain : Grain
     {
@@ -23,7 +23,7 @@ namespace OrleansIndexing
         /// </summary>
         private Immutable<IDictionary<string, IIndexOps>> _indexOps;
         /// <summary>
-        /// an immutable copy of before images of the indexed fields
+        /// an immutable copy of before-images of the indexed fields
         /// </summary>
         private Immutable<IDictionary<string, object>> _beforeImages;
         

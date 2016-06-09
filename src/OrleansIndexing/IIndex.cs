@@ -18,7 +18,7 @@ namespace OrleansIndexing
         Task<bool> ApplyIndexUpdate(Immutable<IMemberUpdate> iUpdate);
 
         /// <summary>
-        /// Each index has an IIndexOps specific to it, which this method returns it.
+        /// Each index has an IIndexOps specific to it, which this method returns.
         /// </summary>
         /// <returns>the IIndexOps instance of the current index.</returns>
         Task<IIndexOps> GetIndexOps();
