@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace OrleansIndexing
+namespace Orleans.Indexing
 {
     /// <summary>
     /// This class stores the list of indexes for a given grain type.

@@ -3,7 +3,7 @@ using Orleans.Concurrency;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace OrleansIndexing
+namespace Orleans.Indexing
 {
     /// <summary>
     /// The grain interface for the index handler grain.

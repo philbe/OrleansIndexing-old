@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OrleansIndexing
+namespace Orleans.Indexing
 {
     /// <summary>
     /// MemberUpdate is a generic implementation of IMemberUpdate

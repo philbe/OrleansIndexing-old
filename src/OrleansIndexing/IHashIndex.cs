@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OrleansIndexing
+namespace Orleans.Indexing
 {
     /// <summary>
     /// Defines the interface for hash-indexes

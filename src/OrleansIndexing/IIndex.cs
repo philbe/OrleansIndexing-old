@@ -2,7 +2,7 @@
 using Orleans.Concurrency;
 using System.Threading.Tasks;
 
-namespace OrleansIndexing
+namespace Orleans.Indexing
 {
     /// <summary>
     /// This interface defines the functionality

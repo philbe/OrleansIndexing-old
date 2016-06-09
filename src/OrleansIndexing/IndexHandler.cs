@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OrleansIndexing
+namespace Orleans.Indexing
 {
     [StatelessWorker]
     [StorageProvider(ProviderName = "IndexingStore")]
