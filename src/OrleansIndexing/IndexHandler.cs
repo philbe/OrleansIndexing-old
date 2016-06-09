@@ -28,7 +28,7 @@ namespace Orleans.Indexing
             _indexOps = idxOps.AsImmutable();
         }
 
-        public async Task<bool> ApplyIndexUpdates(Immutable<IDictionary<string, IMemberUpdate>> iUpdates)
+        public async Task<bool> ApplyIndexUpdates(IGrain updatedGrain, Immutable<IDictionary<string, IMemberUpdate>> iUpdates)
         {
             var updates = iUpdates.Value;
             var idxs = _indexes.Value;
@@ -36,7 +36,7 @@ namespace Orleans.Indexing
             IList<Task<bool>> updateIndexTasks = new List<Task<bool>>();
             foreach (KeyValuePair<string, IMemberUpdate> updt in updates)
             {
-                updateIndexTasks.Add(idxs[updt.Key].ApplyIndexUpdate(updt.Value.AsImmutable()));
+                updateIndexTasks.Add(idxs[updt.Key].ApplyIndexUpdate(updatedGrain, updt.Value.AsImmutable()));
             }
             await Task.WhenAll(updateIndexTasks);
             bool allSuccessful = true;

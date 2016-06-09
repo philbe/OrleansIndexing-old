@@ -14,12 +14,13 @@ namespace Orleans.Indexing
         /// This method is responsible for applying the updates received by an
         /// index handler to all of the indexes that it controls
         /// </summary>
+        /// <param name="updatedGrain">the grain that issued the update</param>
         /// <param name="updates">the immutable map of index updates for each index,
         /// which maps each indexID to an update</param>
         /// <returns>false, if the index handler controls an index for which there 
         /// was no update in 'updates' or if 'updates' contains an update for a
         /// nonexistent index. Otherwise true</returns>
-        Task<bool> ApplyIndexUpdates(Immutable<IDictionary<string, IMemberUpdate>> updates);
+        Task<bool> ApplyIndexUpdates(IGrain updatedGrain, Immutable<IDictionary<string, IMemberUpdate>> updates);
 
         /// <summary>
         /// Exposes the index operations for the indexes handled by this index handler

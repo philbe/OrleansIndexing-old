@@ -13,9 +13,10 @@ namespace Orleans.Indexing
         /// <summary>
         /// This method applies a given update to the current index.
         /// </summary>
+        /// <param name="updatedGrain">the grain that issued the update</param>
         /// <param name="iUpdate">contains the data for the update</param>
         /// <returns>true, if the index update was successful, otherwise false</returns>
-        Task<bool> ApplyIndexUpdate(Immutable<IMemberUpdate> iUpdate);
+        Task<bool> ApplyIndexUpdate(IGrain updatedGrain, Immutable<IMemberUpdate> iUpdate);
 
         /// <summary>
         /// Each index has an IIndexOps specific to it, which this method returns.

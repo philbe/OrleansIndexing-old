@@ -51,7 +51,7 @@ namespace Orleans.Indexing
                     updates.Add(kvp.Key, mu);
                 }
 
-                success = await handler.ApplyIndexUpdates(updates.AsImmutable());
+                success = await handler.ApplyIndexUpdates(this.AsReference<IGrain>(), updates.AsImmutable());
                 if (success)
                 {
                     UpdateBeforeImages(updates);
