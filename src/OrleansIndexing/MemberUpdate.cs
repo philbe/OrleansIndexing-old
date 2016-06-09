@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Orleans.Concurrency;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,21 +8,26 @@ using System.Threading.Tasks;
 namespace OrleansIndexing
 {
     /// <summary>
-    /// MemberUpdate is an generic
+    /// MemberUpdate is a generic implementation of IMemberUpdate
+    /// that relies on a copy of beforeImage and afterImage, without
+    /// keeping any semantic information about the actual change that
+    /// happeneded.
+    /// This class assumes that befImg and aftImg passed to it won't be
+    /// altered later on and they are immutable.
     /// </summary>
     public class MemberUpdate : IMemberUpdate
     {
-        private object _befImg;
-        private object _aftImg;
-        private bool _isUpdated;
+        private Immutable<object> _befImg;
+        private Immutable<object> _aftImg;
+        private Immutable<bool> _isUpdated;
 
         public MemberUpdate(object befImg, object aftImg, bool isUpdated)
         {
-            _isUpdated = isUpdated;
-            if (_isUpdated)
+            _isUpdated = isUpdated.AsImmutable();
+            if (isUpdated)
             {
-                _befImg = befImg;
-                _aftImg = aftImg;
+                _befImg = befImg.AsImmutable();
+                _aftImg = aftImg.AsImmutable();
             }
         }
 
@@ -29,19 +35,24 @@ namespace OrleansIndexing
         {
         }
 
+        /// <summary>
+        /// Exposes the stored before image.
+        /// </summary>
+        /// <returns>the before image of the indexed attribute(s),
+        /// that is before applying the current update</returns>
         public object GetBefImg()
         {
-            return _isUpdated ? _befImg : null;
+            return _isUpdated.Value ? _befImg.Value : null;
         }
 
         public object GetAftImg()
         {
-            return _isUpdated ? _aftImg : null;
+            return _isUpdated.Value ? _aftImg.Value : null;
         }
 
         public bool IsUpdated()
         {
-            return _isUpdated;
+            return _isUpdated.Value;
         }
     }
 }
