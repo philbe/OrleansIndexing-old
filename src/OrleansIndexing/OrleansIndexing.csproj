@@ -41,6 +41,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IRangeIndex.cs" />
+    <Compile Include="IHashIndex.cs" />
     <Compile Include="IIndex.cs" />
     <Compile Include="IIndexHandler.cs" />
     <Compile Include="IIndexOps.cs" />
