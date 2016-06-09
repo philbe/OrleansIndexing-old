@@ -97,8 +97,14 @@ namespace Orleans.Indexing
             foreach (KeyValuePair<string, IMemberUpdate> updt in updates)
             {
                 var indexID = updt.Key;
-                if (updt.Value.IsUpdated()) {
+                var opType = updt.Value.GetOperationType();
+                if (opType == OperationType.Update || opType == OperationType.Insert)
+                {
                     befImgs.Add(indexID, idxOps[indexID].ExtractIndexImage(this));
+                }
+                else if(opType == OperationType.Delete)
+                {
+                    befImgs.Add(indexID, null);
                 }
             }
             _beforeImages = befImgs.AsImmutable();

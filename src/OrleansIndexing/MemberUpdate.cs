@@ -19,20 +19,38 @@ namespace Orleans.Indexing
     {
         private Immutable<object> _befImg;
         private Immutable<object> _aftImg;
-        private Immutable<bool> _isUpdated;
+        private Immutable<OperationType> _opType;
 
-        public MemberUpdate(object befImg, object aftImg, bool isUpdated)
+        public MemberUpdate(object befImg, object aftImg, OperationType opType)
         {
-            _isUpdated = isUpdated.AsImmutable();
-            if (isUpdated)
+            _opType = opType.AsImmutable();
+            if (opType == OperationType.Update || opType == OperationType.Delete)
             {
                 _befImg = befImg.AsImmutable();
+            }
+            if (opType == OperationType.Update || opType == OperationType.Insert)
+            {
                 _aftImg = aftImg.AsImmutable();
             }
         }
 
-        public MemberUpdate(object befImg, object aftImg) : this(befImg, aftImg, befImg.Equals(aftImg))
+        public MemberUpdate(object befImg, object aftImg) : this(befImg, aftImg, GetOperationType(befImg, aftImg))
         {
+        }
+
+        private static OperationType GetOperationType(object befImg, object aftImg)
+        {
+            if(befImg == null)
+            {
+                if (aftImg == null) return OperationType.None;
+                else return OperationType.Insert;
+            }
+            else
+            {
+                if (aftImg == null) return OperationType.Delete;
+                else if(befImg.Equals(aftImg)) return OperationType.None;
+                else return OperationType.Update;
+            }
         }
 
         /// <summary>
@@ -42,17 +60,19 @@ namespace Orleans.Indexing
         /// that is before applying the current update</returns>
         public object GetBefImg()
         {
-            return _isUpdated.Value ? _befImg.Value : null;
+            var opType = _opType.Value;
+            return (opType == OperationType.Update || opType == OperationType.Delete) ? _befImg.Value : null;
         }
 
         public object GetAftImg()
         {
-            return _isUpdated.Value ? _aftImg.Value : null;
+            var opType = _opType.Value;
+            return (opType == OperationType.Update || opType == OperationType.Insert) ? _aftImg.Value : null;
         }
 
-        public bool IsUpdated()
+        public OperationType GetOperationType()
         {
-            return _isUpdated.Value;
+            return _opType.Value;
         }
     }
 }

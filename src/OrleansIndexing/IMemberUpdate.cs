@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace Orleans.Indexing
 {
+    public enum OperationType { None, Insert, Update, Delete };
     /// <summary>
     /// IMemberUpdate encapsulates the information related to a grain update 
     /// with respect to a specific index
@@ -19,10 +20,13 @@ namespace Orleans.Indexing
         object GetAftImg();
 
         /// <summary>
-        /// If this is a null update, that is, no change was made by this update,
-        /// then this method should return false
+        /// Determines the type of operation done, which can be:
+        ///  - Insert
+        ///  - Update
+        ///  - Delete
+        ///  - None, which implies there was no change
         /// </summary>
-        /// <returns>false, if no update is happened, otherwise true</returns>
-        bool IsUpdated();
+        /// <returns>the type of operation in this update</returns>
+        OperationType GetOperationType();
     }
 }
