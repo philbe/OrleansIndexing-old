@@ -14,7 +14,7 @@ namespace Orleans.Indexing
     /// <typeparam name="K">the type of key for the hash index</typeparam>
     /// <typeparam name="V">the type of grain interface that is
     /// being indexed</typeparam>
-    public interface IHashIndex<K,V> : IIndex where V : IGrain
+    public interface IHashIndex<K,V> : IIndex<K,V> where V : IGrain
     {
         /// <summary>
         /// hash-indexes can be either unique or non-unique.
@@ -27,10 +27,11 @@ namespace Orleans.Indexing
         Task<bool> IsUnique();
 
         /// <summary>
-        /// This method retrieves the result of a lookup into the hash-index
+        /// This method retrieves the unique result of a lookup into the
+        /// hash-index
         /// </summary>
         /// <param name="key">the lookup key</param>
         /// <returns>the result of lookup into the hash-index</returns>
-        Task<IEnumerable<V>> Lookup(Immutable<K> key);
+        Task<V> LookupUnique(Immutable<K> key);
     }
 }

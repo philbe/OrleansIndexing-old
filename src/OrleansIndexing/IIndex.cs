@@ -1,5 +1,6 @@
 ﻿using Orleans;
 using Orleans.Concurrency;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Orleans.Indexing
@@ -23,5 +24,19 @@ namespace Orleans.Indexing
         /// </summary>
         /// <returns>the IIndexOps instance of the current index.</returns>
         Task<IIndexOps> GetIndexOps();
+    }
+
+    /// <summary>
+    /// This is the typed variant of IIndex, which is assumed to be 
+    /// the root interface for the index implementations.
+    /// </summary>
+    public interface IIndex<K,V> : IIndex where V : IGrain
+    {
+        /// <summary>
+        /// This method retrieves the result of a lookup into the hash-index
+        /// </summary>
+        /// <param name="key">the lookup key</param>
+        /// <returns>the result of lookup into the hash-index</returns>
+        Task<IEnumerable<V>> Lookup(Immutable<K> key);
     }
 }

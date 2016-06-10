@@ -77,6 +77,12 @@ namespace Orleans.Indexing
         {
             return Task.FromResult((IEnumerable<V>) State.IndexMap[key.Value].Values);
         }
+
+        public async Task<V> LookupUnique(Immutable<K> key)
+        {
+            return (await Lookup(key)).GetEnumerator().Current;
+        }
+
         /// <summary>
         /// Each hash-index needs a hash function, and a user can specify
         /// the hash function via a call to this method.
