@@ -41,6 +41,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IHashIndexInMemory.cs" />
+    <Compile Include="HashIndexInMemory.cs" />
+    <Compile Include="HashIndexInMemoryState.cs" />
     <Compile Include="IRangeIndex.cs" />
     <Compile Include="IHashIndex.cs" />
     <Compile Include="IIndex.cs" />
