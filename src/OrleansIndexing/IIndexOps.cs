@@ -36,4 +36,37 @@ namespace Orleans.Indexing
         /// <returns>an IMemberUpdate instance that contains the update information</returns>
         IMemberUpdate CreateMemberUpdate(Grain indexedGrain, object beforeImage);
     }
+
+    public abstract class IIndexOps<K,V> : IIndexOps where V : Grain
+    {
+        public object ExtractIndexImage(Grain indexedGrain)
+        {
+            return ExtractTypedIndexImage((V)indexedGrain);
+        }
+
+        /// <summary>
+        /// This method is the typed version of ExtractIndexImage
+        /// </summary>
+        /// <param name="indexedGrain">the grain from which we want to
+        /// extract some state to be indexed</param>
+        /// <returns>an encapsulation of the part of the grain state
+        /// that this index is interested in</returns>
+        abstract public K ExtractTypedIndexImage(V indexedGrain);
+
+        public IMemberUpdate CreateMemberUpdate(Grain indexedGrain, object beforeImage)
+        {
+            return CreateTypedMemberUpdate((V)indexedGrain, (K)beforeImage);
+        }
+
+        /// <summary>
+        /// This method is the typed version of CreateMemberUpdate
+        /// </summary>
+        /// <param name="indexedGrain">the grain from which we want to
+        /// extract some state to be indexed</param>
+        /// <param name="beforeImage">the before-image of the indexedGrain,
+        /// which was captured earlier via a call to ExtractIndexImage(indexedGrain)</param>
+        /// <returns>an IMemberUpdate instance that contains the update information</returns>
+        /// <returns></returns>
+        public abstract IMemberUpdate CreateTypedMemberUpdate(V indexedGrain, K beforeImage);
+    }
 }

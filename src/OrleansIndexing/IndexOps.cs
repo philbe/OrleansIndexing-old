@@ -7,13 +7,11 @@ using System.Threading.Tasks;
 
 namespace Orleans.Indexing
 {
-    public abstract class IndexOps<T>
+    public abstract class IndexOps<K,V> : IIndexOps<K,V> where V : Grain
     {
-        abstract public object ExtractIndexImage(T g);
-
-        public IMemberUpdate CreateMemberUpdate(T g, object befImg)
+        public override IMemberUpdate CreateTypedMemberUpdate(V g, K befImg)
         {
-            var aftImg = ExtractIndexImage(g);
+            K aftImg = ExtractTypedIndexImage(g);
             return new MemberUpdate(aftImg, befImg);
         }
     }
