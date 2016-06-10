@@ -7,9 +7,9 @@
     <ProjectGuid>{1BFB2B84-9D88-4E32-BF20-3702F459E386}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>OrleansIndexing</RootNamespace>
+    <RootNamespace>Orleans.Indexing</RootNamespace>
     <AssemblyName>OrleansIndexing</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
