@@ -58,13 +58,13 @@ namespace Orleans.Indexing
         /// </summary>
         /// <returns>the before-image of the indexed attribute(s)
         /// that is before applying the current update</returns>
-        public object GetBefImg()
+        public object GetBeforeImage()
         {
             var opType = _opType.Value;
             return (opType == OperationType.Update || opType == OperationType.Delete) ? _befImg.Value : null;
         }
 
-        public object GetAftImg()
+        public object GetAfterImage()
         {
             var opType = _opType.Value;
             return (opType == OperationType.Update || opType == OperationType.Insert) ? _aftImg.Value : null;

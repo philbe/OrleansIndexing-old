@@ -17,7 +17,7 @@ namespace Orleans.Indexing
         /// Produces the after-image of the grain, after applying this update
         /// </summary>
         /// <returns>the after-image of the grain, after applying this update</returns>
-        object GetAftImg();
+        object GetAfterImage();
 
         /// <summary>
         /// Determines the type of operation done, which can be:
