@@ -39,9 +39,9 @@ namespace Orleans.Indexing
 
     public abstract class IIndexOps<K,V> : IIndexOps where V : Grain
     {
-        public object ExtractIndexImage(Grain indexedGrain)
+        object IIndexOps.ExtractIndexImage(Grain indexedGrain)
         {
-            return ExtractTypedIndexImage((V)indexedGrain);
+            return ExtractIndexImage((V)indexedGrain);
         }
 
         /// <summary>
@@ -51,11 +51,11 @@ namespace Orleans.Indexing
         /// extract some state to be indexed</param>
         /// <returns>an encapsulation of the part of the grain state
         /// that this index is interested in</returns>
-        abstract public K ExtractTypedIndexImage(V indexedGrain);
+        abstract public K ExtractIndexImage(V indexedGrain);
 
-        public IMemberUpdate CreateMemberUpdate(Grain indexedGrain, object beforeImage)
+        IMemberUpdate IIndexOps.CreateMemberUpdate(Grain indexedGrain, object beforeImage)
         {
-            return CreateTypedMemberUpdate((V)indexedGrain, (K)beforeImage);
+            return CreateMemberUpdate((V)indexedGrain, (K)beforeImage);
         }
 
         /// <summary>
@@ -67,6 +67,6 @@ namespace Orleans.Indexing
         /// which was captured earlier via a call to ExtractIndexImage(indexedGrain)</param>
         /// <returns>an IMemberUpdate instance that contains the update information</returns>
         /// <returns></returns>
-        public abstract IMemberUpdate CreateTypedMemberUpdate(V indexedGrain, K beforeImage);
+        public abstract IMemberUpdate CreateMemberUpdate(V indexedGrain, K beforeImage);
     }
 }

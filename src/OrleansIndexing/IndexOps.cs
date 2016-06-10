@@ -9,9 +9,9 @@ namespace Orleans.Indexing
 {
     public abstract class IndexOps<K,V> : IIndexOps<K,V> where V : Grain
     {
-        public override IMemberUpdate CreateTypedMemberUpdate(V g, K befImg)
+        public override IMemberUpdate CreateMemberUpdate(V g, K befImg)
         {
-            K aftImg = ExtractTypedIndexImage(g);
+            K aftImg = ExtractIndexImage(g);
             return new MemberUpdate(aftImg, befImg);
         }
     }
