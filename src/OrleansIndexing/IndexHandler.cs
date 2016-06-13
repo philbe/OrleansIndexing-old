@@ -20,7 +20,7 @@ namespace Orleans.Indexing
         {
             _indexRegistry = GrainFactory.GetGrain<IIndexRegistry<T>>(string.Format("IndexRegistry<{0}>", typeof(T).Name));
             await ReloadIndexes();
-            await OnActivateAsync();
+            await base.OnActivateAsync();
         }
 
         public async Task<bool> ApplyIndexUpdates(IGrain updatedGrain, Immutable<IDictionary<string, IMemberUpdate>> iUpdates)

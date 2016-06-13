@@ -33,6 +33,7 @@ namespace Orleans.Indexing
             _indexOps = await handler.GetIndexOps();
             _beforeImages = new Dictionary<string, object>().AsImmutable<IDictionary<string, object>>();
             AddMissingBeforeImages();
+            await base.OnActivateAsync();
         }
 
         protected async Task UpdateIndexes()
