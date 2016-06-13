@@ -18,7 +18,7 @@ namespace Orleans.Indexing
 
         public override async Task OnActivateAsync()
         {
-            IIndexRegistry<T> indexRegistry = GrainFactory.GetGrain<IIndexRegistry<T>>(string.Format("IndexRegistry<{0}>", typeof(T).Name));
+            _indexRegistry = GrainFactory.GetGrain<IIndexRegistry<T>>(string.Format("IndexRegistry<{0}>", typeof(T).Name));
             await ReloadIndexes();
             await OnActivateAsync();
         }
