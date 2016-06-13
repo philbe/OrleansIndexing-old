@@ -68,7 +68,7 @@ namespace Orleans.Indexing
 
         protected virtual IIndexHandler GetIndexHandler()
         {
-            return GrainFactory.GetGrain<IIndexHandler>("IndexHandler<" + GetType().Name + ">");
+            return GrainFactory.GetGrain<IIndexHandler>(string.Format("IndexHandler<{0}>", GetType().Name));
         }
 
         private void AddMissingBeforeImages()

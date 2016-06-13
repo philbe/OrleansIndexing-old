@@ -10,22 +10,17 @@ using System.Threading.Tasks;
 namespace Orleans.Indexing
 {
     [StatelessWorker]
-    [StorageProvider(ProviderName = "IndexingStore")]
-    public class IndexHandler<T> : Grain<IndexHandlerState>, IIndexHandler<T> where T : Grain
+    public class IndexHandler<T> : Grain, IIndexHandler<T> where T : Grain
     {
         private Immutable<IDictionary<string, IIndex>> _indexes;
         private Immutable<IDictionary<string, IIndexOps>> _indexOps;
+        private IIndexRegistry<T> _indexRegistry;
 
         public override async Task OnActivateAsync()
         {
-            await ReadStateAsync();
-            _indexes = State.indexes.AsImmutable();
-            IDictionary<string, IIndexOps> idxOps = new Dictionary<string, IIndexOps>();
-            foreach (KeyValuePair<string, IIndex> idx in State.indexes)
-            {
-                idxOps.Add(idx.Key, await idx.Value.GetIndexOps());
-            }
-            _indexOps = idxOps.AsImmutable();
+            IIndexRegistry<T> indexRegistry = GrainFactory.GetGrain<IIndexRegistry<T>>(string.Format("IndexRegistry<{0}>", typeof(T).Name));
+            await ReloadIndexes();
+            await OnActivateAsync();
         }
 
         public async Task<bool> ApplyIndexUpdates(IGrain updatedGrain, Immutable<IDictionary<string, IMemberUpdate>> iUpdates)
@@ -59,6 +54,17 @@ namespace Orleans.Indexing
         public Task<Immutable<IDictionary<string, IIndex>>> GetIndexes()
         {
         return Task.FromResult(_indexes);
+        }
+
+        public async Task ReloadIndexes()
+        {
+            _indexes = (await _indexRegistry.GetIndexes()).AsImmutable();
+            IDictionary<string, IIndexOps> idxOps = new Dictionary<string, IIndexOps>();
+            foreach (KeyValuePair<string, IIndex> idx in _indexes.Value)
+            {
+                idxOps.Add(idx.Key, await idx.Value.GetIndexOps());
+            }
+            _indexOps = idxOps.AsImmutable();
         }
     }
 }

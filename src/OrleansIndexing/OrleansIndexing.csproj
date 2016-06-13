@@ -54,7 +54,6 @@
     <Compile Include="IMemberUpdate.cs" />
     <Compile Include="IndexableGrain.cs" />
     <Compile Include="IndexHandler.cs" />
-    <Compile Include="IndexHandlerState.cs" />
     <Compile Include="IndexRegistryState.cs" />
     <Compile Include="IndexOps.cs" />
     <Compile Include="MemberUpdate.cs" />

@@ -35,6 +35,11 @@ namespace Orleans.Indexing
         /// <returns>the dictionary from indexID to index grain for all
         /// the indexes controlled by this index handler</returns>
         Task<Immutable<IDictionary<string, IIndex>>> GetIndexes();
+
+        /// <summary>
+        /// Reloads the list of indexes by looking into the index registry
+        /// </summary>
+        Task ReloadIndexes();
     }
 
     /// <summary>
