@@ -46,6 +46,7 @@
     </Compile>
     <Compile Include="GetGrainInterfaces.cs" />
     <Compile Include="IActivateDeactivateTestGrain.cs" />
+    <Compile Include="IPlayerGrain.cs" />
     <Compile Include="IChainedGrain.cs" />
     <Compile Include="ICircularStateTestGrain.cs" />
     <Compile Include="IActivateDeactivateWatcherGrain.cs" />

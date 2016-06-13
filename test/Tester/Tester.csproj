@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="CancellationTests\GrainCancellationTokenTests.cs" />
     <Compile Include="CollectionFixtures.cs" />
+    <Compile Include="IndexingTests\SimpleIndexingTests.cs" />
     <Compile Include="MethodInterceptionTests.cs" />
     <Compile Include="BaseClusterFixture.cs" />
     <Compile Include="General\JsonGrainTests.cs" />
@@ -222,6 +223,10 @@
     <ProjectReference Include="..\..\src\OrleansGoogleUtils\OrleansGoogleUtils.csproj">
       <Project>{b9196cb5-d356-4228-b73f-143f2eb80c64}</Project>
       <Name>OrleansGoogleUtils</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\OrleansIndexing\OrleansIndexing.csproj">
+      <Project>{1bfb2b84-9d88-4e32-bf20-3702f459e386}</Project>
+      <Name>OrleansIndexing</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\src\OrleansManager\OrleansManager.csproj">
       <Project>{60498b15-9700-4623-bda0-365238f2c1ad}</Project>
