@@ -13,7 +13,7 @@ namespace Orleans.Indexing
     /// The interface also specifies a method creating an update object
     /// after an update happens on the indexed grain
     /// </summary>
-    public interface IIndexOps
+    public interface IIndexUpdateGenerator
     {
         /// <summary>
         /// Extracts some part of the state of the grain that this
@@ -37,9 +37,9 @@ namespace Orleans.Indexing
         IMemberUpdate CreateMemberUpdate(Grain indexedGrain, object beforeImage);
     }
 
-    public abstract class IIndexOps<K,V> : IIndexOps where V : Grain
+    public abstract class IIndexUpdateGenerator<K,V> : IIndexUpdateGenerator where V : Grain
     {
-        object IIndexOps.ExtractIndexImage(Grain indexedGrain)
+        object IIndexUpdateGenerator.ExtractIndexImage(Grain indexedGrain)
         {
             return ExtractIndexImage((V)indexedGrain);
         }
@@ -53,7 +53,7 @@ namespace Orleans.Indexing
         /// that this index is interested in</returns>
         abstract public K ExtractIndexImage(V indexedGrain);
 
-        IMemberUpdate IIndexOps.CreateMemberUpdate(Grain indexedGrain, object beforeImage)
+        IMemberUpdate IIndexUpdateGenerator.CreateMemberUpdate(Grain indexedGrain, object beforeImage)
         {
             return CreateMemberUpdate((V)indexedGrain, (K)beforeImage);
         }

@@ -20,10 +20,10 @@ namespace Orleans.Indexing
         Task<bool> ApplyIndexUpdate(IGrain updatedGrain, Immutable<IMemberUpdate> iUpdate);
 
         /// <summary>
-        /// Each index has an IIndexOps specific to it, which this method returns.
+        /// Each index has an IIndexUpdateGenerator specific to it, which this method returns.
         /// </summary>
-        /// <returns>the IIndexOps instance of the current index.</returns>
-        Task<IIndexOps> GetIndexOps();
+        /// <returns>the IIndexUpdateGenerator instance of the current index.</returns>
+        Task<IIndexUpdateGenerator> GetIndexUpdateGenerator();
     }
 
     /// <summary>

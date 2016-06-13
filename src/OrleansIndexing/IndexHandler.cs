@@ -13,7 +13,7 @@ namespace Orleans.Indexing
     public class IndexHandler<T> : Grain, IIndexHandler<T> where T : Grain
     {
         private Immutable<IDictionary<string, IIndex>> _indexes;
-        private Immutable<IDictionary<string, IIndexOps>> _indexOps;
+        private Immutable<IDictionary<string, IIndexUpdateGenerator>> _iUpdateGens;
         private IIndexRegistry<T> _indexRegistry;
 
         public override async Task OnActivateAsync()
@@ -46,9 +46,9 @@ namespace Orleans.Indexing
             return true;
         }
 
-        public Task<Immutable<IDictionary<string, IIndexOps>>> GetIndexOps()
+        public Task<Immutable<IDictionary<string, IIndexUpdateGenerator>>> GetIndexUpdateGenerators()
         {
-            return Task.FromResult(_indexOps);
+            return Task.FromResult(_iUpdateGens);
         }
 
         public Task<Immutable<IDictionary<string, IIndex>>> GetIndexes()
@@ -59,12 +59,12 @@ namespace Orleans.Indexing
         public async Task ReloadIndexes()
         {
             _indexes = (await _indexRegistry.GetIndexes()).AsImmutable();
-            IDictionary<string, IIndexOps> idxOps = new Dictionary<string, IIndexOps>();
+            IDictionary<string, IIndexUpdateGenerator> iUpdateGens = new Dictionary<string, IIndexUpdateGenerator>();
             foreach (KeyValuePair<string, IIndex> idx in _indexes.Value)
             {
-                idxOps.Add(idx.Key, await idx.Value.GetIndexOps());
+                iUpdateGens.Add(idx.Key, await idx.Value.GetIndexUpdateGenerator());
             }
-            _indexOps = idxOps.AsImmutable();
+            _iUpdateGens = iUpdateGens.AsImmutable();
         }
     }
 }

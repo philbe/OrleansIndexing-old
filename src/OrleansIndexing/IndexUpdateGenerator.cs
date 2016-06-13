@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Orleans.Indexing
 {
-    public abstract class IndexOps<K,V> : IIndexOps<K,V> where V : Grain
+    public abstract class IndexUpdateGenerator<K,V> : IIndexUpdateGenerator<K,V> where V : Grain
     {
         public override IMemberUpdate CreateMemberUpdate(V g, K befImg)
         {

@@ -27,7 +27,7 @@ namespace Orleans.Indexing
         /// </summary>
         /// <returns>the dictionary from indexID to index operation for all
         /// the  indexes controlled by this index handler</returns>
-        Task<Immutable<IDictionary<string, IIndexOps>>> GetIndexOps();
+        Task<Immutable<IDictionary<string, IIndexUpdateGenerator>>> GetIndexUpdateGenerators();
 
         /// <summary>
         /// Exposes the indexes handled by this index handler

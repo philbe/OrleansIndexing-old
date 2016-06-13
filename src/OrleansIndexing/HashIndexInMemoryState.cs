@@ -13,6 +13,6 @@ namespace Orleans.Indexing
 
         public IDictionary<K, HashIndexEntry<V>> IndexMap { set; get; }
 
-        public IIndexOps IndexOps { set; get; }
+        public IIndexUpdateGenerator IndexUpdateGen { set; get; }
     }
 }

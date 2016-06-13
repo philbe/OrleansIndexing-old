@@ -63,9 +63,9 @@ namespace Orleans.Indexing
             return Task.FromResult(true);
         }
 
-        public Task<IIndexOps> GetIndexOps()
+        public Task<IIndexUpdateGenerator> GetIndexUpdateGenerator()
         {
-            return Task.FromResult(State.IndexOps);
+            return Task.FromResult(State.IndexUpdateGen);
         }
 
         public Task<bool> IsUnique()
