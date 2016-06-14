@@ -32,6 +32,6 @@ namespace Orleans.Indexing
         /// </summary>
         /// <param name="key">the lookup key</param>
         /// <returns>the result of lookup into the hash-index</returns>
-        Task<V> LookupUnique(Immutable<K> key);
+        Task<V> LookupUnique(K key);
     }
 }

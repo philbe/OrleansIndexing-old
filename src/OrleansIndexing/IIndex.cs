@@ -57,6 +57,6 @@ namespace Orleans.Indexing
         /// </summary>
         /// <param name="key">the lookup key</param>
         /// <returns>the result of lookup into the hash-index</returns>
-        Task<IEnumerable<V>> Lookup(Immutable<K> key);
+        Task<IEnumerable<V>> Lookup(K key);
     }
 }
