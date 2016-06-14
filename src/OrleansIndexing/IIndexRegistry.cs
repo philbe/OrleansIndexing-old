@@ -16,6 +16,13 @@ namespace Orleans.Indexing
         /// <returns>the dictionary from indexID to index grain for all
         /// the indexes defined under this index registry</returns>
         Task<IDictionary<string, IIndex>> GetIndexes();
+
+        /// <summary>
+        /// Registers a new index in this index registry
+        /// </summary>
+        /// <param name="indexName">name of the index</param>
+        /// <param name="index">a reference to the index grain</param>
+        Task<bool> RegisterIndex(string indexName, IIndex index);
     }
 
     /// <summary>

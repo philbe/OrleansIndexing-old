@@ -23,5 +23,16 @@ namespace Orleans.Indexing
         {
             return Task.FromResult(State.indexes);
         }
+
+        public async Task<bool> RegisterIndex(string indexName, IIndex index)
+        {
+            if (State.indexes.ContainsKey(indexName))
+            {
+                throw new Exception(string.Format("Index with name ({0}) and type ({1}) already exists.", indexName, index.GetType()));
+            }
+            State.indexes.Add(indexName, index);
+            await base.WriteStateAsync();
+            return true;
+        }
     }
 }
