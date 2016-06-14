@@ -61,11 +61,10 @@ namespace Orleans.Indexing
             }
         }
 
-        public static async Task<IIdxType> CreateAndRegisterIndex<IIdxType, IndexUpdateGenType>(string indexName) where IIdxType : IIndex where IndexUpdateGenType : IIndexUpdateGenerator, new()
+        public static async Task<bool> CreateAndRegisterIndex<IIdxType, IndexUpdateGenType>(string indexName) where IIdxType : IIndex where IndexUpdateGenType : IIndexUpdateGenerator, new()
         {
-            IIdxType index = await CreateIndex<IIdxType, IndexUpdateGenType>(indexName);
-            await RegisterIndex(indexName, index);
-            return index;
+            IIndex index = await CreateIndex<IIdxType, IndexUpdateGenType>(indexName);
+            return await RegisterIndex(indexName, index);
         }
 
         private static string GetIndexGrainID(Type grainType, string indexName)
