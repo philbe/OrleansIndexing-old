@@ -9,6 +9,7 @@ namespace Orleans.Indexing
     /// <typeparam name="V">type of grain that is being indexed</typeparam>
     public class HashIndexInMemoryState<K, V> where V : IGrain
     {
+        //public string Name { set; get; }
         public bool IsUnique { set; get; }
 
         public IDictionary<K, HashIndexEntry<V>> IndexMap { set; get; }

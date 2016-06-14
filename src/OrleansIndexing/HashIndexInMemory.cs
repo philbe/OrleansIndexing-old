@@ -18,6 +18,17 @@ namespace Orleans.Indexing
         //private Func<K, K, bool> _equalsLambda = ((k1,k2) => k1.Equals(k2));
         //private Func<K, long> _hashLambda = (k => k.GetHashCode());
 
+        //public Task<string> GetIndexName()
+        //{
+        //    return Task.FromResult(State.Name);
+        //}
+
+        //public Task SetIndexName(string indexName)
+        //{
+        //    State.Name = indexName;
+        //    return base.WriteStateAsync();
+        //}
+
         public Task<bool> ApplyIndexUpdate(IGrain g, Immutable<IMemberUpdate> iUpdate)
         {
             var updatedGrain = (V)g;
@@ -66,6 +77,12 @@ namespace Orleans.Indexing
         public Task<IIndexUpdateGenerator> GetIndexUpdateGenerator()
         {
             return Task.FromResult(State.IndexUpdateGen);
+        }
+
+        public Task SetIndexUpdateGenerator(IIndexUpdateGenerator iUpdateGen)
+        {
+            State.IndexUpdateGen = iUpdateGen;
+            return base.WriteStateAsync();
         }
 
         public Task<bool> IsUnique()

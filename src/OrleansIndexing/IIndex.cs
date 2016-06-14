@@ -12,6 +12,20 @@ namespace Orleans.Indexing
     public interface IIndex : IGrainWithStringKey
     {
         /// <summary>
+        /// This method gets the name of the index, which is
+        /// the identifier for the index
+        /// </summary>
+        /// <returns>the index name</returns>
+        //Task<string> GetIndexName();
+
+        /// <summary>
+        /// This method sets the name of the index, which is
+        /// the identifier for the index
+        /// </summary>
+        /// <param name="indexName">the index name</param>
+        //Task SetIndexName(string indexName);
+
+        /// <summary>
         /// This method applies a given update to the current index.
         /// </summary>
         /// <param name="updatedGrain">the grain that issued the update</param>
@@ -24,6 +38,12 @@ namespace Orleans.Indexing
         /// </summary>
         /// <returns>the IIndexUpdateGenerator instance of the current index.</returns>
         Task<IIndexUpdateGenerator> GetIndexUpdateGenerator();
+
+        /// <summary>
+        /// Each index has an IIndexUpdateGenerator specific to it, which this method sets it.
+        /// </summary>
+        /// <param name="iUpdateGen">the update generator for this index</param>
+        Task SetIndexUpdateGenerator(IIndexUpdateGenerator iUpdateGen);
     }
 
     /// <summary>
