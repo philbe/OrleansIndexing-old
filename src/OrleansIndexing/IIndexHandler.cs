@@ -46,7 +46,7 @@ namespace Orleans.Indexing
     /// The grain interface for the index handler grain,
     /// which indexes a single grain.
     /// </summary>
-    public interface IIndexHandler<T> : IIndexHandler where T : Grain
+    public interface IIndexHandler<T> : IIndexHandler where T : IGrain
     {
     }
 }

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Orleans.Indexing
 {
     [StatelessWorker]
-    public class IndexHandler<T> : Grain, IIndexHandler<T> where T : Grain
+    public class IndexHandler<T> : Grain, IIndexHandler<T> where T : IGrain
     {
         private Immutable<IDictionary<string, IIndex>> _indexes;
         private Immutable<IDictionary<string, IIndexUpdateGenerator>> _iUpdateGens;

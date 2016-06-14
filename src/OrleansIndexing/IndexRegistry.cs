@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 namespace Orleans.Indexing
 {
     [StatelessWorker]
-    [StorageProvider(ProviderName = "IndexingStore")]
-    public class IndexRegistry<T> : Grain<IndexRegistryState>, IIndexRegistry<T> where T : Grain
+    //[StorageProvider(ProviderName = "IndexingStore")]
+    public class IndexRegistry<T> : Grain<IndexRegistryState>, IIndexRegistry<T> where T : IGrain
     {
         public override async Task OnActivateAsync()
         {

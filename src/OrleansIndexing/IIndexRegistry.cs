@@ -29,7 +29,7 @@ namespace Orleans.Indexing
     /// The grain interface for the index registry grain,
     /// which contains the indexes for a single grain.
     /// </summary>
-    public interface IIndexRegistry<T> : IIndexRegistry where T : Grain
+    public interface IIndexRegistry<T> : IIndexRegistry where T : IGrain
     {
     }
 }
