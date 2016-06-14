@@ -18,6 +18,13 @@ namespace Orleans.Indexing
         //private Func<K, K, bool> _equalsLambda = ((k1,k2) => k1.Equals(k2));
         //private Func<K, long> _hashLambda = (k => k.GetHashCode());
 
+        public override async Task OnActivateAsync()
+        {
+            //await ReadStateAsync();
+            if (State.IndexMap == null) State.IndexMap = new Dictionary<K, HashIndexEntry<V>>();
+            await base.OnActivateAsync();
+        }
+
         //public Task<string> GetIndexName()
         //{
         //    return Task.FromResult(State.Name);
@@ -90,12 +97,19 @@ namespace Orleans.Indexing
             return Task.FromResult(State.IsUnique);
         }
 
-        public Task<IEnumerable<V>> Lookup(Immutable<K> key)
+        public Task<IEnumerable<V>> Lookup(K key)
         {
-            return Task.FromResult((IEnumerable<V>) State.IndexMap[key.Value].Values);
+            if (State.IndexMap.ContainsKey(key))
+            {
+                return Task.FromResult((IEnumerable<V>)State.IndexMap[key].Values);
+            }
+            else
+            {
+                return Task.FromResult(Enumerable.Empty<V>());
+            }
         }
 
-        public async Task<V> LookupUnique(Immutable<K> key)
+        public async Task<V> LookupUnique(K key)
         {
             return (await Lookup(key)).GetEnumerator().Current;
         }
