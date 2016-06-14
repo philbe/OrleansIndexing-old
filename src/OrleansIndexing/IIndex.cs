@@ -9,7 +9,7 @@ namespace Orleans.Indexing
     /// This interface defines the functionality
     /// that is required for an index implementation.
     /// </summary>
-    public interface IIndex : IGrain
+    public interface IIndex : IGrainWithStringKey
     {
         /// <summary>
         /// This method applies a given update to the current index.
