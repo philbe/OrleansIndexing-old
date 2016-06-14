@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Orleans;
-using Orleans.Runtime;
+using System.Collections.Generic;
+using System.Linq;
 using UnitTests.GrainInterfaces;
 using UnitTests.Tester;
 using Xunit;
 using Tester;
+using Orleans;
+using Orleans.Runtime;
 using Orleans.Indexing;
 using UnitTests.Grains;
 
@@ -34,20 +36,41 @@ namespace UnitTests.General
         [Fact, TestCategory("BVT"), TestCategory("Indexing")]
         public async Task Test_Indexing_AddOneIndex()
         {
-            var isLocIndexCreated = await IndexFactory.CreateAndRegisterIndex<IHashIndexInMemory<string, IPlayerGrain>, PlayerLocIndexGen>("locIdx1");
-            Assert.IsTrue(isLocIndexCreated);
-
+            bool isLocIndexCreated = await IndexFactory.CreateAndRegisterIndex<IHashIndexInMemory<string, IPlayerGrain>, PlayerLocIndexGen>("locIdx1");
+            Assert.True(isLocIndexCreated);
         }
 
         [Fact, TestCategory("BVT"), TestCategory("Indexing")]
         public async Task Test_Indexing_AddTwoIndexes()
         {
-            var isLocIndexCreated = await IndexFactory.CreateAndRegisterIndex<IHashIndexInMemory<string, IPlayerGrain>, PlayerLocIndexGen>("locIdx2");
-            var isScoreIndexCreated = await IndexFactory.CreateAndRegisterIndex<IHashIndexInMemory<int, IPlayerGrain>, PlayerScoreIndexGen>("scoreIdx2");
+            bool isLocIndexCreated = await IndexFactory.CreateAndRegisterIndex<IHashIndexInMemory<string, IPlayerGrain>, PlayerLocIndexGen>("locIdx2");
+            bool isScoreIndexCreated = await IndexFactory.CreateAndRegisterIndex<IHashIndexInMemory<int, IPlayerGrain>, PlayerScoreIndexGen>("scoreIdx2");
 
-            Assert.IsTrue(isLocIndexCreated);
-            Assert.IsTrue(isScoreIndexCreated);
+            Assert.True(isLocIndexCreated);
+            Assert.True(isScoreIndexCreated);
+        }
 
+        [Fact, TestCategory("BVT"), TestCategory("Indexing")]
+        public async Task Test_Indexing_GetIndex()
+        {
+            bool isLocIndexCreated = await IndexFactory.CreateAndRegisterIndex<IHashIndexInMemory<string, IPlayerGrain>, PlayerLocIndexGen>("locIdx3");
+            Assert.True(isLocIndexCreated);
+
+            IIndex<string, IPlayerGrain> locIdx = IndexFactory.GetIndex<string, IPlayerGrain>("locIdx3");
+
+            Assert.NotNull(locIdx);
+        }
+
+        [Fact, TestCategory("BVT"), TestCategory("Indexing")]
+        public async Task Test_Indexing_IndexLookup()
+        {
+            bool isLocIndexCreated = await IndexFactory.CreateAndRegisterIndex<IHashIndexInMemory<string, IPlayerGrain>, PlayerLocIndexGen>("locIdx4");
+            Assert.True(isLocIndexCreated);
+
+            IIndex<string, IPlayerGrain> locIdx = IndexFactory.GetIndex<string, IPlayerGrain>("locIdx4");
+
+            IEnumerable<IPlayerGrain> result = await locIdx.Lookup("Redmond");
+            Assert.Equal(result.AsQueryable().Count(), 0);
         }
     }
 }
