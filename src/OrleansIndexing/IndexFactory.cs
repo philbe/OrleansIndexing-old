@@ -14,9 +14,7 @@ namespace Orleans.Indexing
         public static IIndex<K, V> GetIndex<K, V>(string indexName) where V : IGrain
         {
             Type grainType = typeof(V);
-            return GrainFactoryBase.MakeGrainReference_FromType(
-                baseTypeCode => TypeCodeMapper.ComposeGrainId(baseTypeCode, GetIndexGrainID(grainType, indexName), typeof(IIndex)),
-                typeof(IIndex)).AsReference<IIndex<K, V>>();
+            return GetGrain<IIndex<K, V>>(GetIndexGrainID(grainType, indexName), typeof(IIndex<K, V>));
         }
 
         public static async Task<IIdxType> CreateIndex<IIdxType, IndexUpdateGenType>(string indexName) where IIdxType : IIndex where IndexUpdateGenType : IIndexUpdateGenerator, new()
@@ -28,9 +26,8 @@ namespace Orleans.Indexing
                 Type[] indexTypeArgs = iIndexType.GetGenericArguments();
                 //Type keyType = indexTypeArgs[0];
                 Type grainType = indexTypeArgs[1];
-                IIdxType indexGrain =  GrainFactoryBase.MakeGrainReference_FromType(
-                    baseTypeCode => TypeCodeMapper.ComposeGrainId(baseTypeCode, GetIndexGrainID(grainType, indexName), typeof(IIndex)),
-                    typeof(IIndex)).AsReference<IIdxType>();
+
+                IIdxType indexGrain = GetGrain<IIdxType>(GetIndexGrainID(grainType, indexName), iIndexType);
                 var t1 = indexGrain.SetIndexUpdateGenerator(new IndexUpdateGenType());
                 //var t2 = indexGrain.SetIndexName(indexName);
                 await Task.WhenAll(new Task[] { t1/*, t2*/ });
@@ -51,7 +48,10 @@ namespace Orleans.Indexing
                 Type[] indexTypeArgs = iIndexType.GetGenericArguments();
                 //Type keyType = indexTypeArgs[0];
                 Type grainType = indexTypeArgs[1];
-                IIndexRegistry indexReg = GrainClient.GrainFactory.GetGrain<IIndexRegistry>(TypeUtils.GetFullName(grainType));
+
+                Type indexRegType = typeof(IIndexRegistry<>).MakeGenericType(new Type[] { grainType } );
+
+                IIndexRegistry indexReg = GetGrain<IIndexRegistry<IGrain>>(TypeUtils.GetFullName(grainType), indexRegType);
                 //string indexName = await index.GetIndexName();
                 return indexReg.RegisterIndex(indexName, index);
             }
@@ -63,13 +63,20 @@ namespace Orleans.Indexing
 
         public static async Task<bool> CreateAndRegisterIndex<IIdxType, IndexUpdateGenType>(string indexName) where IIdxType : IIndex where IndexUpdateGenType : IIndexUpdateGenerator, new()
         {
-            IIndex index = await CreateIndex<IIdxType, IndexUpdateGenType>(indexName);
+            IIdxType index = await CreateIndex<IIdxType, IndexUpdateGenType>(indexName);
             return await RegisterIndex(indexName, index);
         }
 
         private static string GetIndexGrainID(Type grainType, string indexName)
         {
             return string.Format("{0}-{1}", TypeUtils.GetFullName(grainType), indexName);
+        }
+
+        private static IGrainType GetGrain<IGrainType>(string grainID, Type grainInterfaceType)
+        {
+            return GrainFactoryBase.MakeGrainReference_FromType(
+                    baseTypeCode => TypeCodeMapper.ComposeGrainId(baseTypeCode, grainID, grainInterfaceType),
+                    grainInterfaceType).AsReference<IGrainType>();
         }
     }
 }
