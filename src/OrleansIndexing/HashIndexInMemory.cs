@@ -13,7 +13,7 @@ namespace Orleans.Indexing
     /// </summary>
     /// <typeparam name="K"></typeparam>
     /// <typeparam name="V"></typeparam>
-    public class HashIndexInMemory<K, V> : Grain<HashIndexInMemoryState<K,V>>, IHashIndex<K, V> where V : IGrain
+    public class HashIndexInMemory<K, V> : Grain<HashIndexInMemoryState<K,V>>, IHashIndexInMemory<K, V> where V : IGrain
     {
         //private Func<K, K, bool> _equalsLambda = ((k1,k2) => k1.Equals(k2));
         //private Func<K, long> _hashLambda = (k => k.GetHashCode());
