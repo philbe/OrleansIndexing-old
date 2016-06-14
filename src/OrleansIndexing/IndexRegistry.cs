@@ -26,6 +26,7 @@ namespace Orleans.Indexing
 
         public async Task<bool> RegisterIndex(string indexName, IIndex index)
         {
+            if (State.indexes == null) State.indexes = new Dictionary<string, IIndex>();
             if (State.indexes.ContainsKey(indexName))
             {
                 throw new Exception(string.Format("Index with name ({0}) and type ({1}) already exists.", indexName, index.GetType()));
