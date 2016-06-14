@@ -15,6 +15,7 @@ namespace Orleans.Indexing
     /// This class assumes that befImg and aftImg passed to it won't be
     /// altered later on, so they are immutable.
     /// </summary>
+    [Serializable]
     public class MemberUpdate : IMemberUpdate
     {
         private Immutable<object> _befImg;

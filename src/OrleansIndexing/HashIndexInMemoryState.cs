@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Orleans.Indexing
 {
@@ -7,6 +8,7 @@ namespace Orleans.Indexing
     /// </summary>
     /// <typeparam name="K">type of hash-index key</typeparam>
     /// <typeparam name="V">type of grain that is being indexed</typeparam>
+    [Serializable]
     public class HashIndexInMemoryState<K, V> where V : IGrain
     {
         //public string Name { set; get; }

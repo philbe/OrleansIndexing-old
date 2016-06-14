@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace Orleans.Indexing
 {
+    [Serializable]
     public abstract class IndexUpdateGenerator<K,V> : IIndexUpdateGenerator<K,V> where V : Grain
     {
         public override IMemberUpdate CreateMemberUpdate(V g, K befImg)
