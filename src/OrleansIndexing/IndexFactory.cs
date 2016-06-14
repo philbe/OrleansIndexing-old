@@ -14,7 +14,7 @@ namespace Orleans.Indexing
         public static IIndex<K, V> GetIndex<K, V>(string indexName) where V : IGrain
         {
             Type grainType = typeof(V);
-            return GetGrain<IIndex<K, V>>(GetIndexGrainID(grainType, indexName), typeof(IIndex<K, V>));
+            return GrainClient.GrainFactory.GetGrain<IIndex<K, V>>(GetIndexGrainID(grainType, indexName), typeof(IIndex<K, V>));
         }
 
         public static async Task<IIdxType> CreateIndex<IIdxType, IndexUpdateGenType>(string indexName) where IIdxType : IIndex where IndexUpdateGenType : IIndexUpdateGenerator, new()
@@ -27,7 +27,7 @@ namespace Orleans.Indexing
                 //Type keyType = indexTypeArgs[0];
                 Type grainType = indexTypeArgs[1];
 
-                IIdxType indexGrain = GetGrain<IIdxType>(GetIndexGrainID(grainType, indexName), iIndexType);
+                IIdxType indexGrain = GrainClient.GrainFactory.GetGrain<IIdxType>(GetIndexGrainID(grainType, indexName), iIndexType);
                 var t1 = indexGrain.SetIndexUpdateGenerator(new IndexUpdateGenType());
                 //var t2 = indexGrain.SetIndexName(indexName);
                 await Task.WhenAll(new Task[] { t1/*, t2*/ });
@@ -51,7 +51,7 @@ namespace Orleans.Indexing
 
                 Type indexRegType = typeof(IIndexRegistry<>).MakeGenericType(new Type[] { grainType } );
 
-                IIndexRegistry indexReg = GetGrain<IIndexRegistry<IGrain>>(TypeUtils.GetFullName(grainType), indexRegType);
+                IIndexRegistry indexReg = GrainClient.GrainFactory.GetGrain<IIndexRegistry<IGrain>>(TypeUtils.GetFullName(grainType), indexRegType);
                 //string indexName = await index.GetIndexName();
                 return indexReg.RegisterIndex(indexName, index);
             }
@@ -70,13 +70,6 @@ namespace Orleans.Indexing
         private static string GetIndexGrainID(Type grainType, string indexName)
         {
             return string.Format("{0}-{1}", TypeUtils.GetFullName(grainType), indexName);
-        }
-
-        private static IGrainType GetGrain<IGrainType>(string grainID, Type grainInterfaceType)
-        {
-            return GrainFactoryBase.MakeGrainReference_FromType(
-                    baseTypeCode => TypeCodeMapper.ComposeGrainId(baseTypeCode, grainID, grainInterfaceType),
-                    grainInterfaceType).AsReference<IGrainType>();
         }
     }
 }
