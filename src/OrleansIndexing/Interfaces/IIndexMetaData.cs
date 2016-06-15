@@ -10,13 +10,22 @@ namespace Orleans.Indexing
     [Serializable]
     public class IndexMetaData
     {
-        Type _indexType;
+        private Type _indexType;
 
+        /// <summary>
+        /// Constructs an IndexMetaData, which currently only
+        /// consists of the type of the index
+        /// </summary>
+        /// <param name="indexType"></param>
         public IndexMetaData(Type indexType)
         {
             _indexType = indexType;
         }
 
+        /// <summary>
+        /// Returns the type of the index
+        /// </summary>
+        /// <returns>the type of the index</returns>
         public Type getIndexType()
         {
             return _indexType;
