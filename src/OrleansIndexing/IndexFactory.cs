@@ -11,12 +11,19 @@ namespace Orleans.Indexing
 {
     public class IndexFactory
     {
-        public static IIndex<K, V> GetIndex<K, V>(string indexName) where V : IGrain
+        /// <summary>
+        /// Gets an IIndex<K,V> given its name
+        /// </summary>
+        /// <typeparam name="K">key type of the index</typeparam>
+        /// <typeparam name="V">value type of the index, which is
+        /// the grain being indexed</typeparam>
+        /// <param name="indexName"></param>
+        /// <returns></returns>
+        public static async Task<IIndex<K, V>> GetIndex<K, V>(string indexName) where V : IGrain
         {
-            Type grainType = typeof(V);
-            return GrainClient.GrainFactory.GetGrain<IIndex<K, V>>(GetIndexGrainID(grainType, indexName), typeof(IIndex<K, V>));
+            return (await GetIndexHandler<V>().GetIndex(indexName)).AsReference<IIndex<K,V>>();
         }
-
+        
         public static async Task<IIdxType> CreateIndex<IIdxType, IndexUpdateGenType>(string indexName) where IIdxType : IIndex where IndexUpdateGenType : IIndexUpdateGenerator, new()
         {
             Type idxType = typeof(IIdxType);
@@ -27,10 +34,11 @@ namespace Orleans.Indexing
                 //Type keyType = indexTypeArgs[0];
                 Type grainType = indexTypeArgs[1];
 
-                IIdxType indexGrain = GrainClient.GrainFactory.GetGrain<IIdxType>(GetIndexGrainID(grainType, indexName), iIndexType);
-                var t1 = indexGrain.SetIndexUpdateGenerator(new IndexUpdateGenType());
+                IIdxType indexGrain = GrainClient.GrainFactory.GetGrain<IIdxType>(GetIndexGrainID(grainType, indexName));
+                await indexGrain.SetIndexUpdateGenerator(new IndexUpdateGenType());
+                //var t1 = indexGrain.SetIndexUpdateGenerator(new IndexUpdateGenType());
                 //var t2 = indexGrain.SetIndexName(indexName);
-                await Task.WhenAll(new Task[] { t1/*, t2*/ });
+                //await Task.WhenAll(new Task[] { t1/*, t2*/ });
                 return indexGrain;
             }
             else
