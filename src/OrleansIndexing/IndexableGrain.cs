@@ -3,6 +3,7 @@ using Orleans.Concurrency;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
+using Orleans.Runtime;
 
 namespace Orleans.Indexing
 {
@@ -26,7 +27,9 @@ namespace Orleans.Indexing
         /// an immutable copy of before-images of the indexed fields
         /// </summary>
         private Immutable<IDictionary<string, object>> _beforeImages;
-        
+
+        private Type _iGrainType = null;
+
         public override async Task OnActivateAsync()
         {
             IIndexHandler handler = GetIndexHandler();
@@ -72,7 +75,41 @@ namespace Orleans.Indexing
 
         protected virtual IIndexHandler GetIndexHandler()
         {
-            return GrainFactory.GetGrain<IIndexHandler>(string.Format("IndexHandler<{0}>", GetType().Name));
+            Type thisIGrainType = getIGrainType();
+            Type typedIndexHandlerType = typeof(IIndexHandler<>).MakeGenericType(thisIGrainType);
+            return GrainFactory.GetGrain<IIndexHandler>(TypeUtils.GetFullName(thisIGrainType), typedIndexHandlerType, typedIndexHandlerType);
+        }
+
+        /// <summary>
+        /// This method finds the IGrain interface
+        /// which is the lowest one in the hierarchy
+        /// </summary>
+        /// <returns>lowest IGrain interface in the hierarchy
+        /// that the current class implements</returns>
+        private Type getIGrainType()
+        {
+            if (_iGrainType == null)
+            {
+                Type iGrainTp = typeof(IGrain);
+                Type iIndexableGrainTp = typeof(IIndexableGrain);
+                Type typedIIndexableGrainTp = typeof(IIndexableGrain<T>);
+                Type[] interfaces = this.GetType().GetInterfaces();
+                int numInterfaces = interfaces.Length;
+
+                Type thisIGrainType = iGrainTp;
+                for (int i = 0; i < numInterfaces; ++i)
+                {
+                    Type otherIGrainType = interfaces[i];
+                    if (otherIGrainType == iIndexableGrainTp || otherIGrainType == typedIIndexableGrainTp)
+                        continue;
+                    if (thisIGrainType.IsAssignableFrom(otherIGrainType))
+                    {
+                        thisIGrainType = otherIGrainType;
+                    }
+                }
+                _iGrainType = thisIGrainType == iGrainTp ? typedIIndexableGrainTp : thisIGrainType;
+            }
+            return _iGrainType;
         }
 
         private void AddMissingBeforeImages()
