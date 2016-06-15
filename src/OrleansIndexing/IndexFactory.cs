@@ -47,9 +47,9 @@ namespace Orleans.Indexing
             {
                 Type[] indexTypeArgs = iIndexType.GetGenericArguments();
                 //Type keyType = indexTypeArgs[0];
-                Type grainType = indexTypeArgs[1];
+                Type iGrainType = indexTypeArgs[1];
 
-                Type indexRegType = typeof(IIndexRegistry<>).MakeGenericType(new Type[] { grainType } );
+                Type indexRegType = typeof(IIndexRegistry<>).MakeGenericType(new Type[] { iGrainType } );
 
                 IIndexRegistry indexReg = GrainClient.GrainFactory.GetGrain<IIndexRegistry<IIndexableGrain>>(TypeUtils.GetFullName(iGrainType), indexRegType);
                 //string indexName = await index.GetIndexName();

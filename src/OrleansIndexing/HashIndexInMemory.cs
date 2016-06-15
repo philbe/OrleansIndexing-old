@@ -38,7 +38,7 @@ namespace Orleans.Indexing
 
         public Task<bool> ApplyIndexUpdate(IGrain g, Immutable<IMemberUpdate> iUpdate)
         {
-            var updatedGrain = (V)g;
+            var updatedGrain = g.AsReference<V>();
             var updt = (MemberUpdate)iUpdate.Value;
             var opType = updt.GetOperationType();
             if (opType == OperationType.Update)
@@ -56,7 +56,7 @@ namespace Orleans.Indexing
                             HashIndexEntry<V> aftEntry = State.IndexMap[aftImg];
                             if(State.IsUnique && aftEntry.Values.Count > 0)
                             {
-                                throw new Exception(string.Format("The uniqueness property of index is violated for before-image = {0}, after-image = {1} and grain = {2}", befImg, aftImg, updatedGrain.GetPrimaryKey()));
+                                throw new Exception(string.Format("The uniqueness property of index is violated after an update operation for before-image = {0}, after-image = {1} and grain = {2}", befImg, aftImg, updatedGrain.GetPrimaryKey()));
                             }
                             befEntry.Values.Remove(updatedGrain);
                             aftEntry.Values.Add(updatedGrain);
@@ -67,6 +67,46 @@ namespace Orleans.Indexing
                             aftEntry.Values.Add(updatedGrain);
                             State.IndexMap.Add(aftImg, aftEntry);
                         }
+                    }
+                    else
+                    {
+                        throw new Exception(string.Format("The index entry does not exist for before-image = {0} and grain = {1}", befImg, updatedGrain.GetPrimaryKey()));
+                    }
+                }
+                else
+                {
+                    throw new Exception(string.Format("The index entry does not exist for before-image = {0} and grain = {1}", befImg, updatedGrain.GetPrimaryKey()));
+                }
+            }
+            else if (opType == OperationType.Insert)
+            {
+                K aftImg = (K)updt.GetAfterImage();
+                if (State.IndexMap.ContainsKey(aftImg))
+                {
+                    HashIndexEntry<V> aftEntry = State.IndexMap[aftImg];
+                    if (State.IsUnique && aftEntry.Values.Count > 0)
+                    {
+                        throw new Exception(string.Format("The uniqueness property of index is violated after an insert operation for after-image = {1} and grain = {2}", aftImg, updatedGrain.GetPrimaryKey()));
+                    }
+                    aftEntry.Values.Add(updatedGrain);
+                }
+                else
+                {
+                    HashIndexEntry<V> aftEntry = new HashIndexEntry<V>();
+                    aftEntry.Values.Add(updatedGrain);
+                    State.IndexMap.Add(aftImg, aftEntry);
+                }
+            }
+            else if (opType == OperationType.Delete)
+            {
+                K befImg = (K)updt.GetBeforeImage();
+
+                if (State.IndexMap.ContainsKey(befImg))
+                {
+                    HashIndexEntry<V> befEntry = State.IndexMap[befImg];
+                    if (befEntry.Values.Contains(updatedGrain))
+                    {
+                        befEntry.Values.Remove(updatedGrain);
                     }
                     else
                     {
