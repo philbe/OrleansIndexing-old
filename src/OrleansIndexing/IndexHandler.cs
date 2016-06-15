@@ -27,7 +27,7 @@ namespace Orleans.Indexing
         {
             var updates = iUpdates.Value;
             var idxs = _indexes.Value;
-            if (!updates.Keys.Equals(idxs.Keys)) return false;
+            if (!updates.Keys.ToSet().SetEquals(idxs.Keys)) return false;
             IList<Task<bool>> updateIndexTasks = new List<Task<bool>>();
             foreach (KeyValuePair<string, IMemberUpdate> updt in updates)
             {
