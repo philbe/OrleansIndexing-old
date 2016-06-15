@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 
 namespace Orleans.Indexing
 {
-    [StatelessWorker]
     //[StorageProvider(ProviderName = "IndexingStore")]
     public class IndexRegistry<T> : Grain<IndexRegistryState>, IIndexRegistry<T> where T : IGrain
     {
