@@ -13,7 +13,7 @@ namespace Orleans.Indexing
     [StatelessWorker]
     public class IndexHandler<T> : Grain, IIndexHandler<T> where T : IGrain
     {
-        private Immutable<IDictionary<string, IIndex>> _indexes;
+        private Immutable<IDictionary<string, Tuple<IIndex,IndexMetaData>>> _indexes;
         private Immutable<IDictionary<string, IIndexUpdateGenerator>> _iUpdateGens;
         private IIndexRegistry<T> _indexRegistry;
 
@@ -31,7 +31,7 @@ namespace Orleans.Indexing
             IList<Task<bool>> updateIndexTasks = new List<Task<bool>>();
             foreach (KeyValuePair<string, IMemberUpdate> updt in updates)
             {
-                updateIndexTasks.Add(idxs[updt.Key].ApplyIndexUpdate(updatedGrain, updt.Value.AsImmutable()));
+                updateIndexTasks.Add(idxs[updt.Key].Item1.ApplyIndexUpdate(updatedGrain, updt.Value.AsImmutable()));
             }
             await Task.WhenAll(updateIndexTasks);
             bool allSuccessful = true;
@@ -51,7 +51,7 @@ namespace Orleans.Indexing
             return Task.FromResult(_iUpdateGens);
         }
 
-        public Task<Immutable<IDictionary<string, IIndex>>> GetIndexes()
+        public Task<Immutable<IDictionary<string, Tuple<IIndex, IndexMetaData>>>> GetIndexes()
         {
         return Task.FromResult(_indexes);
         }
@@ -60,9 +60,9 @@ namespace Orleans.Indexing
         {
             _indexes = (await _indexRegistry.GetIndexes()).AsImmutable();
             IDictionary<string, IIndexUpdateGenerator> iUpdateGens = new Dictionary<string, IIndexUpdateGenerator>();
-            foreach (KeyValuePair<string, IIndex> idx in _indexes.Value)
+            foreach (KeyValuePair<string, Tuple<IIndex, IndexMetaData>> idx in _indexes.Value)
             {
-                iUpdateGens.Add(idx.Key, await idx.Value.GetIndexUpdateGenerator());
+                iUpdateGens.Add(idx.Key, await idx.Value.Item1.GetIndexUpdateGenerator());
             }
             _iUpdateGens = iUpdateGens.AsImmutable();
         }

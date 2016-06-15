@@ -15,22 +15,22 @@ namespace Orleans.Indexing
         public override async Task OnActivateAsync()
         {
             //await ReadStateAsync();
-            if (State.indexes == null) State.indexes = new Dictionary<string, IIndex>();
+            if (State.indexes == null) State.indexes = new Dictionary<string, Tuple<IIndex, IndexMetaData>>();
             await base.OnActivateAsync();
         }
 
-        public Task<IDictionary<string, IIndex>> GetIndexes()
+        public Task<IDictionary<string, Tuple<IIndex, IndexMetaData>>> GetIndexes()
         {
             return Task.FromResult(State.indexes);
         }
 
-        public async Task<bool> RegisterIndex(string indexName, IIndex index)
+        public async Task<bool> RegisterIndex(string indexName, IIndex index, IndexMetaData indexMetaData)
         {
             if (State.indexes.ContainsKey(indexName))
             {
                 throw new Exception(string.Format("Index with name ({0}) and type ({1}) already exists.", indexName, index.GetType()));
             }
-            State.indexes.Add(indexName, index);
+            State.indexes.Add(indexName, Tuple.Create((IIndex)index, indexMetaData));
             await base.WriteStateAsync();
             return true;
         }

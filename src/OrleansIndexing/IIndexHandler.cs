@@ -1,5 +1,5 @@
-﻿using Orleans;
-using Orleans.Concurrency;
+﻿using Orleans.Concurrency;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -34,7 +34,7 @@ namespace Orleans.Indexing
         /// </summary>
         /// <returns>the dictionary from indexID to index grain for all
         /// the indexes controlled by this index handler</returns>
-        Task<Immutable<IDictionary<string, IIndex>>> GetIndexes();
+        Task<Immutable<IDictionary<string, Tuple<IIndex, IndexMetaData>>>> GetIndexes();
 
         /// <summary>
         /// Reloads the list of indexes by looking into the index registry

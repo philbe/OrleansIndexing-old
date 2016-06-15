@@ -46,6 +46,7 @@
     <Compile Include="HashIndexInMemory.cs" />
     <Compile Include="HashIndexInMemoryState.cs" />
     <Compile Include="IIndexableGrain.cs" />
+    <Compile Include="IIndexMetaData.cs" />
     <Compile Include="IIndexRegistry.cs" />
     <Compile Include="IndexFactory.cs" />
     <Compile Include="IndexRegistry.cs" />

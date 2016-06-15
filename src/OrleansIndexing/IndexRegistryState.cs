@@ -9,6 +9,6 @@ namespace Orleans.Indexing
     [Serializable]
     public class IndexRegistryState
     {
-        public IDictionary<string, IIndex> indexes { set; get; }
+        public IDictionary<string, Tuple<IIndex,IndexMetaData>> indexes { set; get; }
     }
 }

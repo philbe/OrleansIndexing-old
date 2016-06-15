@@ -39,7 +39,7 @@ namespace Orleans.Indexing
             }
         }
 
-        public static Task<bool> RegisterIndex(string indexName, IIndex index)
+        public static Task<bool> RegisterIndex<IIdxType>(string indexName, IIdxType index) where IIdxType : IIndex
         {
             Type idxType = index.GetType();
             Type iIndexType = idxType.GetGenericType(typeof(IIndex<,>));
@@ -53,7 +53,7 @@ namespace Orleans.Indexing
 
                 IIndexRegistry indexReg = GrainClient.GrainFactory.GetGrain<IIndexRegistry<IIndexableGrain>>(TypeUtils.GetFullName(iGrainType), indexRegType);
                 //string indexName = await index.GetIndexName();
-                return indexReg.RegisterIndex(indexName, index);
+                return indexReg.RegisterIndex(indexName, index, new IndexMetaData(typeof(IIdxType)));
             }
             else
             {

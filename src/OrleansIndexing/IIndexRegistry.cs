@@ -1,5 +1,4 @@
-﻿using Orleans;
-using Orleans.Concurrency;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -15,14 +14,15 @@ namespace Orleans.Indexing
         /// </summary>
         /// <returns>the dictionary from indexID to index grain for all
         /// the indexes defined under this index registry</returns>
-        Task<IDictionary<string, IIndex>> GetIndexes();
+        Task<IDictionary<string, Tuple<IIndex, IndexMetaData>>> GetIndexes();
 
         /// <summary>
         /// Registers a new index in this index registry
         /// </summary>
         /// <param name="indexName">name of the index</param>
         /// <param name="index">a reference to the index grain</param>
-        Task<bool> RegisterIndex(string indexName, IIndex index);
+        /// <param name="indexMetaData">the meta data for the index</param>
+        Task<bool> RegisterIndex(string indexName, IIndex index, IndexMetaData indexMetaData);
     }
 
     /// <summary>
