@@ -23,13 +23,27 @@ namespace Orleans.Indexing
         /// for the current indexes on the grain.
         /// </summary>
         private Immutable<IDictionary<string, IIndexUpdateGenerator>> _iUpdateGens;
+
         /// <summary>
         /// an immutable copy of before-images of the indexed fields
         /// </summary>
         private Immutable<IDictionary<string, object>> _beforeImages;
 
+        /// <summary>
+        /// a cached grain interface type, which
+        /// is cached on the first call to getIGrainType()
+        /// </summary>
         private Type _iGrainType = null;
 
+        /// <summary>
+        /// Upon activation, the list of index update generators
+        /// are retreived from the index handler, and is cached in
+        /// this grain for creating the before-images, and also
+        /// for later calls to UpdateIndexes.
+        /// 
+        /// Then, the before-images are created and stored in
+        /// memory.
+        /// </summary>
         public override async Task OnActivateAsync()
         {
             IIndexHandler handler = GetIndexHandler();
@@ -39,6 +53,20 @@ namespace Orleans.Indexing
             await base.OnActivateAsync();
         }
 
+        /// <summary>
+        /// This method is called whenever there are some changes
+        /// made to the grain, and the grain is in a consistent state
+        /// and needs to update the indexes defined on this grain type.
+        /// 
+        /// A call to this method, first creates the member updates, and
+        /// then sends them to ApplyIndexUpdates of the index handler.
+        /// 
+        /// The only reason for getting a negative result from a call to
+        /// ApplyIndexUpdates is a possible change in the list of indexes,
+        /// which amounts to updating the list of member update and trying
+        /// again. In the case of a positive result from ApplyIndexUpdates,
+        /// the list of before-images gets replaced by the list of after-images.
+        /// </summary>
         protected async Task UpdateIndexes()
         {
             IIndexHandler handler = GetIndexHandler();
@@ -72,8 +100,9 @@ namespace Orleans.Indexing
 
             } while (!success);
         }
-
-        protected virtual IIndexHandler GetIndexHandler()
+        
+        /// <returns>IndexHandler for the current grain</returns>
+        private IIndexHandler GetIndexHandler()
         {
             Type thisIGrainType = getIGrainType();
             Type typedIndexHandlerType = typeof(IIndexHandler<>).MakeGenericType(thisIGrainType);
@@ -82,7 +111,8 @@ namespace Orleans.Indexing
 
         /// <summary>
         /// This method finds the IGrain interface
-        /// which is the lowest one in the hierarchy
+        /// which is the lowest one in the interface type hierarchy
+        /// of the current grain
         /// </summary>
         /// <returns>lowest IGrain interface in the hierarchy
         /// that the current class implements</returns>
@@ -112,6 +142,18 @@ namespace Orleans.Indexing
             return _iGrainType;
         }
 
+        /// <summary>
+        /// This method checks the list of cached indexes, and if
+        /// any index does not have a before-image, it will create
+        /// one for it. As before-images are stored as an immutable
+        /// field, a new map is created in this process.
+        /// 
+        /// This method is called on activation of the grain, as
+        /// well as the case of an inconsistency between the
+        /// indexes in the index handler and the cached indexes
+        /// of the current grain, which is detected in
+        /// UpdateIndexes method.
+        /// </summary>
         private void AddMissingBeforeImages()
         {
             IDictionary<string, IIndexUpdateGenerator> iUpdateGens = _iUpdateGens.Value;
@@ -131,6 +173,14 @@ namespace Orleans.Indexing
             }
             _beforeImages = newBefImgs.AsImmutable();
         }
+
+        /// <summary>
+        /// This method assumes that a set of changes are applied to the
+        /// indexes, and then it replaces the current before-images with
+        /// after-images produced by the update.
+        /// </summary>
+        /// <param name="updates">the member updates that were successfully
+        /// applied to the current indexes</param>
         private void UpdateBeforeImages(IDictionary<string, IMemberUpdate> updates)
         {
             IDictionary<string, IIndexUpdateGenerator> iUpdateGens = _iUpdateGens.Value;
@@ -152,6 +202,13 @@ namespace Orleans.Indexing
         }
     }
 
+    /// <summary>
+    /// This stateless IndexableGrain is the super class
+    /// of all stateless indexable-grains, but as multiple-
+    /// inheritance (from both Grain and IndexableGrain<T>)
+    /// is not allowed, this class extends IndexableGrain<object>
+    /// and disables the storage functionality of Grain<T>
+    /// </summary>
     public abstract class IndexableGrain : IndexableGrain<object>, IIndexableGrain
     {
         protected override Task ClearStateAsync()

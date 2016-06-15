@@ -7,6 +7,12 @@ using System.Threading.Tasks;
 
 namespace Orleans.Indexing
 {
+    /// <summary>
+    /// Default implementation of IIndexUpdateGenerator<K,V>
+    /// that genericly implements CreateMemberUpdate
+    /// </summary>
+    /// <typeparam name="K">the key type of the index</typeparam>
+    /// <typeparam name="V">the value type of the index</typeparam>
     [Serializable]
     public abstract class IndexUpdateGenerator<K,V> : IIndexUpdateGenerator<K,V> where V : Grain
     {

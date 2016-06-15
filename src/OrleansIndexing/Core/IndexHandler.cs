@@ -10,6 +10,18 @@ using System.Threading.Tasks;
 
 namespace Orleans.Indexing
 {
+    /// <summary>
+    /// IndexHandler is responsible for updating the indexes defined
+    /// for a grain interface type, and also communicates with the
+    /// grain instances by telling them about the list of available
+    /// indexes.
+    /// 
+    /// The fact that IndexHandler is a StatelessWorker makes it
+    /// very scalable, but at the same time should stay in sync
+    /// with index registry to be aware of the available indexes.
+    /// </summary>
+    /// <typeparam name="T">the type of grain interface type of
+    /// the grain that is handled by this index handler</typeparam>
     [StatelessWorker]
     public class IndexHandler<T> : Grain, IIndexHandler<T> where T : IGrain
     {
@@ -17,6 +29,10 @@ namespace Orleans.Indexing
         private Immutable<IDictionary<string, IIndexUpdateGenerator>> _iUpdateGens;
         private IIndexRegistry<T> _indexRegistry;
 
+        /// <summary>
+        /// Upon activation, the list of indexes are read and
+        /// cached from the corresponding index registry
+        /// </summary>
         public override async Task OnActivateAsync()
         {
             _indexRegistry = GrainFactory.GetGrain<IIndexRegistry<T>>(TypeUtils.GetFullName(typeof(T)));
