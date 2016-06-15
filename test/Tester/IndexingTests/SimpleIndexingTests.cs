@@ -62,7 +62,7 @@ namespace UnitTests.General
         }
 
         [Fact, TestCategory("BVT"), TestCategory("Indexing")]
-        public async Task Test_Indexing_IndexLookup()
+        public async Task Test_Indexing_IndexLookup1()
         {
             bool isLocIndexCreated = await IndexFactory.CreateAndRegisterIndex<IHashIndexInMemory<string, IPlayerGrain>, PlayerLocIndexGen>("locIdx4");
             Assert.True(isLocIndexCreated);
@@ -70,7 +70,27 @@ namespace UnitTests.General
             IIndex<string, IPlayerGrain> locIdx = IndexFactory.GetIndex<string, IPlayerGrain>("locIdx4");
 
             IEnumerable<IPlayerGrain> result = await locIdx.Lookup("Redmond");
-            Assert.Equal(result.AsQueryable().Count(), 0);
+            Assert.Equal(0, result.AsQueryable().Count());
+        }
+
+        [Fact, TestCategory("BVT"), TestCategory("Indexing")]
+        public async Task Test_Indexing_IndexLookup2()
+        {
+            bool isLocIndexCreated = await IndexFactory.CreateAndRegisterIndex<IHashIndexInMemory<string, IPlayerGrain>, PlayerLocIndexGen>("locIdx5");
+            Assert.True(isLocIndexCreated);
+
+            IPlayerGrain p1 = GrainClient.GrainFactory.GetGrain<IPlayerGrain>(1);
+            IPlayerGrain p2 = GrainClient.GrainFactory.GetGrain<IPlayerGrain>(2);
+            IPlayerGrain p3 = GrainClient.GrainFactory.GetGrain<IPlayerGrain>(3);
+
+            await p1.SetLocation("Redmond");
+            await p2.SetLocation("Redmond");
+            await p3.SetLocation("Bellevue");
+
+            IIndex<string, IPlayerGrain> locIdx = IndexFactory.GetIndex<string, IPlayerGrain>("locIdx5");
+
+            IEnumerable<IPlayerGrain> result = await locIdx.Lookup("Redmond");
+            Assert.Equal(2, result.AsQueryable().Count());
         }
     }
 }
