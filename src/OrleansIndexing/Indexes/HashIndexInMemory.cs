@@ -21,7 +21,7 @@ namespace Orleans.Indexing
         public override async Task OnActivateAsync()
         {
             //await ReadStateAsync();
-            if (State.IndexMap == null) State.IndexMap = new Dictionary<K, HashIndexEntry<V>>();
+            if (State.IndexMap == null) State.IndexMap = new Dictionary<K, HashIndexInMemoryEntry<V>>();
             await base.OnActivateAsync();
         }
 
@@ -47,13 +47,13 @@ namespace Orleans.Indexing
 
                 if (State.IndexMap.ContainsKey(befImg))
                 {
-                    HashIndexEntry<V> befEntry = State.IndexMap[befImg];
+                    HashIndexInMemoryEntry<V> befEntry = State.IndexMap[befImg];
                     if(befEntry.Values.Contains(updatedGrain))
                     {
                         K aftImg = (K)updt.GetAfterImage();
                         if(State.IndexMap.ContainsKey(aftImg))
                         {
-                            HashIndexEntry<V> aftEntry = State.IndexMap[aftImg];
+                            HashIndexInMemoryEntry<V> aftEntry = State.IndexMap[aftImg];
                             if(State.IsUnique && aftEntry.Values.Count > 0)
                             {
                                 throw new Exception(string.Format("The uniqueness property of index is violated after an update operation for before-image = {0}, after-image = {1} and grain = {2}", befImg, aftImg, updatedGrain.GetPrimaryKey()));
@@ -63,7 +63,7 @@ namespace Orleans.Indexing
                         }
                         else
                         {
-                            HashIndexEntry<V> aftEntry = new HashIndexEntry<V>();
+                            HashIndexInMemoryEntry<V> aftEntry = new HashIndexInMemoryEntry<V>();
                             aftEntry.Values.Add(updatedGrain);
                             State.IndexMap.Add(aftImg, aftEntry);
                         }
@@ -83,7 +83,7 @@ namespace Orleans.Indexing
                 K aftImg = (K)updt.GetAfterImage();
                 if (State.IndexMap.ContainsKey(aftImg))
                 {
-                    HashIndexEntry<V> aftEntry = State.IndexMap[aftImg];
+                    HashIndexInMemoryEntry<V> aftEntry = State.IndexMap[aftImg];
                     if (State.IsUnique && aftEntry.Values.Count > 0)
                     {
                         throw new Exception(string.Format("The uniqueness property of index is violated after an insert operation for after-image = {1} and grain = {2}", aftImg, updatedGrain.GetPrimaryKey()));
@@ -92,7 +92,7 @@ namespace Orleans.Indexing
                 }
                 else
                 {
-                    HashIndexEntry<V> aftEntry = new HashIndexEntry<V>();
+                    HashIndexInMemoryEntry<V> aftEntry = new HashIndexInMemoryEntry<V>();
                     aftEntry.Values.Add(updatedGrain);
                     State.IndexMap.Add(aftImg, aftEntry);
                 }
@@ -103,7 +103,7 @@ namespace Orleans.Indexing
 
                 if (State.IndexMap.ContainsKey(befImg))
                 {
-                    HashIndexEntry<V> befEntry = State.IndexMap[befImg];
+                    HashIndexInMemoryEntry<V> befEntry = State.IndexMap[befImg];
                     if (befEntry.Values.Contains(updatedGrain))
                     {
                         befEntry.Values.Remove(updatedGrain);
@@ -182,9 +182,5 @@ namespace Orleans.Indexing
         //{
         //    _equalsLambda = equalsLambda;
         //}
-    }
-    public sealed class HashIndexEntry<T>
-    {
-        public ISet<T> Values = new HashSet<T>();
     }
 }

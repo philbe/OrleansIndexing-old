@@ -14,8 +14,12 @@ namespace Orleans.Indexing
         //public string Name { set; get; }
         public bool IsUnique { set; get; }
 
-        public IDictionary<K, HashIndexEntry<V>> IndexMap { set; get; }
+        public IDictionary<K, HashIndexInMemoryEntry<V>> IndexMap { set; get; }
 
         public IIndexUpdateGenerator IndexUpdateGen { set; get; }
+    }
+    public sealed class HashIndexInMemoryEntry<T>
+    {
+        public ISet<T> Values = new HashSet<T>();
     }
 }
