@@ -40,6 +40,14 @@ namespace Orleans.Indexing
         /// Reloads the list of indexes by looking into the index registry
         /// </summary>
         Task ReloadIndexes();
+
+        /// <summary>
+        /// finds the index with the given name in the cached
+        /// indexes from index registry in this index handler
+        /// </summary>
+        /// <param name="indexName">name of the index</param>
+        /// <returns>the requested index</returns>
+        Task<IIndex> GetIndex(string indexName);
     }
 
     /// <summary>

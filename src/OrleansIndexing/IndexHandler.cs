@@ -66,5 +66,10 @@ namespace Orleans.Indexing
             }
             _iUpdateGens = iUpdateGens.AsImmutable();
         }
+
+        public Task<IIndex> GetIndex(string indexName)
+        {
+            return Task.FromResult(_indexes.Value[indexName].Item1);
+        }
     }
 }
