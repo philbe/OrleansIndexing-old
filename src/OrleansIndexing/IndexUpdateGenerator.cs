@@ -13,7 +13,7 @@ namespace Orleans.Indexing
         public override IMemberUpdate CreateMemberUpdate(V g, K befImg)
         {
             K aftImg = ExtractIndexImage(g);
-            return new MemberUpdate(aftImg, befImg);
+            return new MemberUpdate(befImg, aftImg);
         }
     }
 }
