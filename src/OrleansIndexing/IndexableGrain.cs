@@ -101,11 +101,11 @@ namespace Orleans.Indexing
                 var opType = updt.Value.GetOperationType();
                 if (opType == OperationType.Update || opType == OperationType.Insert)
                 {
-                    befImgs.Add(indexID, iUpdateGens[indexID].ExtractIndexImage(this));
+                    befImgs[indexID] = iUpdateGens[indexID].ExtractIndexImage(this);
                 }
                 else if(opType == OperationType.Delete)
                 {
-                    befImgs.Add(indexID, null);
+                    befImgs[indexID] = null;
                 }
             }
             _beforeImages = befImgs.AsImmutable();
