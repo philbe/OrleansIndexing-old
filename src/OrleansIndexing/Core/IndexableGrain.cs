@@ -77,7 +77,7 @@ namespace Orleans.Indexing
         {
             Type thisIGrainType = getIGrainType();
             Type typedIndexHandlerType = typeof(IIndexHandler<>).MakeGenericType(thisIGrainType);
-            return GrainFactory.GetGrain<IIndexHandler>(TypeUtils.GetFullName(thisIGrainType), typedIndexHandlerType, typedIndexHandlerType);
+            return GrainFactory.GetGrain<IIndexHandler<IndexableGrain>>(TypeUtils.GetFullName(thisIGrainType), typedIndexHandlerType);
         }
 
         /// <summary>
