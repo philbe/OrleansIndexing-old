@@ -67,6 +67,16 @@ namespace Orleans.Indexing
             return await RegisterIndex(indexName, index);
         }
 
+        public static Task ReloadIndexes<IGrainType>() where IGrainType : IGrain
+        {
+            return GetIndexHandler<IGrainType>().ReloadIndexes();
+        }
+
+        private static IIndexHandler<T> GetIndexHandler<T>() where T : IGrain
+        {
+            return GrainClient.GrainFactory.GetGrain<IIndexHandler<T>>(TypeUtils.GetFullName(typeof(T)));
+        }
+
         private static string GetIndexGrainID(Type grainType, string indexName)
         {
             return string.Format("{0}-{1}", TypeUtils.GetFullName(grainType), indexName);
