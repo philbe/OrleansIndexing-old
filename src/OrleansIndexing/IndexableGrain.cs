@@ -45,6 +45,8 @@ namespace Orleans.Indexing
             {
                 IDictionary<string, IMemberUpdate> updates = new Dictionary<string, IMemberUpdate>();
                 IDictionary<string, IIndexUpdateGenerator> iUpdateGens = _iUpdateGens.Value;
+                if (iUpdateGens.Count == 0) return;
+
                 IDictionary<string, object> befImgs = _beforeImages.Value;
                 foreach (KeyValuePair<string, IIndexUpdateGenerator> kvp in iUpdateGens)
                 {
@@ -61,6 +63,7 @@ namespace Orleans.Indexing
                 {
                     // assume that IndexHandler returned false because our list of indexes is invalid
                     _iUpdateGens = await handler.GetIndexUpdateGenerators(); // retry
+                    iUpdateGens = _iUpdateGens.Value;
                     AddMissingBeforeImages();
                 }
 
