@@ -1,6 +1,7 @@
 ﻿using Orleans;
 using Orleans.Concurrency;
 using Orleans.Providers;
+using Orleans.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,9 +19,8 @@ namespace Orleans.Indexing
 
         public override async Task OnActivateAsync()
         {
-            _indexRegistry = GrainFactory.GetGrain<IIndexRegistry<T>>(string.Format("IndexRegistry<{0}>", typeof(T).Name));
-            await ReloadIndexes();
-            await base.OnActivateAsync();
+            _indexRegistry = GrainFactory.GetGrain<IIndexRegistry<T>>(TypeUtils.GetFullName(typeof(T)));
+            await Task.WhenAll(ReloadIndexes(), base.OnActivateAsync());
         }
 
         public async Task<bool> ApplyIndexUpdates(IIndexableGrain updatedGrain, Immutable<IDictionary<string, IMemberUpdate>> iUpdates)
