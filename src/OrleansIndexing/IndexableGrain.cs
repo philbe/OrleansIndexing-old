@@ -15,7 +15,7 @@ namespace Orleans.Indexing
     ///     2- the grain class is reponsible for calling UpdateIndexes
     ///        whenever one or more indexes need to be updated
     /// </summary>
-    public abstract class IndexableGrain<T> : Grain<T>
+    public abstract class IndexableGrain<T> : Grain<T>, IIndexableGrain<T>
     {
         /// <summary>
         /// an immutable cached version of IIndexUpdateGenerator instances
@@ -52,7 +52,7 @@ namespace Orleans.Indexing
                     updates.Add(kvp.Key, mu);
                 }
 
-                success = await handler.ApplyIndexUpdates(this.AsReference<IGrain>(), updates.AsImmutable());
+                success = await handler.ApplyIndexUpdates(this.AsReference<IIndexableGrain>(), updates.AsImmutable());
                 if (success)
                 {
                     UpdateBeforeImages(updates);
@@ -112,7 +112,7 @@ namespace Orleans.Indexing
         }
     }
 
-    public abstract class IndexableGrain : IndexableGrain<object>
+    public abstract class IndexableGrain : IndexableGrain<object>, IIndexableGrain
     {
         protected override Task ClearStateAsync()
         {
