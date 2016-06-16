@@ -67,7 +67,7 @@ namespace Orleans.Indexing
         /// be registered</typeparam>
         /// <param name="indexName">the name of the index, which
         /// is the identifier of the index</param>
-        /// <param name="index">the index grain to be registrered</param>
+        /// <param name="index">the index grain to be registered</param>
         /// <returns>whether the registration of the index was
         /// successful or not.</returns>
         public static Task<bool> RegisterIndex<IIdxType, IndexUpdateGenType>(string indexName, IIdxType index) where IIdxType : IIndex where IndexUpdateGenType : IIndexUpdateGenerator, new()
@@ -111,9 +111,9 @@ namespace Orleans.Indexing
         }
 
         /// <summary>
-        /// Explicitely reloads the indexes on the current index handler instance.
+        /// Explicitly reloads the indexes on the current index handler instance.
         /// </summary>
-        /// <typeparam name="IGrainType">the grain interfacetype that its
+        /// <typeparam name="IGrainType">the grain interface type that its
         /// interfaces are going to be loaded.</typeparam>
         public static Task ReloadIndexes<IGrainType>() where IGrainType : IGrain
         {

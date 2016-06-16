@@ -13,7 +13,7 @@ namespace Orleans.Indexing
     /// 
     /// To make a grain indexable, two steps should be taken:
     ///     1- the grain class should extend IndexableGrain
-    ///     2- the grain class is reponsible for calling UpdateIndexes
+    ///     2- the grain class is responsible for calling UpdateIndexes
     ///        whenever one or more indexes need to be updated
     /// </summary>
     public abstract class IndexableGrain<T> : Grain<T>, IIndexableGrain<T>
@@ -37,7 +37,7 @@ namespace Orleans.Indexing
 
         /// <summary>
         /// Upon activation, the list of index update generators
-        /// is retreived from the index handler. It is cached in
+        /// is retrieved from the index handler. It is cached in
         /// this grain for use in creating before-images, and also
         /// for later calls to UpdateIndexes.
         /// 
