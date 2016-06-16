@@ -37,12 +37,11 @@ namespace Orleans.Indexing
 
         /// <summary>
         /// Upon activation, the list of index update generators
-        /// are retreived from the index handler, and is cached in
-        /// this grain for creating the before-images, and also
+        /// is retreived from the index handler. It is cached in
+        /// this grain for use in creating before-images, and also
         /// for later calls to UpdateIndexes.
         /// 
-        /// Then, the before-images are created and stored in
-        /// memory.
+        /// Then, the before-images are created and stored in memory.
         /// </summary>
         public override async Task OnActivateAsync()
         {
@@ -54,18 +53,18 @@ namespace Orleans.Indexing
         }
 
         /// <summary>
-        /// This method is called whenever there are some changes
-        /// made to the grain, and the grain is in a consistent state
-        /// and needs to update the indexes defined on this grain type.
+        /// After some changes were made to the grain, and the grain is 
+        /// in a consistent state, this method is called to update the 
+        /// indexes defined on this grain type.
         /// 
-        /// A call to this method, first creates the member updates, and
+        /// A call to this method first creates the member updates, and
         /// then sends them to ApplyIndexUpdates of the index handler.
         /// 
-        /// The only reason for getting a negative result from a call to
-        /// ApplyIndexUpdates is a possible change in the list of indexes,
-        /// which amounts to updating the list of member update and trying
+        /// The only reason that this method can receive a negative result from 
+        /// a call to ApplyIndexUpdates is that the list of indexes might have
+        /// changed. In this case, it updates the list of member update and tries
         /// again. In the case of a positive result from ApplyIndexUpdates,
-        /// the list of before-images gets replaced by the list of after-images.
+        /// the list of before-images is replaced by the list of after-images.
         /// </summary>
         protected async Task UpdateIndexes()
         {
@@ -110,9 +109,8 @@ namespace Orleans.Indexing
         }
 
         /// <summary>
-        /// This method finds the IGrain interface
-        /// which is the lowest one in the interface type hierarchy
-        /// of the current grain
+        /// This method finds the IGrain interface that is the lowest one in the 
+        /// interface type hierarchy of the current grain
         /// </summary>
         /// <returns>lowest IGrain interface in the hierarchy
         /// that the current class implements</returns>
@@ -148,11 +146,9 @@ namespace Orleans.Indexing
         /// one for it. As before-images are stored as an immutable
         /// field, a new map is created in this process.
         /// 
-        /// This method is called on activation of the grain, as
-        /// well as the case of an inconsistency between the
-        /// indexes in the index handler and the cached indexes
-        /// of the current grain, which is detected in
-        /// UpdateIndexes method.
+        /// This method is called on activation of the grain, and when the
+        /// UpdateIndexes method detects an inconsistency between the indexes
+        /// in the index handler and the cached indexes of the current grain.
         /// </summary>
         private void AddMissingBeforeImages()
         {
@@ -175,7 +171,7 @@ namespace Orleans.Indexing
         }
 
         /// <summary>
-        /// This method assumes that a set of changes are applied to the
+        /// This method assumes that a set of changes is applied to the
         /// indexes, and then it replaces the current before-images with
         /// after-images produced by the update.
         /// </summary>
@@ -203,10 +199,9 @@ namespace Orleans.Indexing
     }
 
     /// <summary>
-    /// This stateless IndexableGrain is the super class
-    /// of all stateless indexable-grains, but as multiple-
-    /// inheritance (from both Grain and IndexableGrain<T>)
-    /// is not allowed, this class extends IndexableGrain<object>
+    /// This stateless IndexableGrain is the super class of all stateless 
+    /// indexable-grains. But as multiple-inheritance (from both Grain and 
+    /// IndexableGrain<T>) is not allowed, this class extends IndexableGrain<object>
     /// and disables the storage functionality of Grain<T>
     /// </summary>
     public abstract class IndexableGrain : IndexableGrain<object>, IIndexableGrain
