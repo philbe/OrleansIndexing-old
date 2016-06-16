@@ -17,12 +17,12 @@ namespace Orleans.Indexing
     public interface IHashIndex<K,V> : IIndex<K,V> where V : IGrain
     {
         /// <summary>
-        /// hash-indexes can be either unique or non-unique.
-        /// If the user defines a hash-index as a unique hash-index,
-        /// then we want to guarantee that uniqueness. This method
+        /// A hash-index can be either unique or non-unique. If the user defines
+        /// a hash-index as a unique hash-index, then the index guarantees 
+        /// there is at most one value V in the index for each key K. This method
         /// determines whether this hash-index is a unique hash-index.
         /// </summary>
-        /// <returns>true, if there should be a single grain
+        /// <returns>true, if there should be at most one grain
         /// associated with each key, otherwise false</returns>
         Task<bool> IsUnique();
 

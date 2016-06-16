@@ -10,8 +10,7 @@ namespace Orleans.Indexing
     public static class TypeExtensions
     {
         /// <summary>
-        /// Checks whether a givenType is assignable
-        /// to a genericInterfaceType
+        /// Checks whether a givenType is assignable to a genericInterfaceType
         /// </summary>
         /// <param name="givenType">the give type, which is
         /// going to be tested</param>
@@ -26,9 +25,8 @@ namespace Orleans.Indexing
         }
 
         /// <summary>
-        /// This method finds a concrete generic type
-        /// given a non-concrete genericInterfaceType
-        /// by looking into the type hierarchy of a givenType
+        /// This method finds a concrete generic type given a non-concrete 
+        /// genericInterfaceType by looking into the type hierarchy of a givenType
         /// </summary>
         /// <param name="givenType">the concrete type</param>
         /// <param name="genericInterfaceType">the non-concrete 

@@ -29,9 +29,8 @@ namespace Orleans.Indexing
         /// Creates an index grain, given its type and
         /// the type of its IndexUpdateGenerator.
         /// 
-        /// Please note that the created index grain is not
-        /// registered and will not do anything unless it is
-        /// registered by calling IndexFactory.RegisterIndex.
+        /// The created index grain is not registered and will not do anything 
+        /// unless it is registered by calling IndexFactory.RegisterIndex.
         /// </summary>
         /// <typeparam name="IIdxType">the type of grain interface
         /// of the index</typeparam>
@@ -55,7 +54,7 @@ namespace Orleans.Indexing
             }
             else
             {
-                throw new NotSupportedException(string.Format("Adding indexes that do not implement IIndex<K,V> is not supported yet. Your requested index ({0}) is invalid.", idxType.ToString()));
+                throw new NotSupportedException(string.Format("Adding an index that does not implement IIndex<K,V> is not supported yet. Your requested index ({0}) is invalid.", idxType.ToString()));
             }
         }
 
@@ -93,8 +92,7 @@ namespace Orleans.Indexing
         }
 
         /// <summary>
-        /// A combination of a call to CreateIndexGrain followed by
-        /// a call to RegisterIndex.
+        /// A ccall to CreateIndexGrain followed by a call to RegisterIndex.
         /// </summary>
         /// <typeparam name="IIdxType">the type of the index to
         /// be registered</typeparam>

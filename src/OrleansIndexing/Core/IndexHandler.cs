@@ -12,9 +12,8 @@ namespace Orleans.Indexing
 {
     /// <summary>
     /// IndexHandler is responsible for updating the indexes defined
-    /// for a grain interface type, and also communicates with the
-    /// grain instances by telling them about the list of available
-    /// indexes.
+    /// for a grain interface type. It  also communicates with the grain
+    /// instances by telling them about the list of available indexes.
     /// 
     /// The fact that IndexHandler is a StatelessWorker makes it
     /// very scalable, but at the same time should stay in sync

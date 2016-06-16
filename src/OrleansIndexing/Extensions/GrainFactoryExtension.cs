@@ -12,11 +12,11 @@ namespace Orleans.Indexing
     {
         /// <summary>
         /// This method extends GrainFactory by adding a new GetGrain method
-        /// to it that can get the runtime type of the grain interface along
+        /// that can get the runtime type of the grain interface along
         /// with its primary key, and return the grain casted to an interface
-        /// that the given grainInterfaceType extends it.
+        /// that the given grainInterfaceType extends.
         /// 
-        /// The main use-case is when you want to get a grain that its type
+        /// The main use-case is when you want to get a grain whose type
         /// is unknown at compile time.
         /// </summary>
         /// <typeparam name="OutputGrainInterfaceType">The output type of

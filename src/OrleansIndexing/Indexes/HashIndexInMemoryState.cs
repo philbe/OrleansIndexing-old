@@ -14,8 +14,7 @@ namespace Orleans.Indexing
         //public string Name { set; get; }
 
         /// <summary>
-        /// Determines whether there is a unique
-        /// constraint on this hash-index
+        /// Determines whether there is a uniqueness constraint on this hash-index
         /// </summary>
         public bool IsUnique { set; get; }
 
@@ -36,7 +35,7 @@ namespace Orleans.Indexing
         /// <summary>
         /// The set of values associated with a single key
         /// of the hash-index. The hash-set can contain more
-        /// than one value if there is no unique constraint
+        /// than one value if there is no uniqueness constraint
         /// on the hash-index
         /// </summary>
         public ISet<T> Values = new HashSet<T>();

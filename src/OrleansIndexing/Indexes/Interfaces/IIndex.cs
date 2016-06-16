@@ -21,8 +21,8 @@ namespace Orleans.Indexing
         Task<bool> ApplyIndexUpdate(IGrain updatedGrain, Immutable<IMemberUpdate> iUpdate);
 
         /// <summary>
-        /// Disposes the index and removes all the data stored
-        /// for the index. This method gets called before removing
+        /// Disposes of the index and removes all the data stored
+        /// for the index. This method is called before removing
         /// the index from index registry
         /// </summary>
         Task Dispose();
