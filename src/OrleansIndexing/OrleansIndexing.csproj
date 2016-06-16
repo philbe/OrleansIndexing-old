@@ -46,6 +46,11 @@
     <Compile Include="Core\IndexRegistry.cs" />
     <Compile Include="Core\IndexRegistryState.cs" />
     <Compile Include="Core\IndexUpdateGenerator.cs" />
+    <Compile Include="Core\Interfaces\IIndexableGrain.cs" />
+    <Compile Include="Core\Interfaces\IIndexHandler.cs" />
+    <Compile Include="Core\Interfaces\IIndexRegistry.cs" />
+    <Compile Include="Core\Interfaces\IIndexUpdateGenerator.cs" />
+    <Compile Include="Core\Interfaces\IMemberUpdate.cs" />
     <Compile Include="Core\MemberUpdate.cs" />
     <Compile Include="Extensions\GrainFactoryExtension.cs" />
     <Compile Include="Extensions\TypeExtension.cs" />
@@ -55,19 +60,14 @@
     <Compile Include="Indexes\Interfaces\IHashIndexInMemory.cs" />
     <Compile Include="Indexes\Interfaces\IIndex.cs" />
     <Compile Include="Indexes\Interfaces\IRangeIndex.cs" />
-    <Compile Include="Interfaces\IActiveGrainEnumeratorGrain.cs" />
-    <Compile Include="Interfaces\IIndexableGrain.cs" />
-    <Compile Include="Interfaces\IIndexHandler.cs" />
     <Compile Include="Core\IndexMetaData.cs" />
-    <Compile Include="Interfaces\IIndexRegistry.cs" />
-    <Compile Include="Interfaces\IIndexUpdateGenerator.cs" />
-    <Compile Include="Interfaces\IMemberUpdate.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="..\Build\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Properties\orleans.codegen.cs" />
-    <Compile Include="Scan\ActiveGrainEnumeratorGrain.cs" />
+    <Compile Include="Scanners\ActiveGrainEnumeratorGrain.cs" />
+    <Compile Include="Scanners\Interfaces\IActiveGrainEnumeratorGrain.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\OrleansRuntime\OrleansRuntime.csproj">
