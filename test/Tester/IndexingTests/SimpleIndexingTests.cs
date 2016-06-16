@@ -110,40 +110,5 @@ namespace UnitTests.General
             IEnumerable<IPlayerGrain> result = await locIdx.Lookup("Redmond");
             Assert.Equal(2, result.AsQueryable().Count());
         }
-
-        [Fact, TestCategory("BVT"), TestCategory("Indexing")]
-        public async Task FindActiveGrains()
-        {
-
-            //IManagementGrain mgmtGrain = GrainClient.GrainFactory.GetGrain<IManagementGrain>(RuntimeInterfaceConstants.SYSTEM_MANAGEMENT_ID);
-            //Catalog.GetGrainStatistics();
-            // start a second silo and wait for it
-            if (HostedCluster.SecondarySilos.Count == 0)
-            {
-                HostedCluster.StartAdditionalSilo();
-                await HostedCluster.WaitForLivenessToStabilizeAsync();
-            }
-
-            // create grains
-            output.WriteLine("creating and activating grains");
-            var grain1 = GrainClient.GrainFactory.GetGrain<ISimpleGrain>(random.Next());
-            var grain2 = GrainClient.GrainFactory.GetGrain<ISimpleGrain>(random.Next());
-            var grain3 = GrainClient.GrainFactory.GetGrain<ISimpleGrain>(random.Next());
-            await grain1.GetA();
-            await grain2.GetA();
-            await grain3.GetA();
-
-            //enumerate active grains
-            output.WriteLine("\n\nour own grain statistics");
-            IActiveGrainEnumeratorGrain enumGrain = GrainClient.GrainFactory.GetGrain<IActiveGrainEnumeratorGrain>(0);
-            IEnumerable<Guid> activeGrains = enumGrain.GetActiveGrains("UnitTests.Grains.SimpleGrain").Result;
-            foreach (var entry in activeGrains)
-            {
-                output.WriteLine("guid = {0}", entry);
-            }
-
-
-            Assert.IsTrue(true, "everything finished");
-        }
     }
 }

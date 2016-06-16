@@ -18,5 +18,12 @@ namespace Orleans.Indexing
         /// <returns></returns>
         Task<IEnumerable<Guid>> GetActiveGrains(string grainTypeName);
 
+        /// <summary>
+        /// Enumerates grains of type grainTypeName
+        /// </summary>
+        /// <param name="grainTypeName">Name of the grain type to enumerate</param>
+        /// <returns></returns>
+        Task<IEnumerable<IIndexableGrain>> GetActiveGrains(Type grainType);
+
     }
 }
