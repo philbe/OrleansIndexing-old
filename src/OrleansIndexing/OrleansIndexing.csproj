@@ -67,6 +67,7 @@
     </Compile>
     <Compile Include="Properties\orleans.codegen.cs" />
     <Compile Include="Scanners\ActiveGrainEnumeratorGrain.cs" />
+    <Compile Include="Scanners\ActiveGrainScanner.cs" />
     <Compile Include="Scanners\Interfaces\IActiveGrainEnumeratorGrain.cs" />
   </ItemGroup>
   <ItemGroup>
