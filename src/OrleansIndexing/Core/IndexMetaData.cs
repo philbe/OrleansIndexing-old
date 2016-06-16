@@ -69,7 +69,7 @@ namespace Orleans.Indexing
                 }
             }
 
-            return IsStatelessWorker(_indexType);
+            return IsStatelessWorker(_indexType.GetImplementationClassType());
         }
 
         /// <summary>
