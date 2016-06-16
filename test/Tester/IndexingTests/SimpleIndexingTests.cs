@@ -10,6 +10,7 @@ using Orleans;
 using Orleans.Runtime;
 using Orleans.Indexing;
 using UnitTests.Grains;
+using Xunit.Abstractions;
 
 namespace UnitTests.General
 {
@@ -33,6 +34,15 @@ namespace UnitTests.General
 
     public class SimpleIndexingTests : HostedTestClusterEnsureDefaultStarted
     {
+
+        private readonly ITestOutputHelper output;
+
+        public SimpleIndexingTests(DefaultClusterFixture fixture, ITestOutputHelper output)
+            : base(fixture)
+        {
+            this.output = output;
+        }
+
         [Fact, TestCategory("BVT"), TestCategory("Indexing")]
         public async Task Test_Indexing_AddOneIndex()
         {
@@ -99,6 +109,41 @@ namespace UnitTests.General
 
             IEnumerable<IPlayerGrain> result = await locIdx.Lookup("Redmond");
             Assert.Equal(2, result.AsQueryable().Count());
+        }
+
+        [Fact, TestCategory("BVT"), TestCategory("Indexing")]
+        public async Task FindActiveGrains()
+        {
+
+            //IManagementGrain mgmtGrain = GrainClient.GrainFactory.GetGrain<IManagementGrain>(RuntimeInterfaceConstants.SYSTEM_MANAGEMENT_ID);
+            //Catalog.GetGrainStatistics();
+            // start a second silo and wait for it
+            if (HostedCluster.SecondarySilos.Count == 0)
+            {
+                HostedCluster.StartAdditionalSilo();
+                await HostedCluster.WaitForLivenessToStabilizeAsync();
+            }
+
+            // create grains
+            output.WriteLine("creating and activating grains");
+            var grain1 = GrainClient.GrainFactory.GetGrain<ISimpleGrain>(random.Next());
+            var grain2 = GrainClient.GrainFactory.GetGrain<ISimpleGrain>(random.Next());
+            var grain3 = GrainClient.GrainFactory.GetGrain<ISimpleGrain>(random.Next());
+            await grain1.GetA();
+            await grain2.GetA();
+            await grain3.GetA();
+
+            //enumerate active grains
+            output.WriteLine("\n\nour own grain statistics");
+            IActiveGrainEnumeratorGrain enumGrain = GrainClient.GrainFactory.GetGrain<IActiveGrainEnumeratorGrain>(0);
+            List<Guid> activeGrains = enumGrain.GetActiveGrains("UnitTests.Grains.SimpleGrain").Result;
+            foreach (var entry in activeGrains)
+            {
+                output.WriteLine("guid = {0}", entry);
+            }
+
+
+            Assert.IsTrue(true, "everything finished");
         }
     }
 }
