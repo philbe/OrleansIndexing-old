@@ -16,27 +16,27 @@ namespace Orleans.Indexing
 
         private IMembershipTable membershipTable;
 
-        public async Task<List<Guid>> GetActiveGrains(string grainTypeName)
+        public async Task<IEnumerable<Guid>> GetActiveGrains(string grainTypeName)
         {
-            
-            List < Tuple < GrainId, string, int>> activeGrainList = await GetGrainActivations();
-            List<Guid> filteredList = activeGrainList.Where(s => s.Item2.Equals(grainTypeName)).Select(s => s.Item1.GetPrimaryKey()).ToList<Guid>();
-            return filteredList;
+
+            IEnumerable< Tuple < GrainId, string, int>> activeGrainList = await GetGrainActivations();
+            IEnumerable<Guid> filteredList = activeGrainList.Where(s => s.Item2.Equals(grainTypeName)).Select(s => s.Item1.GetPrimaryKey());
+            return filteredList.ToList();
         }
 
         
-        private async Task<List<Tuple<GrainId, string, int>>> GetGrainActivations()
+        private async Task<IEnumerable<Tuple<GrainId, string, int>>> GetGrainActivations()
         {
             Dictionary<SiloAddress, SiloStatus> hosts = await GetHosts(true);
             SiloAddress[] silos = hosts.Keys.ToArray();
             return await GetGrainActivations(silos);
         }
 
-        private async Task<List<Tuple<GrainId, string, int>>> GetGrainActivations(SiloAddress[] hostsIds)
+        private async Task<IEnumerable<Tuple<GrainId, string, int>>> GetGrainActivations(SiloAddress[] hostsIds)
         {
             List<Task<List<Tuple<GrainId, string, int>>>> all = GetSiloAddresses(hostsIds).Select(s => GetSiloControlReference(s).GetGrainStatistics()).ToList();
             await Task.WhenAll(all);
-            return all.SelectMany(s => s.Result).ToList<Tuple<GrainId, string, int>>();
+            return all.SelectMany(s => s.Result);
         }
 
 
