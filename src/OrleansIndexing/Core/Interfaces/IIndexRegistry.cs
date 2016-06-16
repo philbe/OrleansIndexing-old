@@ -23,6 +23,20 @@ namespace Orleans.Indexing
         /// <param name="index">a reference to the index grain</param>
         /// <param name="indexMetaData">the meta data for the index</param>
         Task<bool> RegisterIndex(string indexName, IIndex index, IndexMetaData indexMetaData);
+        
+        /// <summary>
+        /// Drops the index identified by the given name that
+        /// is registered under the current index registry
+        /// </summary>
+        /// <param name="indexName"></param>
+        /// <returns></returns>
+        Task<bool> DropIndex(string indexName);
+
+        /// <summary>
+        /// Drops all the indexes registered under the
+        /// current index registry
+        /// </summary>
+        Task DropAllIndexes();
     }
 
     /// <summary>

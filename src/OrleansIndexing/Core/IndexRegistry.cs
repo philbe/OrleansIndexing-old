@@ -1,6 +1,4 @@
-﻿using Orleans;
-using Orleans.Concurrency;
-using Orleans.Providers;
+﻿using Orleans.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,6 +31,32 @@ namespace Orleans.Indexing
             State.indexes.Add(indexName, Tuple.Create((IIndex)index, indexMetaData));
             await base.WriteStateAsync();
             return true;
+        }
+
+        public async Task<bool> DropIndex(string indexName)
+        {
+            Tuple<IIndex, IndexMetaData> index;
+            State.indexes.TryGetValue(indexName, out index);
+            if (index != null)
+            {
+                await index.Item1.Dispose();
+                return State.indexes.Remove(indexName);
+            }
+            else
+            {
+                throw new Exception(string.Format("Index with name ({0}) does not exist for type ({1}).", indexName, TypeUtils.GetFullName(typeof(T))));
+            }
+        }
+
+        public async Task DropAllIndexes()
+        {
+            IList<Task> disposeTasks = new List<Task>();
+            foreach (KeyValuePair<string, Tuple<IIndex, IndexMetaData>> index in State.indexes)
+            {
+                disposeTasks.Add(index.Value.Item1.Dispose());
+            }
+            await Task.WhenAll(disposeTasks);
+            State.indexes.Clear();
         }
     }
 }

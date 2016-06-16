@@ -132,6 +132,12 @@ namespace Orleans.Indexing
             return (await Lookup(key)).GetEnumerator().Current;
         }
 
+        public Task Dispose()
+        {
+            State.IndexMap.Clear();
+            return TaskDone.Done;
+        }
+
         /// <summary>
         /// Each hash-index needs a hash function, and a user can specify
         /// the hash function via a call to this method.
