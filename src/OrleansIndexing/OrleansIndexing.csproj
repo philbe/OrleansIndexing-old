@@ -58,7 +58,7 @@
     <Compile Include="Interfaces\IActiveGrainEnumeratorGrain.cs" />
     <Compile Include="Interfaces\IIndexableGrain.cs" />
     <Compile Include="Interfaces\IIndexHandler.cs" />
-    <Compile Include="Interfaces\IIndexMetaData.cs" />
+    <Compile Include="Core\IndexMetaData.cs" />
     <Compile Include="Interfaces\IIndexRegistry.cs" />
     <Compile Include="Interfaces\IIndexUpdateGenerator.cs" />
     <Compile Include="Interfaces\IMemberUpdate.cs" />
