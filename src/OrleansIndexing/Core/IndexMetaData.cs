@@ -1,6 +1,9 @@
-﻿using System;
+﻿using Orleans.Concurrency;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
+using System.Reflection;
 
 namespace Orleans.Indexing
 {
@@ -47,6 +50,40 @@ namespace Orleans.Indexing
         public IIndexUpdateGenerator getIndexUpdateGeneratorInstance()
         {
             return (IIndexUpdateGenerator)Activator.CreateInstance(_indexUpdateGeneratorType);
+        }
+
+        /// <summary>
+        /// Determines whether the index grain is a stateless worker
+        /// or not. This piece of information can impact the relationship
+        /// between index handlers and the index. 
+        /// </summary>
+        /// <returns>the result of whether the current index is
+        /// a stateless worker or not</returns>
+        public bool IsIndexStatelessWorker()
+        {
+            foreach (Type t in Assembly.GetCallingAssembly().GetTypes())
+            {
+                if (t.GetInterface(_indexType.Name) != null)
+                {
+                    return IsStatelessWorker(t);
+                }
+            }
+
+            return IsStatelessWorker(_indexType);
+        }
+
+        /// <summary>
+        /// A helper function that determines whether a given grain type
+        /// is annotated with StatelessWorker annotation or not.
+        /// </summary>
+        /// <param name="grainType">the grain type to be tested</param>
+        /// <returns>true if the grain type has StatelessWorker annotation,
+        /// otherwise false.</returns>
+        private static bool IsStatelessWorker(Type grainType)
+        {
+            return grainType.GetCustomAttributes(typeof(StatelessWorkerAttribute), true).Length > 0 ||
+                grainType.GetInterfaces()
+                    .Any(i => i.GetCustomAttributes(typeof(StatelessWorkerAttribute), true).Length > 0);
         }
     }
 }
