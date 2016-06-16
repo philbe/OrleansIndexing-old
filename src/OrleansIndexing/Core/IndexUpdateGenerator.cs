@@ -9,7 +9,7 @@ namespace Orleans.Indexing
 {
     /// <summary>
     /// Default implementation of IIndexUpdateGenerator<K,V>
-    /// that genericly implements CreateMemberUpdate
+    /// that generically implements CreateMemberUpdate
     /// </summary>
     /// <typeparam name="K">the key type of the index</typeparam>
     /// <typeparam name="V">the value type of the index</typeparam>
