@@ -23,11 +23,6 @@ namespace Orleans.Indexing
         /// The actual storage of the indexed values
         /// </summary>
         public IDictionary<K, HashIndexInMemoryEntry<V>> IndexMap { set; get; }
-
-        /// <summary>
-        /// The update generator for the current hash-index
-        /// </summary>
-        public IIndexUpdateGenerator IndexUpdateGen { set; get; }
     }
 
     /// <summary>

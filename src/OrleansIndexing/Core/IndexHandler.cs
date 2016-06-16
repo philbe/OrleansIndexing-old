@@ -78,7 +78,7 @@ namespace Orleans.Indexing
             IDictionary<string, IIndexUpdateGenerator> iUpdateGens = new Dictionary<string, IIndexUpdateGenerator>();
             foreach (KeyValuePair<string, Tuple<IIndex, IndexMetaData>> idx in _indexes.Value)
             {
-                iUpdateGens.Add(idx.Key, await idx.Value.Item1.GetIndexUpdateGenerator());
+                iUpdateGens.Add(idx.Key, idx.Value.Item2.getIndexUpdateGeneratorInstance());
             }
             _iUpdateGens = iUpdateGens.AsImmutable();
         }

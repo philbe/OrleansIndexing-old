@@ -25,17 +25,6 @@ namespace Orleans.Indexing
             await base.OnActivateAsync();
         }
 
-        //public Task<string> GetIndexName()
-        //{
-        //    return Task.FromResult(State.Name);
-        //}
-
-        //public Task SetIndexName(string indexName)
-        //{
-        //    State.Name = indexName;
-        //    return base.WriteStateAsync();
-        //}
-
         public Task<bool> ApplyIndexUpdate(IGrain g, Immutable<IMemberUpdate> iUpdate)
         {
             var updatedGrain = g.AsReference<V>();
@@ -119,17 +108,6 @@ namespace Orleans.Indexing
                 }
             }
             return Task.FromResult(true);
-        }
-
-        public Task<IIndexUpdateGenerator> GetIndexUpdateGenerator()
-        {
-            return Task.FromResult(State.IndexUpdateGen);
-        }
-
-        public Task SetIndexUpdateGenerator(IIndexUpdateGenerator iUpdateGen)
-        {
-            State.IndexUpdateGen = iUpdateGen;
-            return base.WriteStateAsync();
         }
 
         public Task<bool> IsUnique()
