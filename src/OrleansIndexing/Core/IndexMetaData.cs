@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Reflection;
+using Orleans.Runtime;
 
 namespace Orleans.Indexing
 {
@@ -61,15 +62,7 @@ namespace Orleans.Indexing
         /// a stateless worker or not</returns>
         public bool IsIndexStatelessWorker()
         {
-            foreach (Type t in Assembly.GetCallingAssembly().GetTypes())
-            {
-                if (t.GetInterface(_indexType.Name) != null)
-                {
-                    return IsStatelessWorker(t);
-                }
-            }
-
-            return IsStatelessWorker(_indexType.GetImplementationClassType());
+            return IsStatelessWorker(Type.GetType(TypeCodeMapper.GetImplementation(_indexType).GrainClass));
         }
 
         /// <summary>
