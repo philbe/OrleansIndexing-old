@@ -11,6 +11,8 @@ namespace UnitTests.Grains
     [Serializable]
     public class PlayerGrainState
     {
+        public string Email { get; set; }
+
         public string Location { get; set; }
 
         public int Score { get; set; }
@@ -24,7 +26,8 @@ namespace UnitTests.Grains
     public class PlayerGrain : IndexableGrain<PlayerGrainState>, IPlayerGrain
     {
         private Logger logger;
-
+        
+        public string Email { get { return State.Email; } }
         public string Location { get { return State.Location; } }
         public int Score { get { return State.Score; } }
 
@@ -43,7 +46,7 @@ namespace UnitTests.Grains
         {
             State.Location = location;
             //return TaskDone.Done;
-            return UpdateIndexes();
+            return base.WriteStateAsync();
         }
 
         public Task<int> GetScore()
@@ -55,7 +58,19 @@ namespace UnitTests.Grains
         {
             State.Score = score;
             //return TaskDone.Done;
-            return UpdateIndexes();
+            return base.WriteStateAsync();
+        }
+
+        public Task<string> GetEmail()
+        {
+            return Task.FromResult(Email);
+        }
+
+        public Task SetEmail(string email)
+        {
+            State.Email = email;
+            //return TaskDone.Done;
+            return base.WriteStateAsync();
         }
     }
 }

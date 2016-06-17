@@ -201,6 +201,19 @@ namespace Orleans.Indexing
             }
             _beforeImages = befImgs.AsImmutable();
         }
+
+        protected override async Task WriteStateAsync()
+        {
+            //base.WriteStateAsync should be done before UpdateIndexes, in order to ensure
+            //that only the successfully persisted bits get to be indexed, so we cannot do
+            //these two tasks in parallel
+            //await Task.WhenAll(new Task[] { base.WriteStateAsync(), UpdateIndexes() });
+
+            // during WriteStateAsync for a stateful indexable grain,
+            // the indexes get updated after base.WriteStateAsync is done.
+            await base.WriteStateAsync();
+            await UpdateIndexes();
+        }
     }
 
     /// <summary>
@@ -218,7 +231,10 @@ namespace Orleans.Indexing
 
         protected override Task WriteStateAsync()
         {
-            return TaskDone.Done;
+            // The only thing that should be done during
+            // WriteStateAsync for a stateless indexable grain
+            // is to update its indexes
+            return UpdateIndexes();
         }
 
         protected override Task ReadStateAsync()
