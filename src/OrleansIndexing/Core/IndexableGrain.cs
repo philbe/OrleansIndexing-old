@@ -121,6 +121,7 @@ namespace Orleans.Indexing
                 Type iGrainTp = typeof(IGrain);
                 Type iIndexableGrainTp = typeof(IIndexableGrain);
                 Type typedIIndexableGrainTp = typeof(IIndexableGrain<T>);
+
                 Type[] interfaces = this.GetType().GetInterfaces();
                 int numInterfaces = interfaces.Length;
 
@@ -128,6 +129,10 @@ namespace Orleans.Indexing
                 for (int i = 0; i < numInterfaces; ++i)
                 {
                     Type otherIGrainType = interfaces[i];
+
+                    //iIndexableGrainTp and typedIIndexableGrainTp are ignored when
+                    //checking the descendants of IGrain, because there is no guarantee
+                    //user defined grain interfaces extend these interfaces
                     if (otherIGrainType == iIndexableGrainTp || otherIGrainType == typedIIndexableGrainTp)
                         continue;
                     if (thisIGrainType.IsAssignableFrom(otherIGrainType))
