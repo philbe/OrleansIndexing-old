@@ -12,7 +12,7 @@ using Orleans.Runtime;
 using Orleans.Indexing;
 using UnitTests.Grains;
 
-namespace UnitTests.General
+namespace UnitTests.IndexingTests
 {
 
     public class NoIndexingTests : HostedTestClusterEnsureDefaultStarted

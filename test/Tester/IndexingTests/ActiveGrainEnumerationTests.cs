@@ -13,7 +13,7 @@ using Orleans.Indexing;
 using UnitTests.Grains;
 using Xunit.Abstractions;
 
-namespace UnitTests.General
+namespace UnitTests.IndexingTests
 {
 
 

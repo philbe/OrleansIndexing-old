@@ -12,7 +12,7 @@ using Orleans.Indexing;
 using UnitTests.Grains;
 using Xunit.Abstractions;
 
-namespace UnitTests.General
+namespace UnitTests.IndexingTests
 {
     [Serializable]
     public class PlayerLocIndexGen : IndexUpdateGenerator<string, PlayerGrain>

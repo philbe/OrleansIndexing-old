@@ -8,7 +8,7 @@ using Orleans.Runtime;
 
 namespace Orleans.Indexing
 {
-    public static class GrainExtensions
+    public static class GrainFactoryExtensions
     {
         /// <summary>
         /// This method extends GrainFactory by adding a new GetGrain method
