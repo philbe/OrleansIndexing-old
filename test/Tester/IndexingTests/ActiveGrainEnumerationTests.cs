@@ -87,7 +87,7 @@ namespace UnitTests.General
             //enumerate active grains
             output.WriteLine("\n\nour own grain statistics");
             IActiveGrainEnumeratorGrain enumGrain = GrainClient.GrainFactory.GetGrain<IActiveGrainEnumeratorGrain>(0);
-            IEnumerable<IIndexableGrain> activeGrains = enumGrain.GetActiveGrains(typeof(ISimpleGrain)).Result;
+            IEnumerable<IGrain> activeGrains = enumGrain.GetActiveGrains(typeof(ISimpleGrain)).Result;
             foreach (var entry in activeGrains)
             {
                 output.WriteLine("guid = {0}", entry.GetPrimaryKey());

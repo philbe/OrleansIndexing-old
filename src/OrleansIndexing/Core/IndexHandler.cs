@@ -38,7 +38,7 @@ namespace Orleans.Indexing
             await Task.WhenAll(ReloadIndexes(), base.OnActivateAsync());
         }
 
-        public async Task<bool> ApplyIndexUpdates(IIndexableGrain updatedGrain, Immutable<IDictionary<string, IMemberUpdate>> iUpdates)
+        public async Task<bool> ApplyIndexUpdates(IGrain updatedGrain, Immutable<IDictionary<string, IMemberUpdate>> iUpdates)
         {
             var updates = iUpdates.Value;
             var idxs = _indexes.Value;

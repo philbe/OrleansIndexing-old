@@ -24,12 +24,12 @@ namespace Orleans.Indexing
             return filteredList.ToList();
         }
 
-        public async Task<IEnumerable<IIndexableGrain>> GetActiveGrains(Type grainType) 
+        public async Task<IEnumerable<IGrain>> GetActiveGrains(Type grainType) 
         {
             string grainTypeName = TypeCodeMapper.GetImplementation(grainType).GrainClass;
             
             IEnumerable<Tuple<GrainId, string, int>> activeGrainList = await GetGrainActivations();
-            IEnumerable<IIndexableGrain> filteredList = activeGrainList.Where(s => s.Item2.Equals(grainTypeName)).Select(s => GrainFactory.GetGrain<IIndexableGrain>(s.Item1.GetPrimaryKey(),grainType));
+            IEnumerable<IGrain> filteredList = activeGrainList.Where(s => s.Item2.Equals(grainTypeName)).Select(s => GrainFactory.GetGrain<IIndexableGrain>(s.Item1.GetPrimaryKey(),grainType));
             return filteredList.ToList();
         }
 
