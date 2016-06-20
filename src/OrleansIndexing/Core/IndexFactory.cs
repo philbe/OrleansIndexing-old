@@ -69,7 +69,7 @@ namespace Orleans.Indexing
         /// <param name="index">the index grain to be registered</param>
         /// <returns>whether the registration of the index was
         /// successful or not.</returns>
-        public static Task<bool> RegisterIndex<IIdxType, IndexUpdateGenType>(string indexName, IIdxType index) where IIdxType : IIndex where IndexUpdateGenType : IIndexUpdateGenerator, new()
+        public static async Task<bool> RegisterIndex<IIdxType, IndexUpdateGenType>(string indexName, IIdxType index) where IIdxType : IIndex where IndexUpdateGenType : IIndexUpdateGenerator, new()
         {
             Type idxType = index.GetType();
             Type iIndexType = idxType.GetGenericType(typeof(IIndex<,>));
@@ -83,7 +83,10 @@ namespace Orleans.Indexing
 
                 IIndexRegistry indexReg = GrainClient.GrainFactory.GetGrain<IIndexRegistry<IIndexableGrain>>(TypeUtils.GetFullName(iGrainType), indexRegType);
                 //string indexName = await index.GetIndexName();
-                return indexReg.RegisterIndex(indexName, index, new IndexMetaData(typeof(IIdxType), typeof(IndexUpdateGenType)));
+                var isRegistered = await indexReg.RegisterIndex(indexName, index, new IndexMetaData(typeof(IIdxType), typeof(IndexUpdateGenType)));
+                var reloadIndexes = ReloadIndexes(iGrainType);
+                await reloadIndexes;
+                return isRegistered && reloadIndexes.Status == TaskStatus.RanToCompletion;
             }
             else
             {
@@ -113,9 +116,29 @@ namespace Orleans.Indexing
         /// </summary>
         /// <typeparam name="IGrainType">the grain interface type that its
         /// interfaces are going to be loaded.</typeparam>
-        internal static Task ReloadIndexes<IGrainType>() where IGrainType : IIndexableGrain
+        public static Task ReloadIndexes<IGrainType>() where IGrainType : IIndexableGrain
         {
             return GetIndexHandler<IGrainType>().ReloadIndexes();
+        }
+        
+        /// <summary>
+        /// Explicitly reloads the indexes on the current index handler instance.
+        /// </summary>
+        /// <typeparam name="IGrainType">the grain interface type that its
+        /// interfaces are going to be loaded.</typeparam>
+        //public static Task ReloadIndexes<IGrainType>(IGrainFactory gf) where IGrainType : IIndexableGrain
+        //{
+        //    return GetIndexHandler<IGrainType>(gf).ReloadIndexes();
+        //}
+
+        /// <summary>
+        /// Explicitly reloads the indexes on the current index handler instance.
+        /// </summary>
+        /// <typeparam name="IGrainType">the grain interface type that its
+        /// interfaces are going to be loaded.</typeparam>
+        internal static Task ReloadIndexes(Type iGrainType)
+        {
+            return GetIndexHandler(iGrainType).ReloadIndexes();
         }
 
         /// <summary>
@@ -147,6 +170,28 @@ namespace Orleans.Indexing
         internal static IIndexHandler<T> GetIndexHandler<T>() where T : IIndexableGrain
         {
             return GrainClient.GrainFactory.GetGrain<IIndexHandler<T>>(TypeUtils.GetFullName(typeof(T)));
+        }
+
+        /// <summary>
+        /// Gets the index handler for a given grain interface type
+        /// </summary>
+        /// <typeparam name="T">the indexed grain interface type</typeparam>
+        /// <returns>the index handler for a given grain interface type</returns>
+        //internal static IIndexHandler<T> GetIndexHandler<T>(IGrainFactory gf) where T : IIndexableGrain
+        //{
+        //    return gf.GetGrain<IIndexHandler<T>>(TypeUtils.GetFullName(typeof(T)));
+        //}
+
+
+        /// <summary>
+        /// Gets the index handler for a given grain interface type
+        /// </summary>
+        /// <param name="iGrainType">the indexed grain interface type</param>
+        /// <returns>the index handler for a given grain interface type</returns>
+        private static IIndexHandler GetIndexHandler(Type iGrainType)
+        {
+            Type typedIndexHandlerType = typeof(IIndexHandler<>).MakeGenericType(iGrainType);
+            return GrainClient.GrainFactory.GetGrain<IIndexHandler<IIndexableGrain>>(TypeUtils.GetFullName(iGrainType), typedIndexHandlerType);
         }
 
         internal static IIndexRegistry<T> GetIndexRegistry<T>() where T : IIndexableGrain

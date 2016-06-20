@@ -82,9 +82,28 @@ namespace Orleans.Indexing
             _iUpdateGens = iUpdateGens.AsImmutable();
         }
 
-        public Task<IIndex> GetIndex(string indexName)
+        public async Task<IIndex> GetIndex(string indexName)
         {
-            return Task.FromResult(_indexes.Value[indexName].Item1);
+            Tuple<IIndex, IndexMetaData> index;
+            if (_indexes.Value.TryGetValue(indexName, out index))
+            {
+                return index.Item1;
+            }
+            else
+            {
+                //this part of code is commented out, because it should
+                //never happen that the indexes are not loaded, if the
+                //index is registered in the index registry
+                //await ReloadIndexes();
+                //if (_indexes.Value.TryGetValue(indexName, out index))
+                //{
+                //    return index.Item1;
+                //}
+                //else
+                //{
+                    throw new Exception(string.Format("Index \"{0}\" does not exist for {1}.", indexName, typeof(T)));
+                //}
+            }
         }
     }
 }

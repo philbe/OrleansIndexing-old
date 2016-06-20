@@ -30,9 +30,8 @@ namespace Orleans.Indexing
             }
             State.indexes.Add(indexName, Tuple.Create((IIndex)index, indexMetaData));
             var writeTask = base.WriteStateAsync();
-            var reloadTask = IndexFactory.ReloadIndexes<T>();
-            await Task.WhenAll(writeTask, reloadTask);
-            return writeTask.Status == TaskStatus.RanToCompletion && reloadTask.Status == TaskStatus.RanToCompletion;
+            await writeTask;
+            return writeTask.Status == TaskStatus.RanToCompletion;
         }
 
         public async Task<bool> DropIndex(string indexName)
