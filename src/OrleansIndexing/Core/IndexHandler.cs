@@ -82,12 +82,12 @@ namespace Orleans.Indexing
             _iUpdateGens = iUpdateGens.AsImmutable();
         }
 
-        public async Task<IIndex> GetIndex(string indexName)
+        public Task<IIndex> GetIndex(string indexName)
         {
             Tuple<IIndex, IndexMetaData> index;
             if (_indexes.Value.TryGetValue(indexName, out index))
             {
-                return index.Item1;
+                return Task.FromResult(index.Item1);
             }
             else
             {
@@ -97,7 +97,7 @@ namespace Orleans.Indexing
                 //await ReloadIndexes();
                 //if (_indexes.Value.TryGetValue(indexName, out index))
                 //{
-                //    return index.Item1;
+                //    return Task.FromResult(index.Item1);
                 //}
                 //else
                 //{
