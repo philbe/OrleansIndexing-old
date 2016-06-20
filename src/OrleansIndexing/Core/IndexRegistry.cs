@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Orleans.Indexing
 {
     //[StorageProvider(ProviderName = "IndexingStore")]
-    public class IndexRegistry<T> : Grain<IndexRegistryState>, IIndexRegistry<T> where T : IGrain
+    public class IndexRegistry<T> : Grain<IndexRegistryState>, IIndexRegistry<T> where T : IIndexableGrain
     {
         public override async Task OnActivateAsync()
         {

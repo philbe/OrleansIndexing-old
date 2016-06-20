@@ -14,7 +14,7 @@ namespace Orleans.Indexing
     /// <typeparam name="K">the key type of the index</typeparam>
     /// <typeparam name="V">the value type of the index</typeparam>
     [Serializable]
-    public abstract class IndexUpdateGenerator<K,V> : IIndexUpdateGenerator<K,V> where V : Grain
+    public abstract class IndexUpdateGenerator<K,V> : IIndexUpdateGenerator<K,V> where V : IIndexableGrain
     {
         public override IMemberUpdate CreateMemberUpdate(V g, K befImg)
         {

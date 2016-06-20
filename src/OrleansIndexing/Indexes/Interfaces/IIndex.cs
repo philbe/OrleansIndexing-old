@@ -18,7 +18,7 @@ namespace Orleans.Indexing
         /// <param name="updatedGrain">the grain that issued the update</param>
         /// <param name="iUpdate">contains the data for the update</param>
         /// <returns>true, if the index update was successful, otherwise false</returns>
-        Task<bool> ApplyIndexUpdate(IGrain updatedGrain, Immutable<IMemberUpdate> iUpdate);
+        Task<bool> ApplyIndexUpdate(IIndexableGrain updatedGrain, Immutable<IMemberUpdate> iUpdate);
 
         /// <summary>
         /// Disposes of the index and removes all the data stored
@@ -32,7 +32,7 @@ namespace Orleans.Indexing
     /// This is the typed variant of IIndex, which is assumed to be 
     /// the root interface for the index implementations.
     /// </summary>
-    public interface IIndex<K,V> : IIndex where V : IGrain
+    public interface IIndex<K,V> : IIndex where V : IIndexableGrain
     {
         /// <summary>
         /// This method retrieves the result of a lookup into the hash-index

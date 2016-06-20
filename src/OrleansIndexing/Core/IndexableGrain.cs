@@ -16,7 +16,7 @@ namespace Orleans.Indexing
     ///     2- the grain class is responsible for calling UpdateIndexes
     ///        whenever one or more indexes need to be updated
     /// </summary>
-    public abstract class IndexableGrain<T> : Grain<T>, IIndexableGrain<T>
+    public abstract class IndexableGrain<T> : Grain<T>, IIndexableGrain
     {
         /// <summary>
         /// an immutable cached version of IIndexUpdateGenerator instances
@@ -103,9 +103,9 @@ namespace Orleans.Indexing
         /// <returns>IndexHandler for the current grain</returns>
         private IIndexHandler GetIndexHandler()
         {
-            Type thisIGrainType = getIGrainType();
+            Type thisIGrainType = getIIndexableGrainType();
             Type typedIndexHandlerType = typeof(IIndexHandler<>).MakeGenericType(thisIGrainType);
-            return GrainFactory.GetGrain<IIndexHandler<IGrain>>(TypeUtils.GetFullName(thisIGrainType), typedIndexHandlerType);
+            return GrainFactory.GetGrain<IIndexHandler<IIndexableGrain>>(TypeUtils.GetFullName(thisIGrainType), typedIndexHandlerType);
         }
 
         /// <summary>
@@ -114,18 +114,16 @@ namespace Orleans.Indexing
         /// </summary>
         /// <returns>lowest IGrain interface in the hierarchy
         /// that the current class implements</returns>
-        private Type getIGrainType()
+        private Type getIIndexableGrainType()
         {
             if (_iGrainType == null)
             {
-                Type iGrainTp = typeof(IGrain);
                 Type iIndexableGrainTp = typeof(IIndexableGrain);
-                Type typedIIndexableGrainTp = typeof(IIndexableGrain<T>);
 
                 Type[] interfaces = this.GetType().GetInterfaces();
                 int numInterfaces = interfaces.Length;
 
-                Type thisIGrainType = iGrainTp;
+                Type thisIIndexableGrainTp = iIndexableGrainTp;
                 for (int i = 0; i < numInterfaces; ++i)
                 {
                     Type otherIGrainType = interfaces[i];
@@ -133,14 +131,12 @@ namespace Orleans.Indexing
                     //iIndexableGrainTp and typedIIndexableGrainTp are ignored when
                     //checking the descendants of IGrain, because there is no guarantee
                     //user defined grain interfaces extend these interfaces
-                    if (otherIGrainType == iIndexableGrainTp || otherIGrainType == typedIIndexableGrainTp)
-                        continue;
-                    if (thisIGrainType.IsAssignableFrom(otherIGrainType))
+                    if (thisIIndexableGrainTp.IsAssignableFrom(otherIGrainType))
                     {
-                        thisIGrainType = otherIGrainType;
+                        thisIIndexableGrainTp = otherIGrainType;
                     }
                 }
-                _iGrainType = thisIGrainType == iGrainTp ? typedIIndexableGrainTp : thisIGrainType;
+                _iGrainType = thisIIndexableGrainTp;
             }
             return _iGrainType;
         }

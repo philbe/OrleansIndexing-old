@@ -15,20 +15,20 @@ using Xunit.Abstractions;
 namespace UnitTests.IndexingTests
 {
     [Serializable]
-    public class PlayerLocIndexGen : IndexUpdateGenerator<string, PlayerGrain>
+    public class PlayerLocIndexGen : IndexUpdateGenerator<string, IPlayerGrain>
     {
-        public override string ExtractIndexImage(PlayerGrain g)
+        public override string ExtractIndexImage(IPlayerGrain g)
         {
-            return g.Location;
+            return g.GetLocation().Result;
         }
     }
 
     [Serializable]
-    public class PlayerScoreIndexGen : IndexUpdateGenerator<int, PlayerGrain>
+    public class PlayerScoreIndexGen : IndexUpdateGenerator<int, IPlayerGrain>
     {
-        public override int ExtractIndexImage(PlayerGrain g)
+        public override int ExtractIndexImage(IPlayerGrain g)
         {
-            return g.Score;
+            return g.GetScore().Result;
         }
     }
 

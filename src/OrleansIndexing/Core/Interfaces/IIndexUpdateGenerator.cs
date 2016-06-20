@@ -23,7 +23,7 @@ namespace Orleans.Indexing
         /// extract some state to be indexed</param>
         /// <returns>an encapsulation of the part of the grain state
         /// that this index is interested in</returns>
-        object ExtractIndexImage(Grain indexedGrain);
+        object ExtractIndexImage(IIndexableGrain indexedGrain);
 
         /// <summary>
         /// Creates an update object after receiving the current state of the grain
@@ -34,12 +34,12 @@ namespace Orleans.Indexing
         /// <param name="beforeImage">the before-image of the indexedGrain,
         /// which was captured earlier via a call to ExtractIndexImage(indexedGrain)</param>
         /// <returns>an IMemberUpdate instance that contains the update information</returns>
-        IMemberUpdate CreateMemberUpdate(Grain indexedGrain, object beforeImage);
+        IMemberUpdate CreateMemberUpdate(IIndexableGrain indexedGrain, object beforeImage);
     }
 
-    public abstract class IIndexUpdateGenerator<K,V> : IIndexUpdateGenerator where V : Grain
+    public abstract class IIndexUpdateGenerator<K,V> : IIndexUpdateGenerator where V : IIndexableGrain
     {
-        object IIndexUpdateGenerator.ExtractIndexImage(Grain indexedGrain)
+        object IIndexUpdateGenerator.ExtractIndexImage(IIndexableGrain indexedGrain)
         {
             return ExtractIndexImage((V)indexedGrain);
         }
@@ -53,7 +53,7 @@ namespace Orleans.Indexing
         /// that this index is interested in</returns>
         abstract public K ExtractIndexImage(V indexedGrain);
 
-        IMemberUpdate IIndexUpdateGenerator.CreateMemberUpdate(Grain indexedGrain, object beforeImage)
+        IMemberUpdate IIndexUpdateGenerator.CreateMemberUpdate(IIndexableGrain indexedGrain, object beforeImage)
         {
             return CreateMemberUpdate((V)indexedGrain, (K)beforeImage);
         }

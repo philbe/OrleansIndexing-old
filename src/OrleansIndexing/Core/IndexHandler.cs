@@ -22,7 +22,7 @@ namespace Orleans.Indexing
     /// <typeparam name="T">the type of grain interface type of
     /// the grain that is handled by this index handler</typeparam>
     [StatelessWorker]
-    public class IndexHandler<T> : Grain, IIndexHandler<T> where T : IGrain
+    public class IndexHandler<T> : Grain, IIndexHandler<T> where T : IIndexableGrain
     {
         private Immutable<IDictionary<string, Tuple<IIndex,IndexMetaData>>> _indexes;
         private Immutable<IDictionary<string, IIndexUpdateGenerator>> _iUpdateGens;
@@ -38,7 +38,7 @@ namespace Orleans.Indexing
             await Task.WhenAll(ReloadIndexes(), base.OnActivateAsync());
         }
 
-        public async Task<bool> ApplyIndexUpdates(IGrain updatedGrain, Immutable<IDictionary<string, IMemberUpdate>> iUpdates)
+        public async Task<bool> ApplyIndexUpdates(IIndexableGrain updatedGrain, Immutable<IDictionary<string, IMemberUpdate>> iUpdates)
         {
             var updates = iUpdates.Value;
             var idxs = _indexes.Value;

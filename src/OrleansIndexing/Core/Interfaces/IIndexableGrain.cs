@@ -11,12 +11,4 @@ namespace Orleans.Indexing
     public interface IIndexableGrain : IGrain
     {
     }
-
-    /// <summary>
-    /// The grain interface for the IndexableGrain grain,
-    /// which indexes a single grain.
-    /// </summary>
-    public interface IIndexableGrain<T> : IIndexableGrain
-    {
-    }
 }

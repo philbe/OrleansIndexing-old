@@ -1,10 +1,11 @@
 using System;
 using System.Threading.Tasks;
 using Orleans;
+using Orleans.Indexing;
 
 namespace UnitTests.GrainInterfaces
 {
-    public interface IPlayerGrain : IGrainWithIntegerKey
+    public interface IPlayerGrain : IGrainWithIntegerKey, IIndexableGrain
     {
         Task<string> GetEmail();
         Task<string> GetLocation();

@@ -14,7 +14,7 @@ namespace Orleans.Indexing
     /// <typeparam name="K">the type of key for the hash index</typeparam>
     /// <typeparam name="V">the type of grain interface that is
     /// being indexed</typeparam>
-    public interface IHashIndex<K,V> : IIndex<K,V> where V : IGrain
+    public interface IHashIndex<K,V> : IIndex<K,V> where V : IIndexableGrain
     {
         /// <summary>
         /// A hash-index can be either unique or non-unique. If the user defines

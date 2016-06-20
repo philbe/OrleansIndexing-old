@@ -20,7 +20,7 @@ namespace Orleans.Indexing
         /// <param name="indexName">the name of the index, which
         /// is the identifier of the index</param>
         /// <returns></returns>
-        public static async Task<IIndex<K, V>> GetIndex<K, V>(string indexName) where V : IGrain
+        public static async Task<IIndex<K, V>> GetIndex<K, V>(string indexName) where V : IIndexableGrain
         {
             return (await GetIndexHandler<V>().GetIndex(indexName)).AsReference<IIndex<K,V>>();
         }
@@ -81,7 +81,7 @@ namespace Orleans.Indexing
 
                 Type indexRegType = typeof(IIndexRegistry<>).MakeGenericType(new Type[] { iGrainType } );
 
-                IIndexRegistry indexReg = GrainClient.GrainFactory.GetGrain<IIndexRegistry<IGrain>>(TypeUtils.GetFullName(iGrainType), indexRegType);
+                IIndexRegistry indexReg = GrainClient.GrainFactory.GetGrain<IIndexRegistry<IIndexableGrain>>(TypeUtils.GetFullName(iGrainType), indexRegType);
                 //string indexName = await index.GetIndexName();
                 return indexReg.RegisterIndex(indexName, index, new IndexMetaData(typeof(IIdxType), typeof(IndexUpdateGenType)));
             }
@@ -113,7 +113,7 @@ namespace Orleans.Indexing
         /// </summary>
         /// <typeparam name="IGrainType">the grain interface type that its
         /// interfaces are going to be loaded.</typeparam>
-        public static Task ReloadIndexes<IGrainType>() where IGrainType : IGrain
+        public static Task ReloadIndexes<IGrainType>() where IGrainType : IIndexableGrain
         {
             return GetIndexHandler<IGrainType>().ReloadIndexes();
         }
@@ -123,7 +123,7 @@ namespace Orleans.Indexing
         /// </summary>
         /// <typeparam name="IGrainType"></typeparam>
         /// <returns></returns>
-        public static Task DropAllIndexes<IGrainType>() where IGrainType : IGrain
+        public static Task DropAllIndexes<IGrainType>() where IGrainType : IIndexableGrain
         {
             return GetIndexRegistry<IGrainType>().DropAllIndexes();
         }
@@ -134,7 +134,7 @@ namespace Orleans.Indexing
         /// <typeparam name="IGrainType"></typeparam>
         /// <param name="indexName"></param>
         /// <returns></returns>
-        public static Task DropIndex<IGrainType>(string indexName) where IGrainType : IGrain
+        public static Task DropIndex<IGrainType>(string indexName) where IGrainType : IIndexableGrain
         {
             return GetIndexRegistry<IGrainType>().DropIndex(indexName);
         }
@@ -144,12 +144,12 @@ namespace Orleans.Indexing
         /// </summary>
         /// <typeparam name="T">the indexed grain interface type</typeparam>
         /// <returns>the index handler for a given grain interface type</returns>
-        private static IIndexHandler<T> GetIndexHandler<T>() where T : IGrain
+        private static IIndexHandler<T> GetIndexHandler<T>() where T : IIndexableGrain
         {
             return GrainClient.GrainFactory.GetGrain<IIndexHandler<T>>(TypeUtils.GetFullName(typeof(T)));
         }
         
-        private static IIndexRegistry<T> GetIndexRegistry<T>() where T : IGrain
+        private static IIndexRegistry<T> GetIndexRegistry<T>() where T : IIndexableGrain
         {
             return GrainClient.GrainFactory.GetGrain<IIndexRegistry<T>>(TypeUtils.GetFullName(typeof(T)));
         }

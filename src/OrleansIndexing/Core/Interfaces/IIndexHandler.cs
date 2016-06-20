@@ -20,7 +20,7 @@ namespace Orleans.Indexing
         /// <returns>false, if the index handler controls an index for which there 
         /// was no update in 'updates' or if 'updates' contains an update for a
         /// nonexistent index. Otherwise true</returns>
-        Task<bool> ApplyIndexUpdates(IGrain updatedGrain, Immutable<IDictionary<string, IMemberUpdate>> updates);
+        Task<bool> ApplyIndexUpdates(IIndexableGrain updatedGrain, Immutable<IDictionary<string, IMemberUpdate>> updates);
 
         /// <summary>
         /// Exposes the index operations for the indexes handled by this index handler
@@ -54,7 +54,7 @@ namespace Orleans.Indexing
     /// The grain interface for the index handler grain,
     /// which indexes a single grain.
     /// </summary>
-    public interface IIndexHandler<T> : IIndexHandler where T : IGrain
+    public interface IIndexHandler<T> : IIndexHandler where T : IIndexableGrain
     {
     }
 }
