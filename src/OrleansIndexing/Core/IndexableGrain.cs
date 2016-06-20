@@ -203,7 +203,7 @@ namespace Orleans.Indexing
             //base.WriteStateAsync should be done before UpdateIndexes, in order to ensure
             //that only the successfully persisted bits get to be indexed, so we cannot do
             //these two tasks in parallel
-            //await Task.WhenAll(new Task[] { base.WriteStateAsync(), UpdateIndexes() });
+            //await Task.WhenAll(base.WriteStateAsync(), UpdateIndexes());
 
             // during WriteStateAsync for a stateful indexable grain,
             // the indexes get updated after base.WriteStateAsync is done.

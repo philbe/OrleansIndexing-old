@@ -102,10 +102,10 @@ namespace Orleans.Indexing
         /// is the identifier of the index</param>
         /// <returns>whether the creation and registration of the
         /// index was successful or not.</returns>
-        public static async Task<bool> CreateAndRegisterIndex<IIdxType, IndexUpdateGenType>(string indexName) where IIdxType : IIndex where IndexUpdateGenType : IIndexUpdateGenerator, new()
+        public static Task<bool> CreateAndRegisterIndex<IIdxType, IndexUpdateGenType>(string indexName) where IIdxType : IIndex where IndexUpdateGenType : IIndexUpdateGenerator, new()
         {
             IIdxType index = CreateIndexGrain<IIdxType>(indexName);
-            return await RegisterIndex<IIdxType, IndexUpdateGenType>(indexName, index);
+            return RegisterIndex<IIdxType, IndexUpdateGenType>(indexName, index);
         }
 
         /// <summary>
@@ -113,7 +113,7 @@ namespace Orleans.Indexing
         /// </summary>
         /// <typeparam name="IGrainType">the grain interface type that its
         /// interfaces are going to be loaded.</typeparam>
-        public static Task ReloadIndexes<IGrainType>() where IGrainType : IIndexableGrain
+        internal static Task ReloadIndexes<IGrainType>() where IGrainType : IIndexableGrain
         {
             return GetIndexHandler<IGrainType>().ReloadIndexes();
         }
@@ -144,12 +144,12 @@ namespace Orleans.Indexing
         /// </summary>
         /// <typeparam name="T">the indexed grain interface type</typeparam>
         /// <returns>the index handler for a given grain interface type</returns>
-        private static IIndexHandler<T> GetIndexHandler<T>() where T : IIndexableGrain
+        internal static IIndexHandler<T> GetIndexHandler<T>() where T : IIndexableGrain
         {
             return GrainClient.GrainFactory.GetGrain<IIndexHandler<T>>(TypeUtils.GetFullName(typeof(T)));
         }
-        
-        private static IIndexRegistry<T> GetIndexRegistry<T>() where T : IIndexableGrain
+
+        internal static IIndexRegistry<T> GetIndexRegistry<T>() where T : IIndexableGrain
         {
             return GrainClient.GrainFactory.GetGrain<IIndexRegistry<T>>(TypeUtils.GetFullName(typeof(T)));
         }
