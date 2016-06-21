@@ -23,13 +23,13 @@ namespace UnitTests.IndexingTests
             IPlayerGrain p200 = GrainClient.GrainFactory.GetGrain<IPlayerGrain>(200);
             IPlayerGrain p300 = GrainClient.GrainFactory.GetGrain<IPlayerGrain>(300);
 
-            await p100.SetLocation("Redmond");
-            await p200.SetLocation("Redmond");
-            await p300.SetLocation("Bellevue");
+            await p100.SetLocation("Tehran");
+            await p200.SetLocation("Tehran");
+            await p300.SetLocation("Yazd");
 
-            Assert.Equal("Redmond", await p100.GetLocation());
-            Assert.Equal("Redmond", await p200.GetLocation());
-            Assert.Equal("Bellevue", await p300.GetLocation());
+            Assert.Equal("Tehran", await p100.GetLocation());
+            Assert.Equal("Tehran", await p200.GetLocation());
+            Assert.Equal("Yazd", await p300.GetLocation());
         }
     }
 }
