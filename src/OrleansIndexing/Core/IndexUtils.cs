@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Orleans;
 using Orleans.Runtime;
 using Orleans.CodeGeneration;
+using System.Reflection;
 
 namespace Orleans.Indexing
 {
@@ -94,6 +95,19 @@ namespace Orleans.Indexing
             IIndexUpdateGenerator output;
             (await GetIndexHandler<T>(gf).GetIndexUpdateGenerators()).Value.TryGetValue(indexName, out output);
             return output;
+        }
+
+        /// <summary>
+        /// This method is a central place for finding the
+        /// indexes defined on a getter method of a given
+        /// grain interface.
+        /// </summary>
+        /// <typeparam name="IGrainType">the given grain interface type</typeparam>
+        /// <param name="grainInterfaceMethod">the getter method on the grain interface</param>
+        /// <returns>the name of the index on the getter method of the grain interface</returns>
+        internal static string GetIndexNameOnInterfaceGetter<IGrainType>(MethodInfo grainInterfaceMethod) where IGrainType : IIndexableGrain
+        {
+            return "__"+grainInterfaceMethod.GetUnadornedMethodName();
         }
     }
 }

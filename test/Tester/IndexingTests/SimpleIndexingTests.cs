@@ -116,5 +116,35 @@ namespace UnitTests.IndexingTests
 
             Assert.Equal(2, result.AsQueryable().Count());
         }
+
+        [Fact, TestCategory("BVT"), TestCategory("Indexing")]
+        public async Task Test_Indexing_IndexLookup3()
+        {
+            IPlayerGrain p1 = GrainClient.GrainFactory.GetGrain<IPlayerGrain>(1);
+            await p1.SetLocation("Lausanne");
+
+            bool isLocIndexCreated = await IndexFactory.CreateAndRegisterIndex<IHashIndexInMemory<string, IPlayerGrain>, PlayerLocIndexGen>("__GetLocation");
+            Assert.IsTrue(isLocIndexCreated);
+
+            IPlayerGrain p2 = GrainClient.GrainFactory.GetGrain<IPlayerGrain>(2);
+            IPlayerGrain p3 = GrainClient.GrainFactory.GetGrain<IPlayerGrain>(3);
+
+            await p2.SetLocation("Lausanne");
+            await p3.SetLocation("Geneva");
+
+            IIndex<string, IPlayerGrain> locIdx = await IndexFactory.GetIndex<string, IPlayerGrain>("__GetLocation");
+
+            while (!await locIdx.IsAvailable()) Thread.Sleep(50);
+            Assert.AreEqual(IndexUtils.GetIndexNameFromIndexGrain(locIdx), "__GetLocation");
+
+            IEnumerable<IPlayerGrain> result = await IndexFactory.GetActiveGrains<IPlayerGrain>(p => (p.GetLocation().Result) == "Lausanne");
+
+            foreach (IPlayerGrain entry in result)
+            {
+                output.WriteLine("guid = {0}, location = {1}, primary key = {2}", entry, await entry.GetLocation(), entry.GetPrimaryKeyLong());
+            }
+
+            Assert.AreEqual(2, result.AsQueryable().Count());
+        }
     }
 }
