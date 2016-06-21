@@ -33,6 +33,13 @@ namespace Orleans.Indexing
         /// Determines whether the index is available for lookup
         /// </summary>
         Task<bool> IsAvailable();
+
+        /// <summary>
+        /// This method retrieves the result of a lookup into the hash-index
+        /// </summary>
+        /// <param name="key">the lookup key</param>
+        /// <returns>the result of lookup into the hash-index</returns>
+        Task<IEnumerable<IIndexableGrain>> Lookup(object key);
     }
 
     /// <summary>

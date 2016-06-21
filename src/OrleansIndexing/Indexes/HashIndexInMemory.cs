@@ -197,6 +197,11 @@ namespace Orleans.Indexing
             return isDone;
         }
 
+        async Task<IEnumerable<IIndexableGrain>> IIndex.Lookup(object key)
+        {
+            return (IEnumerable<IIndexableGrain>)await Lookup((K)key);
+        }
+
         /// <summary>
         /// Each hash-index needs a hash function, and a user can specify
         /// the hash function via a call to this method.
