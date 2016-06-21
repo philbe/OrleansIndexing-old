@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
-using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 using UnitTests.GrainInterfaces;
 using UnitTests.Tester;
 using Xunit;
@@ -28,9 +27,9 @@ namespace UnitTests.IndexingTests
             await p200.SetLocation("Redmond");
             await p300.SetLocation("Bellevue");
 
-            Assert.AreEqual("Redmond", await p100.GetLocation());
-            Assert.AreEqual("Redmond", await p200.GetLocation());
-            Assert.AreEqual("Bellevue", await p300.GetLocation());
+            Assert.Equal("Redmond", await p100.GetLocation());
+            Assert.Equal("Redmond", await p200.GetLocation());
+            Assert.Equal("Bellevue", await p300.GetLocation());
         }
     }
 }

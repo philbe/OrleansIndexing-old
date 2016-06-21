@@ -31,7 +31,7 @@ namespace Orleans.Indexing
         {
             return GrainFactoryBase.MakeGrainReference_FromType(
                     baseTypeCode => TypeCodeMapper.ComposeGrainId(baseTypeCode, grainID, grainInterfaceType),
-                    grainInterfaceType).AsReference<OutputGrainInterfaceType>();
+                    grainInterfaceType).AsReference<OutputGrainInterfaceType>(gf);
             //return GetGrain<OutputGrainInterfaceType>(gf, grainID, grainInterfaceType, typeof(OutputGrainInterfaceType));
         }
 
@@ -56,7 +56,7 @@ namespace Orleans.Indexing
         {
             return GrainFactoryBase.MakeGrainReference_FromType(
                     baseTypeCode => TypeCodeMapper.ComposeGrainId(baseTypeCode, grainID, grainInterfaceType),
-                    grainInterfaceType).AsReference<OutputGrainInterfaceType>();
+                    grainInterfaceType).AsReference<OutputGrainInterfaceType>(gf);
             //return GetGrain<OutputGrainInterfaceType>(gf, grainID, grainInterfaceType, typeof(OutputGrainInterfaceType));
         }
 

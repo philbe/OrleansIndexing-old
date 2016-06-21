@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
-using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 using UnitTests.GrainInterfaces;
 using UnitTests.Tester;
 using Xunit;
@@ -59,7 +58,7 @@ namespace UnitTests.IndexingTests
                 output.WriteLine("guid = {0}", entry);
             }
 
-            Assert.AreEqual(3, activeGrains.AsQueryable().Count());
+            Assert.Equal(3, activeGrains.AsQueryable().Count());
         }
 
         [Fact, TestCategory("BVT"), TestCategory("Indexing")]
@@ -93,7 +92,7 @@ namespace UnitTests.IndexingTests
                 output.WriteLine("guid = {0}", entry.GetPrimaryKey());
             }
 
-            Assert.AreEqual(3, activeGrains.AsQueryable().Count());
+            Assert.Equal(3, activeGrains.AsQueryable().Count());
         }
     }
 }

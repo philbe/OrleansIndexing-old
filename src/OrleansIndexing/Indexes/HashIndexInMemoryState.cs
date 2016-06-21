@@ -22,6 +22,14 @@ namespace Orleans.Indexing
         /// The actual storage of the indexed values
         /// </summary>
         public IDictionary<K, HashIndexInMemoryEntry<V>> IndexMap { set; get; }
+
+        /// <summary>
+        /// Contains the status of the index regarding
+        /// its population process, which can be either
+        /// UnderConstruction or Available. Available means
+        /// that the index has already been populated.
+        /// </summary>
+        public IndexStatus IndexStatus {set; get;}
     }
 
     /// <summary>

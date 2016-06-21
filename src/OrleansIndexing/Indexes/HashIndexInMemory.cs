@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Orleans.Concurrency;
+using Orleans.Runtime;
 
 namespace Orleans.Indexing
 {
@@ -22,92 +23,126 @@ namespace Orleans.Indexing
         {
             //await ReadStateAsync();
             if (State.IndexMap == null) State.IndexMap = new Dictionary<K, HashIndexInMemoryEntry<V>>();
+            if (State.IndexStatus == IndexStatus.UnderConstruction)
+            {
+                string indexName = IndexUtils.GetIndexNameFromIndexGrain(this);
+                var _ = GetIndexBuilder().BuildIndex(indexName, this, await IndexUtils.GetIndexUpdateGenerator<V>(GrainFactory, indexName));
+            }
             await base.OnActivateAsync();
         }
 
-        public Task<bool> ApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate)
+        public async Task<bool> ApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate)
         {
-            var updatedGrain = g.AsReference<V>();
+            //the index can start processing update as soon as it becomes
+            //visible to index handler and does not have to wait for any
+            //further event regarding index builder, so it is not necessary
+            //to have a Created state
+            //if (State.IndexStatus == IndexStatus.Created) return true;
+
+            var updatedGrain = g.AsReference<V>(GrainFactory);
             var updt = (MemberUpdate)iUpdate.Value;
             var opType = updt.GetOperationType();
+            HashIndexInMemoryEntry<V> befEntry;
+            HashIndexInMemoryEntry<V> aftEntry;
             if (opType == OperationType.Update)
             {
                 K befImg = (K)updt.GetBeforeImage();
-
-                if (State.IndexMap.ContainsKey(befImg))
-                {
-                    HashIndexInMemoryEntry<V> befEntry = State.IndexMap[befImg];
-                    if(befEntry.Values.Contains(updatedGrain))
+                K aftImg = (K)updt.GetAfterImage();
+                if (State.IndexMap.TryGetValue(befImg, out befEntry) && befEntry.Values.Contains(updatedGrain))
+                {   //Delete and Insert
+                    if (State.IndexMap.TryGetValue(aftImg, out aftEntry))
                     {
-                        K aftImg = (K)updt.GetAfterImage();
-                        if(State.IndexMap.ContainsKey(aftImg))
+                        if (aftEntry.Values.Contains(updatedGrain))
                         {
-                            HashIndexInMemoryEntry<V> aftEntry = State.IndexMap[aftImg];
-                            if(State.IsUnique && aftEntry.Values.Count > 0)
+                            befEntry.Values.Remove(updatedGrain);
+                        }
+                        else
+                        {
+                            if (State.IsUnique && aftEntry.Values.Count > 0)
                             {
                                 throw new Exception(string.Format("The uniqueness property of index is violated after an update operation for before-image = {0}, after-image = {1} and grain = {2}", befImg, aftImg, updatedGrain.GetPrimaryKey()));
                             }
                             befEntry.Values.Remove(updatedGrain);
                             aftEntry.Values.Add(updatedGrain);
                         }
-                        else
+                    }
+                    else
+                    {
+                        aftEntry = new HashIndexInMemoryEntry<V>();
+                        befEntry.Values.Remove(updatedGrain);
+                        aftEntry.Values.Add(updatedGrain);
+                        State.IndexMap.Add(aftImg, aftEntry);
+                    }
+                }
+                else
+                { // Insert
+                    if (State.IndexMap.TryGetValue(aftImg, out aftEntry))
+                    {
+                        if (!aftEntry.Values.Contains(updatedGrain))
                         {
-                            HashIndexInMemoryEntry<V> aftEntry = new HashIndexInMemoryEntry<V>();
+                            if (State.IsUnique && aftEntry.Values.Count > 0)
+                            {
+                                throw new Exception(string.Format("The uniqueness property of index is violated after an update operation for (not found before-image = {0}), after-image = {1} and grain = {2}", befImg, aftImg, updatedGrain.GetPrimaryKey()));
+                            }
                             aftEntry.Values.Add(updatedGrain);
-                            State.IndexMap.Add(aftImg, aftEntry);
                         }
                     }
                     else
                     {
-                        throw new Exception(string.Format("The index entry does not exist for before-image = {0} and grain = {1}", befImg, updatedGrain.GetPrimaryKey()));
+                        aftEntry = new HashIndexInMemoryEntry<V>();
+                        aftEntry.Values.Add(updatedGrain);
+                        State.IndexMap.Add(aftImg, aftEntry);
                     }
-                }
-                else
-                {
-                    throw new Exception(string.Format("The index entry does not exist for before-image = {0} and grain = {1}", befImg, updatedGrain.GetPrimaryKey()));
                 }
             }
             else if (opType == OperationType.Insert)
-            {
+            { // Insert
                 K aftImg = (K)updt.GetAfterImage();
-                if (State.IndexMap.ContainsKey(aftImg))
+                if (State.IndexMap.TryGetValue(aftImg, out aftEntry))
                 {
-                    HashIndexInMemoryEntry<V> aftEntry = State.IndexMap[aftImg];
-                    if (State.IsUnique && aftEntry.Values.Count > 0)
+                    if (!aftEntry.Values.Contains(updatedGrain))
                     {
-                        throw new Exception(string.Format("The uniqueness property of index is violated after an insert operation for after-image = {1} and grain = {2}", aftImg, updatedGrain.GetPrimaryKey()));
+                        if (State.IsUnique && aftEntry.Values.Count > 0)
+                        {
+                            throw new Exception(string.Format("The uniqueness property of index is violated after an insert operation for after-image = {1} and grain = {2}", aftImg, updatedGrain.GetPrimaryKey()));
+                        }
+                        aftEntry.Values.Add(updatedGrain);
                     }
-                    aftEntry.Values.Add(updatedGrain);
                 }
                 else
                 {
-                    HashIndexInMemoryEntry<V> aftEntry = new HashIndexInMemoryEntry<V>();
+                    aftEntry = new HashIndexInMemoryEntry<V>();
                     aftEntry.Values.Add(updatedGrain);
                     State.IndexMap.Add(aftImg, aftEntry);
                 }
             }
             else if (opType == OperationType.Delete)
-            {
+            { // Delete
                 K befImg = (K)updt.GetBeforeImage();
 
-                if (State.IndexMap.ContainsKey(befImg))
+                if (State.IndexMap.TryGetValue(befImg, out befEntry) && befEntry.Values.Contains(updatedGrain))
                 {
-                    HashIndexInMemoryEntry<V> befEntry = State.IndexMap[befImg];
-                    if (befEntry.Values.Contains(updatedGrain))
+                    befEntry.Values.Remove(updatedGrain);
+                    if (State.IndexStatus != IndexStatus.Available)
                     {
-                        befEntry.Values.Remove(updatedGrain);
+                        State.IndexStatus = await GetIndexBuilder().AddTombstone(updatedGrain) ? IndexStatus.Available : State.IndexStatus;
+                        Task writeTask = null;
+                        if (State.IndexStatus == IndexStatus.Available) writeTask = base.WriteStateAsync();
+                        if (State.IndexMap.TryGetValue(befImg, out befEntry) && befEntry.Values.Contains(updatedGrain))
+                        {
+                            befEntry.Values.Remove(updatedGrain);
+                            var isAvailable = await GetIndexBuilder().AddTombstone(updatedGrain);
+                            if(State.IndexStatus != IndexStatus.Available && isAvailable)
+                            {
+                                State.IndexStatus = IndexStatus.Available;
+                                writeTask = base.WriteStateAsync();
+                            }
+                        }
+                        await writeTask;
                     }
-                    else
-                    {
-                        throw new Exception(string.Format("The index entry does not exist for before-image = {0} and grain = {1}", befImg, updatedGrain.GetPrimaryKey()));
-                    }
-                }
-                else
-                {
-                    throw new Exception(string.Format("The index entry does not exist for before-image = {0} and grain = {1}", befImg, updatedGrain.GetPrimaryKey()));
                 }
             }
-            return Task.FromResult(true);
+            return true;
         }
 
         public Task<bool> IsUnique()
@@ -115,15 +150,22 @@ namespace Orleans.Indexing
             return Task.FromResult(State.IsUnique);
         }
 
-        public Task<IEnumerable<V>> Lookup(K key)
+        public async Task<IEnumerable<V>> Lookup(K key)
         {
-            if (State.IndexMap.ContainsKey(key))
+            if (!(State.IndexStatus == IndexStatus.Available || await IsAvailable()))
             {
-                return Task.FromResult((IEnumerable<V>)State.IndexMap[key].Values);
+                var e = new Exception(string.Format("Index is not still available."));
+                GetLogger().Log((int)ErrorCode.IndexingIndexIsNotReadyYet, Severity.Error, "Index is not still available.", null, e);
+                throw e;
+            }
+            HashIndexInMemoryEntry<V> entry;
+            if (State.IndexMap.TryGetValue(key, out entry))
+            {
+                return entry.Values;
             }
             else
             {
-                return Task.FromResult(Enumerable.Empty<V>());
+                return Enumerable.Empty<V>();
             }
         }
 
@@ -136,6 +178,23 @@ namespace Orleans.Indexing
         {
             State.IndexMap.Clear();
             return TaskDone.Done;
+        }
+
+        private IIndexBuilder<V> GetIndexBuilder()
+        {
+            return GrainFactory.GetGrain<IIndexBuilder<V>>(((IIndex<K, V>)this).GetPrimaryKeyString());
+        }
+
+        public async Task<bool> IsAvailable()
+        {
+            if (State.IndexStatus == IndexStatus.Available) return true;
+            var isDone = await GetIndexBuilder().IsDone();
+            if(isDone)
+            {
+                State.IndexStatus = IndexStatus.Available;
+                await base.WriteStateAsync();
+            }
+            return isDone;
         }
 
         /// <summary>

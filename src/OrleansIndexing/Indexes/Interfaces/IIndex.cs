@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 
 namespace Orleans.Indexing
 {
+    public enum IndexStatus { /*Created,*/ UnderConstruction, Available }
+
     /// <summary>
     /// This interface defines the functionality
     /// that is required for an index implementation.
@@ -19,13 +21,18 @@ namespace Orleans.Indexing
         /// <param name="iUpdate">contains the data for the update</param>
         /// <returns>true, if the index update was successful, otherwise false</returns>
         Task<bool> ApplyIndexUpdate(IIndexableGrain updatedGrain, Immutable<IMemberUpdate> iUpdate);
-
+        
         /// <summary>
         /// Disposes of the index and removes all the data stored
         /// for the index. This method is called before removing
         /// the index from index registry
         /// </summary>
         Task Dispose();
+
+        /// <summary>
+        /// Determines whether the index is available for lookup
+        /// </summary>
+        Task<bool> IsAvailable();
     }
 
     /// <summary>

@@ -22,6 +22,15 @@ namespace Orleans.Indexing
             return filteredList.ToList();
         }
 
+        public static async Task<IEnumerable<T>> GetActiveGrains<T>(IGrainFactory gf, params SiloAddress[] hostsIds) where T : IGrain
+        {
+            string grainTypeName = TypeCodeMapper.GetImplementation(typeof(T)).GrainClass;
+
+            IEnumerable<Tuple<GrainId, string, int>> activeGrainList = await GetGrainActivations(hostsIds);
+            IEnumerable<T> filteredList = activeGrainList.Where(s => s.Item2.Equals(grainTypeName)).Select(s => gf.GetGrain<T>(s.Item1.GetPrimaryKey(), typeof(T)));
+            return filteredList.ToList();
+        }
+
         private static async Task<IEnumerable<Tuple<GrainId, string, int>>> GetGrainActivations()
         {
             Dictionary<SiloAddress, SiloStatus> hosts = await GetHosts(true);
@@ -29,7 +38,7 @@ namespace Orleans.Indexing
             return await GetGrainActivations(silos);
         }
 
-        private static async Task<IEnumerable<Tuple<GrainId, string, int>>> GetGrainActivations(SiloAddress[] hostsIds)
+        internal static async Task<IEnumerable<Tuple<GrainId, string, int>>> GetGrainActivations(params SiloAddress[] hostsIds)
         {
             List<Task<List<Tuple<GrainId, string, int>>>> all = GetSiloAddresses(hostsIds).Select(s => GetSiloControlReference(s).GetGrainStatistics()).ToList();
             await Task.WhenAll(all);
@@ -39,7 +48,7 @@ namespace Orleans.Indexing
 
         #region copy & paste from ManagementGrain.cs
 
-        private static async Task<Dictionary<SiloAddress, SiloStatus>> GetHosts(bool onlyActive = false)
+        internal static async Task<Dictionary<SiloAddress, SiloStatus>> GetHosts(bool onlyActive = false)
         {
             var mTable = await GetMembershipTable();
             var table = await mTable.ReadAll();

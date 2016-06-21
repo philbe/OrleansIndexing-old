@@ -84,7 +84,7 @@ namespace Orleans.Indexing
                     updates.Add(kvp.Key, mu);
                 }
 
-                success = await handler.ApplyIndexUpdates(this.AsReference<IIndexableGrain>(), updates.AsImmutable());
+                success = await handler.ApplyIndexUpdates(this.AsReference<IIndexableGrain>(GrainFactory), updates.AsImmutable());
                 if (success)
                 {
                     UpdateBeforeImages(updates);
@@ -209,6 +209,11 @@ namespace Orleans.Indexing
             // the indexes get updated after base.WriteStateAsync is done.
             await base.WriteStateAsync();
             await UpdateIndexes();
+        }
+
+        Task<object> IIndexableGrain.ExtractIndexImage(IIndexUpdateGenerator iUpdateGen)
+        {
+            return Task.FromResult(iUpdateGen.ExtractIndexImage(this));
         }
     }
 
