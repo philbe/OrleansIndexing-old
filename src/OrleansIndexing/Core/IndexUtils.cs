@@ -13,24 +13,24 @@ namespace Orleans.Indexing
     /// <summary>
     /// A utility class for the low-level operations related to indexes
     /// </summary>
-    public class IndexUtils
+    public static class IndexUtils
     {
         /// <summary>
         /// Gets the index handler for a given grain interface type
         /// </summary>
         /// <typeparam name="T">the indexed grain interface type</typeparam>
         /// <returns>the index handler for a given grain interface type</returns>
-        internal static IIndexHandler<T> GetIndexHandler<T>() where T : IIndexableGrain
-        {
-            return GrainClient.GrainFactory.GetGrain<IIndexHandler<T>>(TypeUtils.GetFullName(typeof(T)));
-        }
+        //internal static IIndexHandler<T> GetIndexHandler<T>() where T : IIndexableGrain
+        //{
+        //    return GrainClient.GrainFactory.GetGrain<IIndexHandler<T>>(TypeUtils.GetFullName(typeof(T)));
+        //}
 
         /// <summary>
         /// Gets the index handler for a given grain interface type
         /// </summary>
         /// <typeparam name="T">the indexed grain interface type</typeparam>
         /// <returns>the index handler for a given grain interface type</returns>
-        internal static IIndexHandler<T> GetIndexHandler<T>(IGrainFactory gf) where T : IIndexableGrain
+        internal static IIndexHandler<T> GetIndexHandler<T>(this IGrainFactory gf) where T : IIndexableGrain
         {
             return gf.GetGrain<IIndexHandler<T>>(TypeUtils.GetFullName(typeof(T)));
         }
@@ -41,7 +41,7 @@ namespace Orleans.Indexing
         /// </summary>
         /// <param name="iGrainType">the indexed grain interface type</param>
         /// <returns>the index handler for a given grain interface type</returns>
-        internal static IIndexHandler GetIndexHandler(Type iGrainType)
+        internal static IIndexHandler GetIndexHandler(this IGrainFactory gf, Type iGrainType)
         {
             Type typedIndexHandlerType = typeof(IIndexHandler<>).MakeGenericType(iGrainType);
             return GrainClient.GrainFactory.GetGrain<IIndexHandler<IIndexableGrain>>(TypeUtils.GetFullName(iGrainType), typedIndexHandlerType);
@@ -52,9 +52,9 @@ namespace Orleans.Indexing
         /// </summary>
         /// <typeparam name="T">the indexed grain interface type</typeparam>
         /// <returns>the index registry for a given grain interface type</returns>
-        internal static IIndexRegistry<T> GetIndexRegistry<T>() where T : IIndexableGrain
+        internal static IIndexRegistry<T> GetIndexRegistry<T>(this IGrainFactory gf) where T : IIndexableGrain
         {
-            return GrainClient.GrainFactory.GetGrain<IIndexRegistry<T>>(TypeUtils.GetFullName(typeof(T)));
+            return gf.GetGrain<IIndexRegistry<T>>(TypeUtils.GetFullName(typeof(T)));
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace Orleans.Indexing
         /// <param name="gf">the grain factory instance</param>
         /// <param name="indexName">>the name of the index</param>
         /// <returns>the index update generator of the index</returns>
-        internal static async Task<IIndexUpdateGenerator> GetIndexUpdateGenerator<T>(IGrainFactory gf, string indexName) where T : IIndexableGrain
+        internal static async Task<IIndexUpdateGenerator> GetIndexUpdateGenerator<T>(this IGrainFactory gf, string indexName) where T : IIndexableGrain
         {
             IIndexUpdateGenerator output;
             (await GetIndexHandler<T>(gf).GetIndexUpdateGenerators()).Value.TryGetValue(indexName, out output);
