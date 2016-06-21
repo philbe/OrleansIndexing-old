@@ -55,9 +55,9 @@
     <Compile Include="Core\Interfaces\IIndexUpdateGenerator.cs" />
     <Compile Include="Core\Interfaces\IMemberUpdate.cs" />
     <Compile Include="Core\MemberUpdate.cs" />
-    <Compile Include="Extensions\GrainExtension.cs" />
-    <Compile Include="Extensions\GrainFactoryExtension.cs" />
-    <Compile Include="Extensions\TypeExtension.cs" />
+    <Compile Include="Extensions\GrainExtensions.cs" />
+    <Compile Include="Extensions\GrainFactoryExtensions.cs" />
+    <Compile Include="Extensions\TypeExtensions.cs" />
     <Compile Include="Indexes\HashIndexInMemory.cs" />
     <Compile Include="Indexes\HashIndexInMemoryState.cs" />
     <Compile Include="Indexes\Interfaces\IHashIndex.cs" />
