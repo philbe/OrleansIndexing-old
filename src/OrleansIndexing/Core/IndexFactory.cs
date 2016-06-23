@@ -20,90 +20,27 @@ namespace Orleans.Indexing
         /// </summary>
         /// <typeparam name="IGrainType">the given grain interface
         /// type to query over its active instances</typeparam>
+        /// <param name="gf">the grain factory instance</param>
         /// <param name="filterExpr">the filter expression of the query</param>
-        /// <returns></returns>
-        public static async Task<IEnumerable<IGrainType>> GetActiveGrains<IGrainType>(this IGrainFactory gf, Expression<Func<IGrainType, bool>> filterExpr) where IGrainType : IIndexableGrain
+        /// <returns>the result of the query</returns>
+        public static Task<IOrleansQueryResult<IGrainType>> GetActiveGrains<IGrainType>(this IGrainFactory gf, Expression<Func<IGrainType, bool>> filterExpr) where IGrainType : IIndexableGrain
         {
-            string indexName;
-            object lookupValue;
-            if (TryGetIndexNameAndLookupValue(filterExpr, out indexName, out lookupValue))
-            {
-                return (IEnumerable<IGrainType>)(await (await GetIndex(gf, indexName, typeof(IGrainType))).Lookup(lookupValue));
-            }
-            else
-            {
-                throw new Exception(string.Format("Index \"{0}\" not found in the filter expression: {1}", indexName, filterExpr));
-            }
+            return GrainClient.GrainFactory.GetActiveGrains<IGrainType>()
+                                           .Where(filterExpr)
+                                           .GetResults();
         }
 
         /// <summary>
-        /// This method tries to pull out the index name and
-        /// lookup value from the given expression tree.
+        /// This method queries the active grains for the given
+        /// grain interface.
         /// </summary>
-        /// <typeparam name="IGrainType">the grain interface type</typeparam>
-        /// <param name="exprTree">the given expression tree</param>
-        /// <param name="indexName">the index name that is intended to
-        /// be pulled out of the expression tree.</param>
-        /// <param name="lookupValue">the lookup value that is intended to
-        /// be pulled out of the expression tree.</param>
-        /// <returns>determines whether the operation was successful or not</returns>
-        private static bool TryGetIndexNameAndLookupValue<IGrainType>(Expression<Func<IGrainType, bool>> exprTree, out string indexName, out object lookupValue) where IGrainType : IIndexableGrain
+        /// <typeparam name="IGrainType">the given grain interface
+        /// type to query over its active instances</typeparam>
+        /// <param name="gf">the grain factory instance</param>
+        /// <returns>the query to lookup all active grains of a given type</returns>
+        public static IOrleansQueryable<IGrainType> GetActiveGrains<IGrainType>(this IGrainFactory gf) where IGrainType : IIndexableGrain
         {
-            if (exprTree.Body is BinaryExpression)
-            {
-                BinaryExpression operation = (BinaryExpression)exprTree.Body;
-                if (operation.NodeType == ExpressionType.Equal)
-                {
-                    ConstantExpression constantExpr = null;
-                    Expression fieldExpr = null;
-                    if (operation.Right is ConstantExpression)
-                    {
-                        constantExpr = (ConstantExpression)operation.Right;
-                        fieldExpr = operation.Left;
-                    }
-                    else if(operation.Left is ConstantExpression)
-                    {
-                        constantExpr = (ConstantExpression)operation.Left;
-                        fieldExpr = operation.Right;
-                    }
-
-                    if (constantExpr != null && fieldExpr != null)
-                    {
-                        lookupValue = constantExpr.Value;
-                        indexName = GetIndexName<IGrainType>(exprTree, fieldExpr);
-                        return true;
-                    }
-                }
-            }
-            throw new NotSupportedException(string.Format("The provided expression is not supported yet: {0}", exprTree));
-        }
-
-        /// <summary>
-        /// This method tries to pull out the index name from
-        /// a given field expression.
-        /// </summary>
-        /// <typeparam name="IGrainType">the grain interface type</typeparam>
-        /// <param name="exprTree">the original expression tree</param>
-        /// <param name="fieldExpr">the field expression that should
-        /// contain the indexed field</param>
-        /// <returns></returns>
-        private static string GetIndexName<IGrainType>(Expression<Func<IGrainType, bool>> exprTree, Expression fieldExpr) where IGrainType : IIndexableGrain
-        {
-            ParameterExpression iGrainParam = exprTree.Parameters[0];
-            if (fieldExpr is MemberExpression)
-            {
-                Expression innerFieldExpr = ((MemberExpression)fieldExpr).Expression;
-                if(innerFieldExpr is MethodCallExpression)
-                {
-                    MethodCallExpression methodCall = (MethodCallExpression)innerFieldExpr;
-                    if(methodCall.Object.Equals(iGrainParam))
-                    {
-                        MethodInfo grainInterfaceMethod = methodCall.Method;
-                        return IndexUtils.GetIndexNameOnInterfaceGetter<IGrainType>(grainInterfaceMethod);
-                    }
-                }
-            }
-            throw new NotSupportedException(string.Format("The provided expression is not supported yet: {0}", exprTree));
+            return new QueryActiveGrains<IGrainType>(gf);
         }
 
         /// <summary>

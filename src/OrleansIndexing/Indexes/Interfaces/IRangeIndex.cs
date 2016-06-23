@@ -23,7 +23,7 @@ namespace Orleans.Indexing
         /// <param name="from">the lower bound of the range</param>
         /// <param name="to">the upper bound of the range</param>
         /// <returns>the result of lookup</returns>
-        Task<IEnumerable<V>> LookupRange(K from, K to);
+        Task<IOrleansQueryResult<V>> LookupRange(K from, K to);
 
         /// <summary>
         /// Given the lower bound, this method retrieves the result of
@@ -31,7 +31,7 @@ namespace Orleans.Indexing
         /// </summary>
         /// <param name="from">the lower bound of the range</param>
         /// <returns>the result of lookup</returns>
-        Task<IEnumerable<V>> LookupFromRange(K from);
+        Task<IOrleansQueryResult<V>> LookupFromRange(K from);
 
         /// <summary>
         /// Given the upper bound, this method retrieves the result of
@@ -39,7 +39,7 @@ namespace Orleans.Indexing
         /// </summary>
         /// <param name="to">the upper bound of the range</param>
         /// <returns>the result of lookup</returns>
-        Task<IEnumerable<V>> LookupToRange(K to);
+        Task<IOrleansQueryResult<V>> LookupToRange(K to);
 
         /// <summary>
         /// Each range index requires a comparison function and user

@@ -150,7 +150,7 @@ namespace Orleans.Indexing
             return Task.FromResult(State.IsUnique);
         }
 
-        public async Task<IEnumerable<V>> Lookup(K key)
+        public async Task<IOrleansQueryResult<V>> Lookup(K key)
         {
             if (!(State.IndexStatus == IndexStatus.Available || await IsAvailable()))
             {
@@ -161,17 +161,42 @@ namespace Orleans.Indexing
             HashIndexInMemoryEntry<V> entry;
             if (State.IndexMap.TryGetValue(key, out entry))
             {
-                return entry.Values;
+                return new OrleansQueryResult<V>(entry.Values);
             }
             else
             {
-                return Enumerable.Empty<V>();
+                return new OrleansQueryResult<V>(Enumerable.Empty<V>());
             }
         }
 
         public async Task<V> LookupUnique(K key)
         {
-            return (await Lookup(key)).GetEnumerator().Current;
+            if (!(State.IndexStatus == IndexStatus.Available || await IsAvailable()))
+            {
+                var e = new Exception(string.Format("Index is not still available."));
+                GetLogger().Error((int)ErrorCode.IndexingIndexIsNotReadyYet, e.Message, e);
+                throw e;
+            }
+            HashIndexInMemoryEntry<V> entry;
+            if (State.IndexMap.TryGetValue(key, out entry))
+            {
+                if (entry.Values.Count() == 1)
+                {
+                    return entry.Values.GetEnumerator().Current;
+                }
+                else
+                {
+                    var e = new Exception(string.Format("There are {0} values for the unique lookup key \"{1}\" does not exist on index \"{2}\".", entry.Values.Count(), key, IndexUtils.GetIndexNameFromIndexGrain(this)));
+                    GetLogger().Error((int)ErrorCode.IndexingIndexIsNotReadyYet, e.Message, e);
+                    throw e;
+                }
+            }
+            else
+            {
+                var e = new Exception(string.Format("The lookup key \"{0}\" does not exist on index \"{1}\".", key, IndexUtils.GetIndexNameFromIndexGrain(this)));
+                GetLogger().Error((int)ErrorCode.IndexingIndexIsNotReadyYet, e.Message, e);
+                throw e;
+            }
         }
 
         public Task Dispose()
@@ -197,9 +222,9 @@ namespace Orleans.Indexing
             return isDone;
         }
 
-        async Task<IEnumerable<IIndexableGrain>> IIndex.Lookup(object key)
+        async Task<IOrleansQueryResult<IIndexableGrain>> IIndex.Lookup(object key)
         {
-            return (IEnumerable<IIndexableGrain>)await Lookup((K)key);
+            return (IOrleansQueryResult<IIndexableGrain>)await Lookup((K)key);
         }
 
         /// <summary>
