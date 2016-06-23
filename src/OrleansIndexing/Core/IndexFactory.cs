@@ -22,7 +22,7 @@ namespace Orleans.Indexing
         /// type to query over its active instances</typeparam>
         /// <param name="filterExpr">the filter expression of the query</param>
         /// <returns></returns>
-        public static async Task<IEnumerable<IGrainType>> GetActiveGrains<IGrainType>(this IGrainFactory gf, Expression<Func<IGrainType,bool>> filterExpr) where IGrainType : IIndexableGrain
+        public static async Task<IEnumerable<IGrainType>> GetActiveGrains<IGrainType>(this IGrainFactory gf, Expression<Func<IGrainType, bool>> filterExpr) where IGrainType : IIndexableGrain
         {
             string indexName;
             object lookupValue;

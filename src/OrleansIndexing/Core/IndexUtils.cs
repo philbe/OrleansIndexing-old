@@ -44,7 +44,7 @@ namespace Orleans.Indexing
         internal static IIndexHandler GetIndexHandler(this IGrainFactory gf, Type iGrainType)
         {
             Type typedIndexHandlerType = typeof(IIndexHandler<>).MakeGenericType(iGrainType);
-            return GrainClient.GrainFactory.GetGrain<IIndexHandler<IIndexableGrain>>(TypeUtils.GetFullName(iGrainType), typedIndexHandlerType);
+            return gf.GetGrain<IIndexHandler<IIndexableGrain>>(TypeUtils.GetFullName(iGrainType), typedIndexHandlerType);
         }
 
         /// <summary>

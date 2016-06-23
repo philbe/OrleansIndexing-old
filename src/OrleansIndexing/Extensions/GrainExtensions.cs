@@ -26,7 +26,7 @@ namespace Orleans.Indexing
             return ((GrainFactory)gf).Cast<TGrainInterface>(grain.AsWeaklyTypedReference());
         }
 
-        private const string WRONG_GRAIN_ERROR_MSG = "Passing a half baked grain as an argument. It is possible that you instantiated a grain class explicitely, as a regular object and not via Orleans runtime or via proper test mocking";
+        private const string WRONG_GRAIN_ERROR_MSG = "Passing a half baked grain as an argument. It is possible that you instantiated a grain class explicitly, as a regular object and not via Orleans runtime or via proper test mocking";
 
         private static GrainReference AsWeaklyTypedReference(this IAddressable grain)
         {
