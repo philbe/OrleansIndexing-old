@@ -73,10 +73,10 @@
     <Compile Include="Query\Interfaces\IOrleansQueryProvider.cs" />
     <Compile Include="Query\Interfaces\IOrleansQueryable.cs" />
     <Compile Include="Query\Interfaces\IOrleansQueryResult.cs" />
-    <Compile Include="Query\QueryGrains.cs" />
-    <Compile Include="Query\QueryIndexedGrains.cs" />
+    <Compile Include="Query\QueryGrainsNode.cs" />
+    <Compile Include="Query\QueryIndexedGrainsNode.cs" />
     <Compile Include="Query\OrleansQueryableExtensions.cs" />
-    <Compile Include="Query\QueryActiveGrains.cs" />
+    <Compile Include="Query\QueryActiveGrainsNode.cs" />
     <Compile Include="Query\OrleansQueryProvider.cs" />
     <Compile Include="Query\OrleansQueryResult.cs" />
     <Compile Include="Scanners\ActiveGrainEnumeratorGrain.cs" />

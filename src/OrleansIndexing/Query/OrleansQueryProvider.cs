@@ -47,7 +47,7 @@ namespace Orleans.Indexing
                     object lookupValue;
                     if(TryGetIndexNameAndLookupValue(whereClause, iGrainType, out indexName, out lookupValue))
                     {
-                        return (IQueryable)Activator.CreateInstance(typeof(QueryIndexedGrains<>).MakeGenericType(iGrainType), gf, indexName, lookupValue);
+                        return (IQueryable)Activator.CreateInstance(typeof(QueryIndexedGrainsNode<>).MakeGenericType(iGrainType), gf, indexName, lookupValue);
                     }
                 }
             }
@@ -57,9 +57,9 @@ namespace Orleans.Indexing
         private bool CheckIsOrleansIndex(Expression e, Type iGrainType, out IGrainFactory gf)
         {
             if(e.NodeType == ExpressionType.Constant &&
-                typeof(QueryActiveGrains<>).MakeGenericType(iGrainType).IsAssignableFrom(((ConstantExpression)e).Value.GetType().GetGenericTypeDefinition().MakeGenericType(iGrainType)))
+                typeof(QueryActiveGrainsNode<>).MakeGenericType(iGrainType).IsAssignableFrom(((ConstantExpression)e).Value.GetType().GetGenericTypeDefinition().MakeGenericType(iGrainType)))
             {
-                gf = ((QueryGrains)((ConstantExpression)e).Value).GetGrainFactory();
+                gf = ((QueryGrainsNode)((ConstantExpression)e).Value).GetGrainFactory();
                 return true;
             }
             gf = null;

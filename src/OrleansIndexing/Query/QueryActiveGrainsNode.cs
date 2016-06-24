@@ -13,9 +13,9 @@ namespace Orleans.Indexing
     /// <summary>
     /// The query class for querying all active grains of a given type
     /// </summary>
-    public class QueryActiveGrains<T> : QueryGrains<T> where T : IIndexableGrain
+    public class QueryActiveGrainsNode<T> : QueryGrainsNode<T> where T : IIndexableGrain
     {
-        public QueryActiveGrains(IGrainFactory gf) : base(gf)
+        public QueryActiveGrainsNode(IGrainFactory gf) : base(gf)
         {
         }
 

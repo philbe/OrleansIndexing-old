@@ -13,11 +13,11 @@ namespace Orleans.Indexing
     /// <summary>
     /// The top-level class for query objects
     /// </summary>
-    public abstract class QueryGrains
+    public abstract class QueryGrainsNode
     {
         private IGrainFactory _grainFactory;
 
-        public QueryGrains(IGrainFactory gf)
+        public QueryGrainsNode(IGrainFactory gf)
         {
             _grainFactory = gf;
         }
@@ -30,10 +30,10 @@ namespace Orleans.Indexing
     /// <summary>
     /// The top-level class for query objects, which implements <see cref="IOrleansQueryable{T}"/>
     /// </summary>
-    public abstract class QueryGrains<T> : QueryGrains, IOrleansQueryable<T> where T : IIndexableGrain
+    public abstract class QueryGrainsNode<T> : QueryGrainsNode, IOrleansQueryable<T> where T : IIndexableGrain
     {
 
-        public QueryGrains(IGrainFactory gf) : base(gf)
+        public QueryGrainsNode(IGrainFactory gf) : base(gf)
         {
         }
 
@@ -70,7 +70,7 @@ namespace Orleans.Indexing
 
         public IEnumerator<T> GetEnumerator()
         {
-            throw new NotSupportedException("GetEnumerator is not supported on QueryGrains. User ");
+            throw new NotSupportedException("GetEnumerator is not supported on QueryGrainsNode. User ");
         }
 
         IEnumerator IEnumerable.GetEnumerator()

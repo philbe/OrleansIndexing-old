@@ -40,7 +40,7 @@ namespace Orleans.Indexing
         /// <returns>the query to lookup all active grains of a given type</returns>
         public static IOrleansQueryable<IGrainType> GetActiveGrains<IGrainType>(this IGrainFactory gf) where IGrainType : IIndexableGrain
         {
-            return new QueryActiveGrains<IGrainType>(gf);
+            return new QueryActiveGrainsNode<IGrainType>(gf);
         }
 
         /// <summary>
