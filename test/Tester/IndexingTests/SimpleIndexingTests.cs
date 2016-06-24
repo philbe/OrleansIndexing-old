@@ -71,7 +71,6 @@ namespace UnitTests.IndexingTests
             IIndex<string, IPlayerGrain> locIdx = await GrainClient.GrainFactory.GetIndex<string, IPlayerGrain>("locIdx3");
 
             Assert.NotNull(locIdx);
-            Assert.Equal(IndexUtils.GetIndexNameFromIndexGrain(locIdx), "locIdx3");
         }
 
         [Fact, TestCategory("BVT"), TestCategory("Indexing")]
@@ -83,7 +82,6 @@ namespace UnitTests.IndexingTests
             IIndex<string, IPlayerGrain> locIdx = await GrainClient.GrainFactory.GetIndex<string, IPlayerGrain>("locIdx4");
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
-            Assert.Equal(IndexUtils.GetIndexNameFromIndexGrain(locIdx), "locIdx4");
 
             IOrleansQueryResult<IPlayerGrain> result = await locIdx.Lookup("Seattle");
             int counter = 0;
@@ -110,7 +108,6 @@ namespace UnitTests.IndexingTests
             IIndex<string, IPlayerGrain> locIdx = await GrainClient.GrainFactory.GetIndex<string, IPlayerGrain>("locIdx5");
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
-            Assert.Equal(IndexUtils.GetIndexNameFromIndexGrain(locIdx), "locIdx5");
 
             IOrleansQueryResult<IPlayerGrain> result = await locIdx.Lookup("Redmond");
             int counter = 0;
@@ -144,7 +141,6 @@ namespace UnitTests.IndexingTests
             IIndex<string, IPlayerGrain> locIdx = await GrainClient.GrainFactory.GetIndex<string, IPlayerGrain>("__GetLocation");
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
-            Assert.Equal(IndexUtils.GetIndexNameFromIndexGrain(locIdx), "__GetLocation");
 
             IOrleansQueryResult<IPlayerGrain> result = await GrainClient.GrainFactory.GetActiveGrains<IPlayerGrain>(p => (p.GetLocation().Result) == "Lausanne");
 
@@ -179,7 +175,6 @@ namespace UnitTests.IndexingTests
             IIndex<string, IPlayerGrain> locIdx = await GrainClient.GrainFactory.GetIndex<string, IPlayerGrain>("__GetLocation");
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
-            Assert.Equal(IndexUtils.GetIndexNameFromIndexGrain(locIdx), "__GetLocation");
 
             IOrleansQueryable<IPlayerGrain> q = from player in GrainClient.GrainFactory.GetActiveGrains<IPlayerGrain>()
                                                 where player.GetLocation().Result == "San Fransisco"

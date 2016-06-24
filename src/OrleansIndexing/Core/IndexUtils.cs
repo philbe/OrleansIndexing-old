@@ -13,7 +13,7 @@ namespace Orleans.Indexing
     /// <summary>
     /// A utility class for the low-level operations related to indexes
     /// </summary>
-    public static class IndexUtils
+    internal static class IndexUtils
     {
         /// <summary>
         /// Gets the index handler for a given grain interface type
@@ -76,7 +76,7 @@ namespace Orleans.Indexing
         /// </summary>
         /// <param name="index">the given index grain</param>
         /// <returns>the name of the index</returns>
-        public static string GetIndexNameFromIndexGrain(IIndex index)
+        internal static string GetIndexNameFromIndexGrain(IIndex index)
         {
             string key = index.GetPrimaryKeyString();
             return key.Substring(key.LastIndexOf("-") + 1);
