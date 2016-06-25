@@ -22,7 +22,7 @@ namespace Orleans.Indexing
         /// an immutable cached version of IIndexUpdateGenerator instances
         /// for the current indexes on the grain.
         /// </summary>
-        private Immutable<IDictionary<string, IIndexUpdateGenerator>> _iUpdateGens;
+        private IDictionary<string, Tuple<object, object, object>> _iUpdateGens;
 
         /// <summary>
         /// an immutable copy of before-images of the indexed fields
@@ -45,8 +45,7 @@ namespace Orleans.Indexing
         /// </summary>
         public override async Task OnActivateAsync()
         {
-            IIndexHandler handler = GetIndexHandler();
-            _iUpdateGens = await handler.GetIndexUpdateGenerators();
+            _iUpdateGens = IndexHandler.GetIndexes(getIIndexableGrainType());
             _beforeImages = new Dictionary<string, object>().AsImmutable<IDictionary<string, object>>();
             AddMissingBeforeImages();
             await base.OnActivateAsync();
@@ -68,23 +67,22 @@ namespace Orleans.Indexing
         /// </summary>
         protected async Task UpdateIndexes()
         {
-            IIndexHandler handler = GetIndexHandler();
-
+            Type iGrainType = getIIndexableGrainType();
             bool success = false;
             do
             {
                 IDictionary<string, IMemberUpdate> updates = new Dictionary<string, IMemberUpdate>();
-                IDictionary<string, IIndexUpdateGenerator> iUpdateGens = _iUpdateGens.Value;
+                IDictionary<string, Tuple<object, object, object>> iUpdateGens = _iUpdateGens;
                 if (iUpdateGens.Count == 0) return;
 
                 IDictionary<string, object> befImgs = _beforeImages.Value;
-                foreach (KeyValuePair<string, IIndexUpdateGenerator> kvp in iUpdateGens)
+                foreach (KeyValuePair<string, Tuple<object, object, object>> kvp in iUpdateGens)
                 {
-                    IMemberUpdate mu = kvp.Value.CreateMemberUpdate(this, befImgs[kvp.Key]);
+                    IMemberUpdate mu = ((IIndexUpdateGenerator)kvp.Value.Item3).CreateMemberUpdate(this, befImgs[kvp.Key]);
                     updates.Add(kvp.Key, mu);
                 }
 
-                success = await handler.ApplyIndexUpdates(this.AsReference<IIndexableGrain>(GrainFactory), updates.AsImmutable());
+                success = await IndexHandler.ApplyIndexUpdates(iGrainType, this.AsReference<IIndexableGrain>(GrainFactory), updates.AsImmutable());
                 if (success)
                 {
                     UpdateBeforeImages(updates);
@@ -92,20 +90,12 @@ namespace Orleans.Indexing
                 else
                 {
                     // assume that IndexHandler returned false because our list of indexes is invalid
-                    _iUpdateGens = await handler.GetIndexUpdateGenerators(); // retry
-                    iUpdateGens = _iUpdateGens.Value;
+                    _iUpdateGens = IndexHandler.GetIndexes(iGrainType); // retry
+                    iUpdateGens = _iUpdateGens;
                     AddMissingBeforeImages();
                 }
 
             } while (!success);
-        }
-        
-        /// <returns>IndexHandler for the current grain</returns>
-        private IIndexHandler GetIndexHandler()
-        {
-            Type thisIGrainType = getIIndexableGrainType();
-            Type typedIndexHandlerType = typeof(IIndexHandler<>).MakeGenericType(thisIGrainType);
-            return GrainFactory.GetGrain<IIndexHandler<IIndexableGrain>>(TypeUtils.GetFullName(thisIGrainType), typedIndexHandlerType);
         }
 
         /// <summary>
@@ -153,15 +143,15 @@ namespace Orleans.Indexing
         /// </summary>
         private void AddMissingBeforeImages()
         {
-            IDictionary<string, IIndexUpdateGenerator> iUpdateGens = _iUpdateGens.Value;
+            IDictionary<string, Tuple<object, object, object>> iUpdateGens = _iUpdateGens;
             IDictionary<string, object> oldBefImgs = _beforeImages.Value;
             IDictionary<string, object> newBefImgs = new Dictionary<string, object>();
-            foreach (KeyValuePair<string, IIndexUpdateGenerator> idxOp in iUpdateGens)
+            foreach (KeyValuePair<string, Tuple<object, object, object>> idxOp in iUpdateGens)
             {
                 var indexID = idxOp.Key;
                 if (!oldBefImgs.ContainsKey(indexID))
                 {
-                    newBefImgs.Add(indexID, idxOp.Value.ExtractIndexImage(this));
+                    newBefImgs.Add(indexID, ((IIndexUpdateGenerator)idxOp.Value.Item3).ExtractIndexImage(this));
                 }
                 else
                 {
@@ -180,7 +170,7 @@ namespace Orleans.Indexing
         /// applied to the current indexes</param>
         private void UpdateBeforeImages(IDictionary<string, IMemberUpdate> updates)
         {
-            IDictionary<string, IIndexUpdateGenerator> iUpdateGens = _iUpdateGens.Value;
+            IDictionary<string, Tuple<object, object, object>> iUpdateGens = _iUpdateGens;
             IDictionary<string, object> befImgs = _beforeImages.GetCopy();
             foreach (KeyValuePair<string, IMemberUpdate> updt in updates)
             {
@@ -188,7 +178,7 @@ namespace Orleans.Indexing
                 var opType = updt.Value.GetOperationType();
                 if (opType == OperationType.Update || opType == OperationType.Insert)
                 {
-                    befImgs[indexID] = iUpdateGens[indexID].ExtractIndexImage(this);
+                    befImgs[indexID] = ((IIndexUpdateGenerator)iUpdateGens[indexID].Item3).ExtractIndexImage(this);
                 }
                 else if(opType == OperationType.Delete)
                 {

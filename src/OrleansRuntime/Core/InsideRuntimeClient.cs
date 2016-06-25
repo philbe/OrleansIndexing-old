@@ -17,7 +17,6 @@ using Orleans.Serialization;
 using Orleans.Storage;
 using Orleans.Streams;
 
-
 namespace Orleans.Runtime
 {
     /// <summary>
@@ -40,8 +39,9 @@ namespace Orleans.Runtime
         private IGrainTypeResolver grainInterfaceMap;
 
         internal readonly IConsistentRingProvider ConsistentRingProvider;
-        
-        
+
+        public IDictionary<Type, IDictionary<string, Tuple<object, object, object>>> Indexes { get; set; }
+
         public InsideRuntimeClient(
             Dispatcher dispatcher,
             Catalog catalog,

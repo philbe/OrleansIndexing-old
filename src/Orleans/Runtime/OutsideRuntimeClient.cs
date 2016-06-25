@@ -14,6 +14,7 @@ using Orleans.Runtime.Configuration;
 using Orleans.Serialization;
 using Orleans.Storage;
 using Orleans.Streams;
+using Orleans.Concurrency;
 
 namespace Orleans
 {
@@ -54,6 +55,8 @@ namespace Orleans
         {
             get { return grainFactory; }
         }
+
+        public IDictionary<Type, IDictionary<string, Tuple<object, object, object>>> Indexes { get; set; }
 
         /// <summary>
         /// Response timeout.

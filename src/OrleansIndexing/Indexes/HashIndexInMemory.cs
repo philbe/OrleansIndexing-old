@@ -26,7 +26,7 @@ namespace Orleans.Indexing
             if (State.IndexStatus == IndexStatus.UnderConstruction)
             {
                 string indexName = IndexUtils.GetIndexNameFromIndexGrain(this);
-                var _ = GetIndexBuilder().BuildIndex(indexName, this, await IndexUtils.GetIndexUpdateGenerator<V>(GrainFactory, indexName));
+                var _ = GetIndexBuilder().BuildIndex(indexName, this, IndexUtils.GetIndexUpdateGenerator<V>(GrainFactory, indexName));
             }
             await base.OnActivateAsync();
         }

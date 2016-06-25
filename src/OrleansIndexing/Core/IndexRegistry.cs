@@ -1,4 +1,5 @@
-﻿using Orleans.Runtime;
+﻿using Orleans.Concurrency;
+using Orleans.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,41 +8,34 @@ using System.Threading.Tasks;
 
 namespace Orleans.Indexing
 {
-    //[StorageProvider(ProviderName = "IndexingStore")]
-    public class IndexRegistry<T> : Grain<IndexRegistryState>, IIndexRegistry<T> where T : IIndexableGrain
+    public static class IndexRegistry
     {
-        public override async Task OnActivateAsync()
-        {
-            //await ReadStateAsync();
-            if (State.indexes == null) State.indexes = new Dictionary<string, Tuple<IIndex, IndexMetaData>>();
-            await base.OnActivateAsync();
-        }
 
-        public Task<IDictionary<string, Tuple<IIndex, IndexMetaData>>> GetIndexes()
+        internal static Task<bool> RegisterIndex(Type iGrainType, string indexName, IIndex index, IndexMetaData indexMetaData)
         {
-            return Task.FromResult(State.indexes);
-        }
-
-        public async Task<bool> RegisterIndex(string indexName, IIndex index, IndexMetaData indexMetaData)
-        {
-            if (State.indexes.ContainsKey(indexName))
+            if (GetIndexes(iGrainType).ContainsKey(indexName))
             {
                 throw new Exception(string.Format("Index with name ({0}) and type ({1}) already exists.", indexName, index.GetType()));
             }
-            State.indexes.Add(indexName, Tuple.Create((IIndex)index, indexMetaData));
-            var writeTask = base.WriteStateAsync();
-            await writeTask;
-            return writeTask.Status == TaskStatus.RanToCompletion;
+            GetIndexes(iGrainType).Add(indexName, Tuple.Create((object)index, (object)indexMetaData, (object)indexMetaData.getIndexUpdateGeneratorInstance()));
+            return Task.FromResult(true);
         }
 
-        public async Task<bool> DropIndex(string indexName)
+        internal static Task<bool> RegisterIndex<T>(string indexName, IIndex index, IndexMetaData indexMetaData) where T : IIndexableGrain
         {
-            Tuple<IIndex, IndexMetaData> index;
-            State.indexes.TryGetValue(indexName, out index);
+            var iGrainType = typeof(T);
+            return RegisterIndex(iGrainType, indexName, index, indexMetaData);
+        }
+
+        internal static async Task<bool> DropIndex<T>(string indexName) where T : IIndexableGrain
+        {
+            var iGrainType = typeof(T);
+            Tuple<object, object, object> index;
+            GetIndexes(iGrainType).TryGetValue(indexName, out index);
             if (index != null)
             {
-                await index.Item1.Dispose();
-                return State.indexes.Remove(indexName);
+                await ((IIndex)index.Item1).Dispose();
+                return GetIndexes(iGrainType).Remove(indexName);
             }
             else
             {
@@ -49,15 +43,33 @@ namespace Orleans.Indexing
             }
         }
 
-        public async Task DropAllIndexes()
+        internal static async Task DropAllIndexes<T>() where T : IIndexableGrain
         {
+            var iGrainType = typeof(T);
             IList<Task> disposeTasks = new List<Task>();
-            foreach (KeyValuePair<string, Tuple<IIndex, IndexMetaData>> index in State.indexes)
+            foreach (KeyValuePair<string, Tuple<object, object, object>> index in GetIndexes(iGrainType))
             {
-                disposeTasks.Add(index.Value.Item1.Dispose());
+                disposeTasks.Add(((IIndex)index.Value.Item1).Dispose());
             }
             await Task.WhenAll(disposeTasks);
-            State.indexes.Clear();
+            GetIndexes(iGrainType).Clear();
+        }
+
+        internal static IDictionary<string, Tuple<object, object, object>> GetIndexes(Type iGrainType)
+        {
+            if (InsideRuntimeClient.Current.Indexes == null) InsideRuntimeClient.Current.Indexes = new Dictionary<Type, IDictionary<string, Tuple<object, object, object>>>();
+            IDictionary<string, Tuple<object, object, object>> indexes;
+            if (!InsideRuntimeClient.Current.Indexes.TryGetValue(iGrainType, out indexes))
+            {
+                indexes = new Dictionary<string, Tuple<object, object, object>>();
+                InsideRuntimeClient.Current.Indexes.Add(iGrainType, indexes);
+            }
+            return indexes;
+        }
+
+        internal static IDictionary<string, Tuple<object, object, object>> GetIndexes<T>() where T : IIndexableGrain
+        {
+            return GetIndexes(typeof(T));
         }
     }
 }

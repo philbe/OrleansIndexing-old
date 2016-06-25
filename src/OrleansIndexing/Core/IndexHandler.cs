@@ -19,34 +19,17 @@ namespace Orleans.Indexing
     /// very scalable, but at the same time should stay in sync
     /// with index registry to be aware of the available indexes.
     /// </summary>
-    /// <typeparam name="T">the type of grain interface type of
-    /// the grain that is handled by this index handler</typeparam>
-    [StatelessWorker]
-    public class IndexHandler<T> : Grain, IIndexHandler<T> where T : IIndexableGrain
+    public static class IndexHandler
     {
-        private Immutable<IDictionary<string, Tuple<IIndex,IndexMetaData>>> _indexes;
-        private Immutable<IDictionary<string, IIndexUpdateGenerator>> _iUpdateGens;
-        private IIndexRegistry<T> _indexRegistry;
-
-        /// <summary>
-        /// Upon activation, the list of indexes are read and
-        /// cached from the corresponding index registry
-        /// </summary>
-        public override async Task OnActivateAsync()
-        {
-            _indexRegistry = GrainFactory.GetGrain<IIndexRegistry<T>>(TypeUtils.GetFullName(typeof(T)));
-            await Task.WhenAll(ReloadIndexes(), base.OnActivateAsync());
-        }
-
-        public async Task<bool> ApplyIndexUpdates(IIndexableGrain updatedGrain, Immutable<IDictionary<string, IMemberUpdate>> iUpdates)
+        internal static async Task<bool> ApplyIndexUpdates(Type iGrainType, IIndexableGrain updatedGrain, Immutable<IDictionary<string, IMemberUpdate>> iUpdates)
         {
             var updates = iUpdates.Value;
-            var idxs = _indexes.Value;
+            var idxs = GetIndexes(iGrainType);
             if (!updates.Keys.ToSet().SetEquals(idxs.Keys)) return false;
             IList<Task<bool>> updateIndexTasks = new List<Task<bool>>();
             foreach (KeyValuePair<string, IMemberUpdate> updt in updates)
             {
-                updateIndexTasks.Add(idxs[updt.Key].Item1.ApplyIndexUpdate(updatedGrain, updt.Value.AsImmutable()));
+                updateIndexTasks.Add(((IIndex)idxs[updt.Key].Item1).ApplyIndexUpdate(updatedGrain, updt.Value.AsImmutable()));
             }
             await Task.WhenAll(updateIndexTasks);
             bool allSuccessful = true;
@@ -54,40 +37,34 @@ namespace Orleans.Indexing
             {
                 allSuccessful = allSuccessful && (await utask);
             }
-            if(!allSuccessful)
+            if (!allSuccessful)
             {
                 //TODO: we should do something about the failed index updates
             }
             return true;
         }
 
-        public Task<Immutable<IDictionary<string, IIndexUpdateGenerator>>> GetIndexUpdateGenerators()
+        internal static Task<bool> ApplyIndexUpdates<T>(IIndexableGrain updatedGrain, Immutable<IDictionary<string, IMemberUpdate>> iUpdates) where T : IIndexableGrain
         {
-            return Task.FromResult(_iUpdateGens);
+            return ApplyIndexUpdates(typeof(T), updatedGrain, iUpdates);
         }
 
-        public Task<Immutable<IDictionary<string, Tuple<IIndex, IndexMetaData>>>> GetIndexes()
+        internal static IDictionary<string, Tuple<object, object, object>> GetIndexes(Type iGrainType)
         {
-        return Task.FromResult(_indexes);
+            return IndexRegistry.GetIndexes(iGrainType);
         }
 
-        public async Task ReloadIndexes()
+        internal static IDictionary<string, Tuple<object, object, object>> GetIndexes<T>() where T : IIndexableGrain
         {
-            _indexes = (await _indexRegistry.GetIndexes()).AsImmutable();
-            IDictionary<string, IIndexUpdateGenerator> iUpdateGens = new Dictionary<string, IIndexUpdateGenerator>();
-            foreach (KeyValuePair<string, Tuple<IIndex, IndexMetaData>> idx in _indexes.Value)
+            return IndexRegistry.GetIndexes<T>();
+        }
+
+        internal static IIndex GetIndex(Type iGrainType, string indexName)
+        {
+            Tuple<object, object, object> index;
+            if (GetIndexes(iGrainType).TryGetValue(indexName, out index))
             {
-                iUpdateGens.Add(idx.Key, idx.Value.Item2.getIndexUpdateGeneratorInstance());
-            }
-            _iUpdateGens = iUpdateGens.AsImmutable();
-        }
-
-        public Task<IIndex> GetIndex(string indexName)
-        {
-            Tuple<IIndex, IndexMetaData> index;
-            if (_indexes.Value.TryGetValue(indexName, out index))
-            {
-                return Task.FromResult(index.Item1);
+                return (IIndex)index.Item1;
             }
             else
             {
@@ -101,9 +78,14 @@ namespace Orleans.Indexing
                 //}
                 //else
                 //{
-                    throw new Exception(string.Format("Index \"{0}\" does not exist for {1}.", indexName, typeof(T)));
+                throw new Exception(string.Format("Index \"{0}\" does not exist for {1}.", indexName, iGrainType));
                 //}
             }
+        }
+
+        internal static IIndex GetIndex<T>(string indexName) where T : IIndexableGrain
+        {
+            return GetIndex(typeof(T), indexName);
         }
     }
 }

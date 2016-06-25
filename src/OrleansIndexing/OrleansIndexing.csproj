@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\IndexableGrain.cs" />
+    <Compile Include="Core\IndexFinder.cs" />
     <Compile Include="Core\IndexBuilder.cs" />
     <Compile Include="Core\IndexUtils.cs" />
     <Compile Include="Core\IndexFactory.cs" />
@@ -50,8 +51,7 @@
     <Compile Include="Core\IndexUpdateGenerator.cs" />
     <Compile Include="Core\Interfaces\IIndexBuilder.cs" />
     <Compile Include="Core\Interfaces\IIndexableGrain.cs" />
-    <Compile Include="Core\Interfaces\IIndexHandler.cs" />
-    <Compile Include="Core\Interfaces\IIndexRegistry.cs" />
+    <Compile Include="Core\Interfaces\IIndexFinder.cs" />
     <Compile Include="Core\Interfaces\IIndexUpdateGenerator.cs" />
     <Compile Include="Core\Interfaces\IMemberUpdate.cs" />
     <Compile Include="Core\MemberUpdate.cs" />

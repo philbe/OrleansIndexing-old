@@ -86,5 +86,7 @@ namespace Orleans.Runtime
         SiloStatus GetSiloStatus(SiloAddress siloAddress);
 
         void BreakOutstandingMessagesToDeadSilo(SiloAddress deadSilo);
+
+        IDictionary<Type, IDictionary<string, Tuple<object,object,object>>> Indexes { get; set; }
     }
 }
