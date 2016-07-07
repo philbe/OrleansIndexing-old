@@ -23,10 +23,11 @@ namespace Orleans.Indexing
         {
             //await ReadStateAsync();
             if (State.IndexMap == null) State.IndexMap = new Dictionary<K, HashIndexInMemoryEntry<V>>();
+            State.IndexStatus = IndexStatus.Available;
             if (State.IndexStatus == IndexStatus.UnderConstruction)
             {
                 string indexName = IndexUtils.GetIndexNameFromIndexGrain(this);
-                var _ = GetIndexBuilder().BuildIndex(indexName, this, IndexUtils.GetIndexUpdateGenerator<V>(GrainFactory, indexName));
+                //var _ = GetIndexBuilder().BuildIndex(indexName, this, IndexUtils.GetIndexUpdateGenerator<V>(GrainFactory, indexName));
             }
             await base.OnActivateAsync();
         }
