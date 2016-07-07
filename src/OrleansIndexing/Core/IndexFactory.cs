@@ -85,9 +85,34 @@ namespace Orleans.Indexing
         /// <param name="indexName">the name of the index, which
         /// is the identifier of the index</param>
         /// <returns>the created index grain</returns>
-        public static IIdxType CreateIndexGrain<IIdxType>(this IGrainFactory gf, string indexName) where IIdxType : IIndex
+        //internal static IIdxType CreateIndexGrain<IIdxType>(this IGrainFactory gf, string indexName) where IIdxType : IIndex
+        //{
+        //    Type idxType = typeof(IIdxType);
+        //    Type iIndexType = idxType.GetGenericType(typeof(IIndex<,>));
+        //    if (iIndexType != null)
+        //    {
+        //        Type[] indexTypeArgs = iIndexType.GetGenericArguments();
+        //        //Type keyType = indexTypeArgs[0];
+        //        Type grainType = indexTypeArgs[1];
+
+        //        IIdxType indexGrain = gf.GetGrain<IIdxType>(IndexUtils.GetIndexGrainID(grainType, indexName));
+        //        return indexGrain;
+        //    }
+        //    else
+        //    {
+        //        throw new NotSupportedException(string.Format("Adding an index that does not implement IIndex<K,V> is not supported yet. Your requested index ({0}) is invalid.", idxType.ToString()));
+        //    }
+        //}
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gf"></param>
+        /// <param name="idxType"></param>
+        /// <param name="indexName"></param>
+        /// <returns></returns>
+        internal static Tuple<object, object, object> CreateIndex(this IGrainFactory gf, Type idxType, string indexName, PropertyInfo indexedProperty)
         {
-            Type idxType = typeof(IIdxType);
             Type iIndexType = idxType.GetGenericType(typeof(IIndex<,>));
             if (iIndexType != null)
             {
@@ -95,13 +120,18 @@ namespace Orleans.Indexing
                 //Type keyType = indexTypeArgs[0];
                 Type grainType = indexTypeArgs[1];
 
-                IIdxType indexGrain = gf.GetGrain<IIdxType>(IndexUtils.GetIndexGrainID(grainType, indexName));
-                return indexGrain;
+                IIndex indexGrain = (IIndex)gf.GetGrain(IndexUtils.GetIndexGrainID(grainType, indexName), idxType, iIndexType);
+                return Tuple.Create((object)indexGrain, (object)new IndexMetaData(idxType), (object)createIndexUpdateGenFromProperty(indexedProperty));
             }
             else
             {
                 throw new NotSupportedException(string.Format("Adding an index that does not implement IIndex<K,V> is not supported yet. Your requested index ({0}) is invalid.", idxType.ToString()));
             }
+        }
+
+        private static IIndexUpdateGenerator createIndexUpdateGenFromProperty(PropertyInfo indexedProperty)
+        {
+            return new IndexUpdateGenerator(indexedProperty);
         }
 
         /// <summary>

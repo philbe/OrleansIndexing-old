@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,13 +14,37 @@ namespace Orleans.Indexing
     /// </summary>
     /// <typeparam name="K">the key type of the index</typeparam>
     /// <typeparam name="V">the value type of the index</typeparam>
+    //[Serializable]
+    //public abstract class IndexUpdateGenerator<K, TProperties> : IIndexUpdateGenerator<K, TProperties>
+    //{
+    //    public override IMemberUpdate CreateMemberUpdate(TProperties gProps, K befImg)
+    //    {
+    //        K aftImg = ExtractIndexImage(gProps);
+    //        return new MemberUpdate(befImg, aftImg);
+    //    }
+    //}
+
+    /// <summary>
+    /// 
+    /// </summary>
     [Serializable]
-    public abstract class IndexUpdateGenerator<K,V> : IIndexUpdateGenerator<K,V> where V : IIndexableGrain
+    public class IndexUpdateGenerator : IIndexUpdateGenerator
     {
-        public override IMemberUpdate CreateMemberUpdate(V g, K befImg)
+        PropertyInfo _prop;
+        public IndexUpdateGenerator(PropertyInfo prop)
         {
-            K aftImg = ExtractIndexImage(g);
+            _prop = prop;
+        }
+
+        public IMemberUpdate CreateMemberUpdate(object gProps, object befImg)
+        {
+            object aftImg = ExtractIndexImage(gProps);
             return new MemberUpdate(befImg, aftImg);
+        }
+
+        public object ExtractIndexImage(object gProps)
+        {
+            return _prop.GetValue(gProps);
         }
     }
 }
