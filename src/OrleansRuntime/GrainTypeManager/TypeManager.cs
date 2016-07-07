@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Orleans.Runtime.Providers;
+using System.Collections.Generic;
 
 namespace Orleans.Runtime
 {
@@ -18,6 +19,11 @@ namespace Orleans.Runtime
         public Task<IGrainTypeResolver> GetTypeCodeMap(SiloAddress silo)
         {
             return Task.FromResult(grainTypeManager.GetTypeCodeMap());
+        }
+        
+        public Task<IDictionary<Type, IDictionary<string, Tuple<object, object, object>>>> GetIndexes(SiloAddress silo)
+        {
+            return Task.FromResult(grainTypeManager.IndexingInitialize());
         }
 
         public Task<Streams.ImplicitStreamSubscriberTable> GetImplicitStreamSubscriberTable(SiloAddress silo)
