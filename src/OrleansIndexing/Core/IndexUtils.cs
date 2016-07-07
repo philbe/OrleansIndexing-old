@@ -64,7 +64,7 @@ namespace Orleans.Indexing
         /// <typeparam name="IGrainType">the given grain interface type</typeparam>
         /// <param name="grainInterfaceMethod">the getter method on the grain interface</param>
         /// <returns>the name of the index on the getter method of the grain interface</returns>
-        internal static string GetIndexNameOnInterfaceGetter<IGrainType>(MethodInfo grainInterfaceMethod)
+        internal static string GetIndexNameOnInterfaceGetter<IGrainType>(string grainInterfaceMethod)
         {
             return GetIndexNameOnInterfaceGetter(typeof(IGrainType), grainInterfaceMethod);
         }
@@ -77,9 +77,9 @@ namespace Orleans.Indexing
         /// <param name="grainType">the given grain interface type</param>
         /// <param name="grainInterfaceMethod">the getter method on the grain interface</param>
         /// <returns>the name of the index on the getter method of the grain interface</returns>
-        internal static string GetIndexNameOnInterfaceGetter(Type grainType, MethodInfo grainInterfaceMethod)
+        internal static string GetIndexNameOnInterfaceGetter(Type grainType, string grainInterfaceMethod)
         {
-            return "__" + grainInterfaceMethod.GetUnadornedMethodName();
+            return "__" + grainInterfaceMethod;
         }
     }
 }
