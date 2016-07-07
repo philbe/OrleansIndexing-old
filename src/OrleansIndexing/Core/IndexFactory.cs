@@ -18,14 +18,14 @@ namespace Orleans.Indexing
         /// grain interface and the filter expression. The filter
         /// expression should contain an indexed field.
         /// </summary>
-        /// <typeparam name="IGrainType">the given grain interface
+        /// <typeparam name="TIGrain">the given grain interface
         /// type to query over its active instances</typeparam>
         /// <param name="gf">the grain factory instance</param>
         /// <param name="filterExpr">the filter expression of the query</param>
         /// <returns>the result of the query</returns>
-        public static Task<IOrleansQueryResult<IGrainType>> GetActiveGrains<IGrainType>(this IGrainFactory gf, Expression<Func<IGrainType, bool>> filterExpr) where IGrainType : IIndexableGrain
+        public static Task<IOrleansQueryResult<TIGrain>> GetActiveGrains<TIGrain, TProperties>(this IGrainFactory gf, Expression<Func<TProperties, bool>> filterExpr) where TIGrain : IIndexableGrain
         {
-            return GrainClient.GrainFactory.GetActiveGrains<IGrainType>()
+            return GrainClient.GrainFactory.GetActiveGrains<TIGrain, TProperties>()
                                            .Where(filterExpr)
                                            .GetResults();
         }
@@ -34,13 +34,13 @@ namespace Orleans.Indexing
         /// This method queries the active grains for the given
         /// grain interface.
         /// </summary>
-        /// <typeparam name="IGrainType">the given grain interface
+        /// <typeparam name="TIGrain">the given grain interface
         /// type to query over its active instances</typeparam>
         /// <param name="gf">the grain factory instance</param>
         /// <returns>the query to lookup all active grains of a given type</returns>
-        public static IOrleansQueryable<IGrainType> GetActiveGrains<IGrainType>(this IGrainFactory gf) where IGrainType : IIndexableGrain
+        public static IOrleansQueryable<TIGrain, TProperty> GetActiveGrains<TIGrain, TProperty>(this IGrainFactory gf) where TIGrain : IIndexableGrain
         {
-            return new QueryActiveGrainsNode<IGrainType>(gf);
+            return new QueryActiveGrainsNode<TIGrain, TProperty>(gf);
         }
 
         /// <summary>
