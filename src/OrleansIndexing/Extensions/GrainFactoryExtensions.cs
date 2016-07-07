@@ -80,11 +80,11 @@ namespace Orleans.Indexing
         /// <param name="outputGrainInterfaceType">the type of grain interface
         /// that should be returned</param>
         /// <returns></returns>
-        //public static SuperOutputGrainInterfaceType GetGrain<SuperOutputGrainInterfaceType>(this IGrainFactory gf, string grainID, Type grainInterfaceType, Type outputGrainInterfaceType)
-        //{
-        //    return (SuperOutputGrainInterfaceType)((GrainFactory)gf).Cast(GrainFactoryBase.MakeGrainReference_FromType(
-        //            baseTypeCode => TypeCodeMapper.ComposeGrainId(baseTypeCode, grainID, grainInterfaceType),
-        //            grainInterfaceType), outputGrainInterfaceType);
-        //}
+        public static IGrain GetGrain(this IGrainFactory gf, string grainID, Type grainInterfaceType, Type outputGrainInterfaceType)
+        {
+            return (IGrain)((GrainFactory)gf).Cast(GrainFactoryBase.MakeGrainReference_FromType(
+                    baseTypeCode => TypeCodeMapper.ComposeGrainId(baseTypeCode, grainID, grainInterfaceType),
+                    grainInterfaceType), outputGrainInterfaceType);
+        }
     }
 }
