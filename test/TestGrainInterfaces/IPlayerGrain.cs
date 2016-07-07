@@ -5,7 +5,16 @@ using Orleans.Indexing;
 
 namespace UnitTests.GrainInterfaces
 {
-    public interface IPlayerGrain : IGrainWithIntegerKey, IIndexableGrain
+    [Serializable]
+    public class PlayerProperties
+    {
+        public int Score { get; set; }
+
+        [Index]
+        public string Location { get; set; }
+    }
+
+    public interface IPlayerGrain : IGrainWithIntegerKey, IIndexableGrain<PlayerProperties>
     {
         Task<string> GetEmail();
         Task<string> GetLocation();
