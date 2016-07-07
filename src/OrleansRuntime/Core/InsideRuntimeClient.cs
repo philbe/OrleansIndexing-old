@@ -40,7 +40,7 @@ namespace Orleans.Runtime
 
         internal readonly IConsistentRingProvider ConsistentRingProvider;
 
-        public IDictionary<Type, IDictionary<string, Tuple<object, object, object>>> Indexes { get; set; }
+        public IDictionary<Type, IDictionary<string, Tuple<object, object, object>>> Indexes { get; private set; }
 
         public InsideRuntimeClient(
             Dispatcher dispatcher,
@@ -740,6 +740,12 @@ namespace Orleans.Runtime
         internal void Start()
         {
             grainInterfaceMap = typeManager.GetTypeCodeMap();
+            IndexingInitialize();
+        }
+
+        private void IndexingInitialize()
+        {
+            Indexes = typeManager.IndexingInitialize();
         }
 
         public IGrainTypeResolver GrainTypeResolver

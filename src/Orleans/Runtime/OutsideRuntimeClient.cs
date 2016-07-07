@@ -55,8 +55,8 @@ namespace Orleans
         {
             get { return grainFactory; }
         }
-
-        public IDictionary<Type, IDictionary<string, Tuple<object, object, object>>> Indexes { get; set; }
+        
+        public IDictionary<Type, IDictionary<string, Tuple<object, object, object>>> Indexes { get; private set; }
 
         /// <summary>
         /// Response timeout.
@@ -215,6 +215,11 @@ namespace Orleans
             CurrentStreamProviderManager = streamProviderManager;
         }
 
+        private void IndexingInitialize()
+        {
+            Indexes = transport.GetIndexes(grainFactory).Result;
+        }
+
         private static void LoadAdditionalAssemblies()
         {
             var logger = LogManager.GetLogger("AssemblyLoader.Client", LoggerType.Runtime);
@@ -292,6 +297,7 @@ namespace Orleans
             );
             grainInterfaceMap = transport.GetTypeCodeMap(grainFactory).Result;
             StreamingInitialize();
+            IndexingInitialize();
         }
 
         private void RunClientMessagePump(CancellationToken ct)

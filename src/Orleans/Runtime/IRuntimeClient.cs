@@ -87,6 +87,6 @@ namespace Orleans.Runtime
 
         void BreakOutstandingMessagesToDeadSilo(SiloAddress deadSilo);
 
-        IDictionary<Type, IDictionary<string, Tuple<object,object,object>>> Indexes { get; set; }
+        IDictionary<Type, IDictionary<string, Tuple<object,object,object>>> Indexes { get; }
     }
 }

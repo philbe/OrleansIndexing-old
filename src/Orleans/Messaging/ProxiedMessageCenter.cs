@@ -280,6 +280,17 @@ namespace Orleans.Messaging
             return GetTypeManager(silo, grainFactory).GetTypeCodeMap(silo);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="grainFactory"></param>
+        /// <returns></returns>
+        public Task<IDictionary<Type, IDictionary<string, Tuple<object, object, object>>>> GetIndexes(GrainFactory grainFactory)
+        {
+            var silo = GetLiveGatewaySiloAddress();
+            return GetTypeManager(silo, grainFactory).GetIndexes(silo);
+        }
+
         public Task<Streams.ImplicitStreamSubscriberTable> GetImplicitStreamSubscriberTable(GrainFactory grainFactory)
         {
             var silo = GetLiveGatewaySiloAddress();
