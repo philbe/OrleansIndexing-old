@@ -13,89 +13,89 @@ namespace Orleans.Indexing
         /// <summary>
         /// Filters a sequence of values based on a predicate.
         /// </summary>
-        public static IOrleansQueryable<T> Where<T>(this IOrleansQueryable<T> source, Expression<Func<T, bool>> predicate) where T : IIndexableGrain
+        public static IOrleansQueryable<TIGrain, TProperties> Where<TIGrain, TProperties>(this IOrleansQueryable<TIGrain, TProperties> source, Expression<Func<TProperties, bool>> predicate) where TIGrain : IIndexableGrain
         {
-            return (IOrleansQueryable<T>)Queryable.Where(source, predicate);
+            return (IOrleansQueryable<TIGrain, TProperties>)Queryable.Where(source, predicate);
         }
 
         /// <summary>
         /// Filters a sequence of values based on a predicate.
         /// </summary>
-        public static IOrleansQueryable<T> Where<T>(this IOrleansQueryable<T> source, Expression<Func<T, int, bool>> predicate) where T : IIndexableGrain
+        public static IOrleansQueryable<TIGrain, TProperties> Where<TIGrain, TProperties>(this IOrleansQueryable<TIGrain, TProperties> source, Expression<Func<TProperties, int, bool>> predicate) where TIGrain : IIndexableGrain
         {
-            return (IOrleansQueryable<T>)Queryable.Where(source, predicate);
+            return (IOrleansQueryable<TIGrain, TProperties>)Queryable.Where(source, predicate);
         }
 
         /// <summary>
         /// Sorts the elements of a sequence in ascending order according to a key.
         /// </summary>
-        public static IOrleansQueryable<T> OrderBy<T, TK>(this IOrleansQueryable<T> source, Expression<Func<T, TK>> keySelector) where T : IIndexableGrain
+        public static IOrleansQueryable<TIGrain, TProperties> OrderBy<TIGrain, TProperties, TK>(this IOrleansQueryable<TIGrain, TProperties> source, Expression<Func<TProperties, TK>> keySelector) where TIGrain : IIndexableGrain
         {
-            return (IOrleansQueryable<T>)Queryable.OrderBy(source, keySelector);
+            return (IOrleansQueryable<TIGrain, TProperties>)Queryable.OrderBy(source, keySelector);
         }
 
         /// <summary>
         /// Sorts the elements of a sequence in ascending order according to a key.
         /// </summary>
-        public static IOrleansQueryable<T> OrderBy<T, TK>(this IOrleansQueryable<T> source, Expression<Func<T, TK>> keySelector, IComparer<TK> comparer) where T : IIndexableGrain
+        public static IOrleansQueryable<TIGrain, TProperties> OrderBy<TIGrain, TProperties, TK>(this IOrleansQueryable<TIGrain, TProperties> source, Expression<Func<TProperties, TK>> keySelector, IComparer<TK> comparer) where TIGrain : IIndexableGrain
         {
-            return (IOrleansQueryable<T>)Queryable.OrderBy(source, keySelector, comparer);
+            return (IOrleansQueryable<TIGrain, TProperties>)Queryable.OrderBy(source, keySelector, comparer);
         }
 
         /// <summary>
         /// Sorts the elements of a sequence in descending order according to a key.
         /// </summary>
-        public static IOrleansQueryable<T> OrderByDescending<T, TK>(this IOrleansQueryable<T> source, Expression<Func<T, TK>> keySelector) where T : IIndexableGrain
+        public static IOrleansQueryable<TIGrain, TProperties> OrderByDescending<TIGrain, TProperties, TK>(this IOrleansQueryable<TIGrain, TProperties> source, Expression<Func<TProperties, TK>> keySelector) where TIGrain : IIndexableGrain
         {
-            return (IOrleansQueryable<T>)Queryable.OrderByDescending(source, keySelector);
+            return (IOrleansQueryable<TIGrain, TProperties>)Queryable.OrderByDescending(source, keySelector);
         }
 
         /// <summary>
         /// Sorts the elements of a sequence in descending order according to a key.
         /// </summary>
-        public static IOrleansQueryable<T> OrderByDescending<T, TK>(this IOrleansQueryable<T> source, Expression<Func<T, TK>> keySelector, IComparer<TK> comparer) where T : IIndexableGrain
+        public static IOrleansQueryable<TIGrain, TProperties> OrderByDescending<TIGrain, TProperties, TK>(this IOrleansQueryable<TIGrain, TProperties> source, Expression<Func<TProperties, TK>> keySelector, IComparer<TK> comparer) where TIGrain : IIndexableGrain
         {
-            return (IOrleansQueryable<T>)Queryable.OrderByDescending(source, keySelector, comparer);
+            return (IOrleansQueryable<TIGrain, TProperties>)Queryable.OrderByDescending(source, keySelector, comparer);
         }
 
         /// <summary>
         /// Sorts(secondary) the elements of a sequence in ascending order according to a key.
         /// </summary>
-        public static IOrleansQueryable<T> ThenBy<T, TK>(this IOrleansQueryable<T> source, Expression<Func<T, TK>> keySelector) where T : IIndexableGrain
+        public static IOrleansQueryable<TIGrain, TProperties> ThenBy<TIGrain, TProperties, TK>(this IOrleansQueryable<TIGrain, TProperties> source, Expression<Func<TProperties, TK>> keySelector) where TIGrain : IIndexableGrain
         {
-            return (IOrleansQueryable<T>)Queryable.ThenBy(source, keySelector);
+            return (IOrleansQueryable<TIGrain, TProperties>)Queryable.ThenBy(source, keySelector);
         }
 
 
         /// <summary>
         /// Sorts(secondary) the elements of a sequence in descending order according to a key.
         /// </summary>
-        public static IOrleansQueryable<T> ThenByDescending<T, TK>(this IOrleansQueryable<T> source, Expression<Func<T, TK>> keySelector) where T : IIndexableGrain
+        public static IOrleansQueryable<TIGrain, TProperties> ThenByDescending<TIGrain, TProperties, TK>(this IOrleansQueryable<TIGrain, TProperties> source, Expression<Func<TProperties, TK>> keySelector) where TIGrain : IIndexableGrain
         {
-            return (IOrleansQueryable<T>)Queryable.ThenByDescending(source, keySelector);
+            return (IOrleansQueryable<TIGrain, TProperties>)Queryable.ThenByDescending(source, keySelector);
         }
 
 
         /// <summary>
         /// Projects each element of a sequence into a new form.
         /// </summary>
-        public static IOrleansQueryable<TResult> Select<TSource, TResult>(this IOrleansQueryable<TSource> source, Expression<Func<TSource, TResult>> selector) where TSource : IIndexableGrain where TResult : IIndexableGrain
+        public static IOrleansQueryable<TResult, TProperties> Select<TSource, TProperties, TResult>(this IOrleansQueryable<TSource, TProperties> source, Expression<Func<TProperties, TResult>> selector) where TSource : IIndexableGrain where TResult : IIndexableGrain
         {
-            return (IOrleansQueryable<TResult>)Queryable.Select(source, selector);
+            return (IOrleansQueryable<TResult, TProperties>)Queryable.Select(source, selector);
         }
 
         /// <summary>
         /// Projects each element of a sequence into a new form.
         /// </summary>
-        public static IOrleansQueryable<TResult> Select<TSource, TResult>(this IOrleansQueryable<TSource> source, Expression<Func<TSource, int, TResult>> selector) where TSource : IIndexableGrain where TResult : IIndexableGrain
+        public static IOrleansQueryable<TResult, TProperties> Select<TSource, TProperties, TResult>(this IOrleansQueryable<TSource, TProperties> source, Expression<Func<TProperties, int, TResult>> selector) where TSource : IIndexableGrain where TResult : IIndexableGrain
         {
-            return (IOrleansQueryable<TResult>)Queryable.Select(source, selector);
+            return (IOrleansQueryable<TResult, TProperties>)Queryable.Select(source, selector);
         }
 
         /// <summary>
         /// Implementation of In operator
         /// </summary>
-        public static bool In<T>(this T field, IEnumerable<T> values)
+        public static bool In<TIGrain, TProperties>(this TProperties field, IEnumerable<TProperties> values)
         {
             return values.Any(value => field.Equals(value));
         }
@@ -103,7 +103,7 @@ namespace Orleans.Indexing
         /// <summary>
         /// Implementation of In operator
         /// </summary>
-        public static bool In<T>(this T field, params T[] values)
+        public static bool In<TIGrain, TProperties>(this TProperties field, params TProperties[] values)
         {
             return values.Any(value => field.Equals(value));
         }
@@ -112,19 +112,19 @@ namespace Orleans.Indexing
         /// Bypasses a specified number of elements in a sequence and then returns the remaining elements.
         /// </summary>
         /// Summary:
-        public static IOrleansQueryable<TSource> Skip<TSource>(this IOrleansQueryable<TSource> source, int count) where TSource : IIndexableGrain
+        public static IOrleansQueryable<TSource, TProperties> Skip<TSource, TProperties>(this IOrleansQueryable<TSource, TProperties> source, int count) where TSource : IIndexableGrain
         {
-            return (IOrleansQueryable<TSource>)Queryable.Skip(source, count);
+            return (IOrleansQueryable<TSource, TProperties>)Queryable.Skip(source, count);
         }
-        public static IOrleansQueryable<TSource> Take<TSource>(this IOrleansQueryable<TSource> source, int count) where TSource : IIndexableGrain
+        public static IOrleansQueryable<TSource, TProperties> Take<TSource, TProperties>(this IOrleansQueryable<TSource, TProperties> source, int count) where TSource : IIndexableGrain
         {
-            return (IOrleansQueryable<TSource>)Queryable.Take(source, count);
+            return (IOrleansQueryable<TSource, TProperties>)Queryable.Take(source, count);
         }
 
         /// <summary>
         /// Implementation of the Contains ANY operator
         /// </summary>
-        public static bool ContainsAny<T>(this IEnumerable<T> list, IEnumerable<T> items)
+        public static bool ContainsAny<TIGrain, TProperties>(this IEnumerable<TProperties> list, IEnumerable<TProperties> items)
         {
             throw new InvalidOperationException(
                 "This method isn't meant to be called directly, it just exists as a place holder, for the LINQ provider");
@@ -133,7 +133,7 @@ namespace Orleans.Indexing
         /// <summary>
         /// Implementation of the Contains ALL operatior
         /// </summary>
-        public static bool ContainsAll<T>(this IEnumerable<T> list, IEnumerable<T> items)
+        public static bool ContainsAll<TIGrain, TProperties>(this IEnumerable<TProperties> list, IEnumerable<TProperties> items)
         {
             throw new InvalidOperationException(
                 "This method isn't meant to be called directly, it just exists as a place holder for the LINQ provider");

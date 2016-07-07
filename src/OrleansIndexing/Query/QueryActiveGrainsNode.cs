@@ -13,15 +13,15 @@ namespace Orleans.Indexing
     /// <summary>
     /// The query class for querying all active grains of a given type
     /// </summary>
-    public class QueryActiveGrainsNode<T> : QueryGrainsNode<T> where T : IIndexableGrain
+    public class QueryActiveGrainsNode<TIGrain, TProperties> : QueryGrainsNode<TIGrain, TProperties> where TIGrain : IIndexableGrain
     {
         public QueryActiveGrainsNode(IGrainFactory gf) : base(gf)
         {
         }
 
-        public override Task<IOrleansQueryResult<T>> GetResults()
+        public override Task<IOrleansQueryResult<TIGrain>> GetResults()
         {
-            throw new NotSupportedException(string.Format("Traversing over all the active grains of {0} is not supported.", typeof(T)));
+            throw new NotSupportedException(string.Format("Traversing over all the active grains of {0} is not supported.", typeof(TIGrain)));
         }
     }
 }

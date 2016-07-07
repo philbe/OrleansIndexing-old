@@ -13,13 +13,14 @@ namespace Orleans.Indexing
     /// <summary>
     /// Implements <see cref="IOrleansQueryProvider"/>
     /// </summary>
-    public class OrleansQueryProvider<T> : IOrleansQueryProvider where T : IIndexableGrain
+    public class OrleansQueryProvider<TIGrain, TProperties> : IOrleansQueryProvider where TIGrain : IIndexableGrain
     {
         IQueryable IQueryProvider.CreateQuery(Expression expression)
         {
-            if (expression.Type.IsGenericType && expression.Type.GetGenericArguments().Count() == 1)
+            if (expression.NodeType == ExpressionType.Call && ((MethodCallExpression)expression).Arguments.Count > 0)
             {
-                return CreateQuery(expression, expression.Type.GetGenericArguments()[0]);
+                var genericArgs = ((MethodCallExpression)expression).Arguments[0].Type.GetGenericArguments();
+                return CreateQuery(expression, genericArgs[0], genericArgs[1]);
             }
             else
             {
@@ -31,14 +32,14 @@ namespace Orleans.Indexing
             return (IQueryable<TElement>)((IQueryProvider)this).CreateQuery(expression);
         }
 
-        private IQueryable CreateQuery(Expression expression, Type iGrainType)
+        private IQueryable CreateQuery(Expression expression, Type iGrainType, Type iPropertiesType)
         {
             if(expression.NodeType == ExpressionType.Call)
             {
                 var methodCall = ((MethodCallExpression)expression);
                 IGrainFactory gf;
                 if(IsWhereClause(methodCall) 
-                    && CheckIsOrleansIndex(methodCall.Arguments[0], iGrainType, out gf)
+                    && CheckIsOrleansIndex(methodCall.Arguments[0], iGrainType, iPropertiesType, out gf)
                     && methodCall.Arguments[1].NodeType == ExpressionType.Quote
                     && ((UnaryExpression)methodCall.Arguments[1]).Operand.NodeType == ExpressionType.Lambda)
                 {
@@ -47,17 +48,17 @@ namespace Orleans.Indexing
                     object lookupValue;
                     if(TryGetIndexNameAndLookupValue(whereClause, iGrainType, out indexName, out lookupValue))
                     {
-                        return (IQueryable)Activator.CreateInstance(typeof(QueryIndexedGrainsNode<>).MakeGenericType(iGrainType), gf, indexName, lookupValue);
+                        return (IQueryable)Activator.CreateInstance(typeof(QueryIndexedGrainsNode<,>).MakeGenericType(iGrainType, iPropertiesType), gf, indexName, lookupValue);
                     }
                 }
             }
             throw new NotSupportedException();
         }
 
-        private bool CheckIsOrleansIndex(Expression e, Type iGrainType, out IGrainFactory gf)
+        private bool CheckIsOrleansIndex(Expression e, Type iGrainType, Type iPropertiesType, out IGrainFactory gf)
         {
             if(e.NodeType == ExpressionType.Constant &&
-                typeof(QueryActiveGrainsNode<>).MakeGenericType(iGrainType).IsAssignableFrom(((ConstantExpression)e).Value.GetType().GetGenericTypeDefinition().MakeGenericType(iGrainType)))
+                typeof(QueryActiveGrainsNode<,>).MakeGenericType(iGrainType, iPropertiesType).IsAssignableFrom(((ConstantExpression)e).Value.GetType().GetGenericTypeDefinition().MakeGenericType(iGrainType, iPropertiesType)))
             {
                 gf = ((QueryGrainsNode)((ConstantExpression)e).Value).GetGrainFactory();
                 return true;
@@ -126,14 +127,9 @@ namespace Orleans.Indexing
             if (fieldExpr is MemberExpression)
             {
                 Expression innerFieldExpr = ((MemberExpression)fieldExpr).Expression;
-                if (innerFieldExpr is MethodCallExpression)
+                if (innerFieldExpr.NodeType == ExpressionType.Parameter && innerFieldExpr.Equals(iGrainParam))
                 {
-                    MethodCallExpression methodCall = (MethodCallExpression)innerFieldExpr;
-                    if (methodCall.Object.Equals(iGrainParam))
-                    {
-                        MethodInfo grainInterfaceMethod = methodCall.Method;
-                        return IndexUtils.GetIndexNameOnInterfaceGetter(iGrainType, grainInterfaceMethod);
-                    }
+                    return IndexUtils.GetIndexNameOnInterfaceGetter(iGrainType, ((MemberExpression)fieldExpr).Member.Name);
                 }
             }
             throw new NotSupportedException(string.Format("The provided expression is not supported yet: {0}", exprTree));

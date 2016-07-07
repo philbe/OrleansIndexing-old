@@ -13,7 +13,7 @@ namespace Orleans.Indexing
     /// <summary>
     /// Implements <see cref="IOrleansQueryable"/>
     /// </summary>
-    public class QueryIndexedGrainsNode<T> : QueryGrainsNode<T> where T : IIndexableGrain
+    public class QueryIndexedGrainsNode<TIGrain, TProperties> : QueryGrainsNode<TIGrain, TProperties> where TIGrain : IIndexableGrain
     {
         private string _indexName;
 
@@ -24,9 +24,9 @@ namespace Orleans.Indexing
             _indexName = indexName;
             _param = param;
         }
-        public override async Task<IOrleansQueryResult<T>> GetResults()
+        public override async Task<IOrleansQueryResult<TIGrain>> GetResults()
         {
-            return (IOrleansQueryResult<T>)await (await GetGrainFactory().GetIndex(_indexName, typeof(T))).Lookup(_param);
+            return (IOrleansQueryResult<TIGrain>)await (await GetGrainFactory().GetIndex(_indexName, typeof(TIGrain))).Lookup(_param);
         }
     }
 }

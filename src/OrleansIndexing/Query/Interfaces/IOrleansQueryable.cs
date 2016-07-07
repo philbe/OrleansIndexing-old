@@ -18,8 +18,8 @@ namespace Orleans.Indexing
     /// <summary>
     /// Extension for the built-in <see cref="IOrderedQueryable{T}"/> allowing for Orleans specific operations
     /// </summary>
-    public interface IOrleansQueryable<T> : /*IOrleansQueryable, */ IOrderedQueryable<T> where T : IIndexableGrain
+    public interface IOrleansQueryable<TGrain, TProperties> : /*IOrleansQueryable, */ IOrderedQueryable<TProperties> where TGrain : IIndexableGrain
     {
-        Task<IOrleansQueryResult<T>> GetResults();
+        Task<IOrleansQueryResult<TGrain>> GetResults();
     }
 }

@@ -30,7 +30,7 @@ namespace Orleans.Indexing
     /// <summary>
     /// The top-level class for query objects, which implements <see cref="IOrleansQueryable{T}"/>
     /// </summary>
-    public abstract class QueryGrainsNode<T> : QueryGrainsNode, IOrleansQueryable<T> where T : IIndexableGrain
+    public abstract class QueryGrainsNode<TIGrain, TProperties> : QueryGrainsNode, IOrleansQueryable<TIGrain, TProperties> where TIGrain : IIndexableGrain
     {
 
         public QueryGrainsNode(IGrainFactory gf) : base(gf)
@@ -41,7 +41,7 @@ namespace Orleans.Indexing
         {
             get
             {
-                return typeof(T);
+                return typeof(TIGrain);
             }
         }
 
@@ -57,7 +57,7 @@ namespace Orleans.Indexing
         {
             get
             {
-                return new OrleansQueryProvider<T>();
+                return new OrleansQueryProvider<TIGrain, TProperties>();
             }
         }
 
@@ -66,9 +66,9 @@ namespace Orleans.Indexing
         /// on this query object
         /// </summary>
         /// <returns>the query result</returns>
-        public abstract Task<IOrleansQueryResult<T>> GetResults();
+        public abstract Task<IOrleansQueryResult<TIGrain>> GetResults();
 
-        public IEnumerator<T> GetEnumerator()
+        public IEnumerator<TProperties> GetEnumerator()
         {
             throw new NotSupportedException("GetEnumerator is not supported on QueryGrainsNode. User ");
         }

@@ -9,9 +9,9 @@ namespace Orleans.Indexing
     /// <summary>
     /// This class encapsulates the result of a query.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="TIGrain"></typeparam>
     [Serializable]
-    public class OrleansQueryResult<T> : IOrleansQueryResult<T> where T : IIndexableGrain
+    public class OrleansQueryResult<TIGrain> : IOrleansQueryResult<TIGrain> where TIGrain : IIndexableGrain
     {
         // List of observers
         //private IList<IObserver<T>> _queryResultObservers;
@@ -20,10 +20,10 @@ namespace Orleans.Indexing
         //just a simple implementation. This implementation should
         //be replaced with a more sophisticated approach to asynchronously
         //read the results on demand
-        private IEnumerable<T> _queryResult;
+        protected IEnumerable<TIGrain> _queryResult;
 
         // Accept a queryResult instance which we shall observe
-        public OrleansQueryResult(IEnumerable<T> queryResult)
+        public OrleansQueryResult(IEnumerable<TIGrain> queryResult)
         {
             //_queryResultObservers = new List<IObserver<T>>();
             _queryResult = queryResult;
@@ -32,7 +32,7 @@ namespace Orleans.Indexing
 
         // This method allows the observers to attach themselves. It returns a disposer object to the observer
         // which the observer can utilize to unsubscribe
-        public IDisposable Subscribe(IObserver<T> observer)
+        public IDisposable Subscribe(IObserver<TIGrain> observer)
         {
             //if (!_queryResultObservers.Contains(observer))
             //{
@@ -44,9 +44,9 @@ namespace Orleans.Indexing
         }
 
         // This method is used to inspect the query result.
-        public void inspectQueryResult(IObserver<T> observer)
+        public void inspectQueryResult(IObserver<TIGrain> observer)
         {
-            foreach (T elem in _queryResult)
+            foreach (TIGrain elem in _queryResult)
             {
                 observer.OnNext(elem);
             }
@@ -64,12 +64,12 @@ namespace Orleans.Indexing
         //
         private class Disposer : IDisposable
         {
-            // The observers list recieved from the observable
+            // The observers list received from the observable
             //private IList<IObserver<T>> _queryResultObservers;
             // The observer instance to unsubscribe
             //private IObserver<T> _observer;
 
-            public Disposer(/*IList<IObserver<T>> _subObservers,*/ IObserver<T> observer)
+            public Disposer(/*IList<IObserver<T>> _subObservers,*/ IObserver<TIGrain> observer)
             {
                 //_queryResultObservers = _subObservers;
                 //_observer = observer;
