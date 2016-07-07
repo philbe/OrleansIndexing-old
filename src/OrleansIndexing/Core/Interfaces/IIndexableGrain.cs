@@ -22,4 +22,7 @@ namespace Orleans.Indexing
         /// <returns>the corresponding image of grain for a particular index</returns>
         Task<object> ExtractIndexImage(IIndexUpdateGenerator iUpdateGen);
     }
+    public interface IIndexableGrain<TProperties> : IIndexableGrain
+    {
+    }
 }

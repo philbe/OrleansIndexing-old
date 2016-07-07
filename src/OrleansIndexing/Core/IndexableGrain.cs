@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
 using Orleans.Runtime;
+using System.Reflection;
 
 namespace Orleans.Indexing
 {
@@ -16,7 +17,7 @@ namespace Orleans.Indexing
     ///     2- the grain class is responsible for calling UpdateIndexes
     ///        whenever one or more indexes need to be updated
     /// </summary>
-    public abstract class IndexableGrain<T> : Grain<T>, IIndexableGrain
+    public abstract class IndexableGrain<TState, TProperties> : Grain<TState>, IIndexableGrain<TProperties> where TProperties: new()
     {
         /// <summary>
         /// an immutable cached version of IIndexUpdateGenerator instances
@@ -34,6 +35,26 @@ namespace Orleans.Indexing
         /// is cached on the first call to getIGrainType()
         /// </summary>
         private Type _iGrainType = null;
+
+        private TProperties _props;
+
+        protected virtual TProperties Properties { get { return defaultCreatePropertiesFromState(); } }
+
+        private TProperties defaultCreatePropertiesFromState()
+        {
+            Type propsType = typeof(TProperties);
+            Type stateType = typeof(TState);
+
+            if (propsType.IsAssignableFrom(stateType)) return (TProperties)(object)State;
+
+            if (_props == null) _props = new TProperties();
+
+            foreach (PropertyInfo p in propsType.GetProperties())
+            {
+                p.SetValue(_props, stateType.GetProperty(p.Name).GetValue(State));
+            }
+            return _props;
+        }
 
         /// <summary>
         /// Upon activation, the list of index update generators
@@ -78,7 +99,7 @@ namespace Orleans.Indexing
                 IDictionary<string, object> befImgs = _beforeImages.Value;
                 foreach (KeyValuePair<string, Tuple<object, object, object>> kvp in iUpdateGens)
                 {
-                    IMemberUpdate mu = ((IIndexUpdateGenerator)kvp.Value.Item3).CreateMemberUpdate(this, befImgs[kvp.Key]);
+                    IMemberUpdate mu = ((IIndexUpdateGenerator)kvp.Value.Item3).CreateMemberUpdate(Properties, befImgs[kvp.Key]);
                     updates.Add(kvp.Key, mu);
                 }
 
@@ -151,7 +172,7 @@ namespace Orleans.Indexing
                 var indexID = idxOp.Key;
                 if (!oldBefImgs.ContainsKey(indexID))
                 {
-                    newBefImgs.Add(indexID, ((IIndexUpdateGenerator)idxOp.Value.Item3).ExtractIndexImage(this));
+                    newBefImgs.Add(indexID, ((IIndexUpdateGenerator)idxOp.Value.Item3).ExtractIndexImage(Properties));
                 }
                 else
                 {
@@ -178,7 +199,7 @@ namespace Orleans.Indexing
                 var opType = updt.Value.GetOperationType();
                 if (opType == OperationType.Update || opType == OperationType.Insert)
                 {
-                    befImgs[indexID] = ((IIndexUpdateGenerator)iUpdateGens[indexID].Item3).ExtractIndexImage(this);
+                    befImgs[indexID] = ((IIndexUpdateGenerator)iUpdateGens[indexID].Item3).ExtractIndexImage(Properties);
                 }
                 else if(opType == OperationType.Delete)
                 {
@@ -203,7 +224,7 @@ namespace Orleans.Indexing
 
         Task<object> IIndexableGrain.ExtractIndexImage(IIndexUpdateGenerator iUpdateGen)
         {
-            return Task.FromResult(iUpdateGen.ExtractIndexImage(this));
+            return Task.FromResult(iUpdateGen.ExtractIndexImage(Properties));
         }
     }
 
@@ -213,7 +234,7 @@ namespace Orleans.Indexing
     /// IndexableGrain<T>) is not allowed, this class extends IndexableGrain<object>
     /// and disables the storage functionality of Grain<T>
     /// </summary>
-    public abstract class IndexableGrain : IndexableGrain<object>, IIndexableGrain
+    public abstract class IndexableGrain<TProperties> : IndexableGrain<object, TProperties>, IIndexableGrain<TProperties> where TProperties : new()
     {
         protected override Task ClearStateAsync()
         {
