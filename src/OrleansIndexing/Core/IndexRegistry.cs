@@ -57,12 +57,10 @@ namespace Orleans.Indexing
 
         internal static IDictionary<string, Tuple<object, object, object>> GetIndexes(Type iGrainType)
         {
-            if (InsideRuntimeClient.Current.Indexes == null) InsideRuntimeClient.Current.Indexes = new Dictionary<Type, IDictionary<string, Tuple<object, object, object>>>();
             IDictionary<string, Tuple<object, object, object>> indexes;
-            if (!InsideRuntimeClient.Current.Indexes.TryGetValue(iGrainType, out indexes))
+            if (!RuntimeClient.Current.Indexes.TryGetValue(iGrainType, out indexes))
             {
-                indexes = new Dictionary<string, Tuple<object, object, object>>();
-                InsideRuntimeClient.Current.Indexes.Add(iGrainType, indexes);
+                return new Dictionary<string, Tuple<object, object, object>>();
             }
             return indexes;
         }
