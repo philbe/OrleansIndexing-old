@@ -129,9 +129,9 @@ namespace Orleans.Indexing
         {
             if (_iGrainType == null)
             {
-                Type iIndexableGrainTp = typeof(IIndexableGrain);
+                Type iIndexableGrainTp = typeof(IIndexableGrain<TProperties>);
 
-                Type[] interfaces = this.GetType().GetInterfaces();
+                Type[] interfaces = GetType().GetInterfaces();
                 int numInterfaces = interfaces.Length;
 
                 Type thisIIndexableGrainTp = iIndexableGrainTp;
