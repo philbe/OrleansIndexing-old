@@ -121,14 +121,18 @@ namespace Orleans.Indexing
                 Type grainType = indexTypeArgs[1];
 
                 IIndex index;
-                if (typeof(IGrain).IsAssignableFrom(grainType))
+                if (typeof(IGrain).IsAssignableFrom(idxType))
                 {
                     index = (IIndex)gf.GetGrain(IndexUtils.GetIndexGrainID(grainType, indexName), idxType, idxType);
                 }
+                else if(idxType.IsClass)
+                {
+                    index = (IIndex)Activator.CreateInstance(idxType);
+                    await index.SetName(indexName);
+                }
                 else
                 {
-                    index = (IIndex)Activator.CreateInstance(grainType);
-                    await index.SetName(indexName);
+                    throw new Exception(string.Format("{0} is neither a grain nor a class. Index \"{1}\" cannot be created.", idxType, indexName));
                 }
 
                 return Tuple.Create((object)index, (object)new IndexMetaData(idxType), (object)createIndexUpdateGenFromProperty(indexedProperty));
