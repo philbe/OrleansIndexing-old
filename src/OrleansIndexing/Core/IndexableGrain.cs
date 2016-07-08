@@ -34,7 +34,7 @@ namespace Orleans.Indexing
         /// a cached grain interface type, which
         /// is cached on the first call to getIGrainType()
         /// </summary>
-        private Type _iGrainType = null;
+        private IList<Type> _iGrainTypes = null;
 
         private TProperties _props;
 
@@ -66,7 +66,7 @@ namespace Orleans.Indexing
         /// </summary>
         public override async Task OnActivateAsync()
         {
-            _iUpdateGens = IndexHandler.GetIndexes(getIIndexableGrainType());
+            _iUpdateGens = IndexHandler.GetIndexes(getIIndexableGrainTypes()[0]);
             _beforeImages = new Dictionary<string, object>().AsImmutable<IDictionary<string, object>>();
             AddMissingBeforeImages();
             await base.OnActivateAsync();
@@ -88,7 +88,7 @@ namespace Orleans.Indexing
         /// </summary>
         protected async Task UpdateIndexes()
         {
-            Type iGrainType = getIIndexableGrainType();
+            IList<Type> iGrainTypes = getIIndexableGrainTypes();
             bool success = false;
             do
             {
@@ -103,7 +103,7 @@ namespace Orleans.Indexing
                     updates.Add(kvp.Key, mu);
                 }
 
-                success = await IndexHandler.ApplyIndexUpdates(iGrainType, this.AsReference<IIndexableGrain>(GrainFactory), updates.AsImmutable());
+                success = await IndexHandler.ApplyIndexUpdates(iGrainTypes, this.AsReference<IIndexableGrain>(GrainFactory), updates.AsImmutable());
                 if (success)
                 {
                     UpdateBeforeImages(updates);
@@ -111,7 +111,7 @@ namespace Orleans.Indexing
                 else
                 {
                     // assume that IndexHandler returned false because our list of indexes is invalid
-                    _iUpdateGens = IndexHandler.GetIndexes(iGrainType); // retry
+                    _iUpdateGens = IndexHandler.GetIndexes(iGrainTypes[0]); // retry
                     iUpdateGens = _iUpdateGens;
                     AddMissingBeforeImages();
                 }
@@ -125,16 +125,16 @@ namespace Orleans.Indexing
         /// </summary>
         /// <returns>lowest IGrain interface in the hierarchy
         /// that the current class implements</returns>
-        private Type getIIndexableGrainType()
+        private IList<Type> getIIndexableGrainTypes()
         {
-            if (_iGrainType == null)
+            if (_iGrainTypes == null)
             {
+                _iGrainTypes = new List<Type>();
                 Type iIndexableGrainTp = typeof(IIndexableGrain<TProperties>);
 
                 Type[] interfaces = GetType().GetInterfaces();
                 int numInterfaces = interfaces.Length;
-
-                Type thisIIndexableGrainTp = iIndexableGrainTp;
+                
                 for (int i = 0; i < numInterfaces; ++i)
                 {
                     Type otherIGrainType = interfaces[i];
@@ -142,14 +142,13 @@ namespace Orleans.Indexing
                     //iIndexableGrainTp and typedIIndexableGrainTp are ignored when
                     //checking the descendants of IGrain, because there is no guarantee
                     //user defined grain interfaces extend these interfaces
-                    if (thisIIndexableGrainTp.IsAssignableFrom(otherIGrainType))
+                    if (iIndexableGrainTp != otherIGrainType && iIndexableGrainTp.IsAssignableFrom(otherIGrainType))
                     {
-                        thisIIndexableGrainTp = otherIGrainType;
+                        _iGrainTypes.Add(otherIGrainType);
                     }
                 }
-                _iGrainType = thisIIndexableGrainTp;
             }
-            return _iGrainType;
+            return _iGrainTypes;
         }
 
         /// <summary>

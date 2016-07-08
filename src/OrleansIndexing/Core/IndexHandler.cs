@@ -21,33 +21,36 @@ namespace Orleans.Indexing
     /// </summary>
     public static class IndexHandler
     {
-        internal static async Task<bool> ApplyIndexUpdates(Type iGrainType, IIndexableGrain updatedGrain, Immutable<IDictionary<string, IMemberUpdate>> iUpdates)
+        internal static async Task<bool> ApplyIndexUpdates(IList<Type> iGrainTypes, IIndexableGrain updatedGrain, Immutable<IDictionary<string, IMemberUpdate>> iUpdates)
         {
             var updates = iUpdates.Value;
-            var idxs = GetIndexes(iGrainType);
-            if (!updates.Keys.ToSet().SetEquals(idxs.Keys)) return false;
-            IList<Task<bool>> updateIndexTasks = new List<Task<bool>>();
-            foreach (KeyValuePair<string, IMemberUpdate> updt in updates)
+            foreach (Type iGrainType in iGrainTypes)
             {
-                updateIndexTasks.Add(((IIndex)idxs[updt.Key].Item1).ApplyIndexUpdate(updatedGrain, updt.Value.AsImmutable()));
-            }
-            await Task.WhenAll(updateIndexTasks);
-            bool allSuccessful = true;
-            foreach (Task<bool> utask in updateIndexTasks)
-            {
-                allSuccessful = allSuccessful && (await utask);
-            }
-            if (!allSuccessful)
-            {
-                //TODO: we should do something about the failed index updates
+                var idxs = GetIndexes(iGrainType);
+                if (!updates.Keys.ToSet().SetEquals(idxs.Keys)) return false;
+                IList<Task<bool>> updateIndexTasks = new List<Task<bool>>();
+                foreach (KeyValuePair<string, IMemberUpdate> updt in updates)
+                {
+                    updateIndexTasks.Add(((IIndex)idxs[updt.Key].Item1).ApplyIndexUpdate(updatedGrain, updt.Value.AsImmutable()));
+                }
+                await Task.WhenAll(updateIndexTasks);
+                bool allSuccessful = true;
+                foreach (Task<bool> utask in updateIndexTasks)
+                {
+                    allSuccessful = allSuccessful && (await utask);
+                }
+                if (!allSuccessful)
+                {
+                    //TODO: we should do something about the failed index updates
+                }
             }
             return true;
         }
 
-        internal static Task<bool> ApplyIndexUpdates<T>(IIndexableGrain updatedGrain, Immutable<IDictionary<string, IMemberUpdate>> iUpdates) where T : IIndexableGrain
-        {
-            return ApplyIndexUpdates(typeof(T), updatedGrain, iUpdates);
-        }
+        //internal static Task<bool> ApplyIndexUpdates<T>(IIndexableGrain updatedGrain, Immutable<IDictionary<string, IMemberUpdate>> iUpdates) where T : IIndexableGrain
+        //{
+        //    return ApplyIndexUpdates(typeof(T), updatedGrain, iUpdates);
+        //}
 
         internal static IDictionary<string, Tuple<object, object, object>> GetIndexes(Type iGrainType)
         {
