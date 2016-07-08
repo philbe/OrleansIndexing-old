@@ -111,7 +111,7 @@ namespace Orleans.Indexing
         /// <param name="idxType"></param>
         /// <param name="indexName"></param>
         /// <returns></returns>
-        internal static Tuple<object, object, object> CreateIndex(this IGrainFactory gf, Type idxType, string indexName, PropertyInfo indexedProperty)
+        internal static async Task<Tuple<object, object, object>> CreateIndex(this IGrainFactory gf, Type idxType, string indexName, PropertyInfo indexedProperty)
         {
             Type iIndexType = idxType.GetGenericType(typeof(IIndex<,>));
             if (iIndexType != null)
@@ -120,8 +120,18 @@ namespace Orleans.Indexing
                 //Type keyType = indexTypeArgs[0];
                 Type grainType = indexTypeArgs[1];
 
-                IIndex indexGrain = (IIndex)gf.GetGrain(IndexUtils.GetIndexGrainID(grainType, indexName), idxType, iIndexType);
-                return Tuple.Create((object)indexGrain, (object)new IndexMetaData(idxType), (object)createIndexUpdateGenFromProperty(indexedProperty));
+                IIndex index;
+                if (typeof(IGrain).IsAssignableFrom(grainType))
+                {
+                    index = (IIndex)gf.GetGrain(IndexUtils.GetIndexGrainID(grainType, indexName), idxType, idxType);
+                }
+                else
+                {
+                    index = (IIndex)Activator.CreateInstance(grainType);
+                    await index.SetName(indexName);
+                }
+
+                return Tuple.Create((object)index, (object)new IndexMetaData(idxType), (object)createIndexUpdateGenFromProperty(indexedProperty));
             }
             else
             {
