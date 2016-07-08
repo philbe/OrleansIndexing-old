@@ -4,12 +4,12 @@ using System.Collections.Generic;
 namespace Orleans.Indexing
 {
     /// <summary>
-    /// Contains the state that should be stored for each HashIndexInMemory
+    /// Contains the state that should be stored for each HashIndexSingleBucket
     /// </summary>
     /// <typeparam name="K">type of hash-index key</typeparam>
     /// <typeparam name="V">type of grain that is being indexed</typeparam>
     [Serializable]
-    public class HashIndexInMemoryState<K, V> where V : IIndexableGrain
+    public class HashIndexSingleBucketState<K, V> where V : IIndexableGrain
     {
         //public string Name { set; get; }
 
@@ -21,7 +21,7 @@ namespace Orleans.Indexing
         /// <summary>
         /// The actual storage of the indexed values
         /// </summary>
-        public IDictionary<K, HashIndexInMemoryEntry<V>> IndexMap { set; get; }
+        public IDictionary<K, HashIndexSingleBucketEntry<V>> IndexMap { set; get; }
 
         /// <summary>
         /// Contains the status of the index regarding
@@ -38,7 +38,7 @@ namespace Orleans.Indexing
     /// <typeparam name="T">the type of elements stored in
     /// the entry</typeparam>
     [Serializable]
-    public sealed class HashIndexInMemoryEntry<T>
+    public sealed class HashIndexSingleBucketEntry<T>
     {
         /// <summary>
         /// The set of values associated with a single key

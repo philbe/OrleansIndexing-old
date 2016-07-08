@@ -48,15 +48,15 @@ namespace UnitTests.IndexingTests
         //[Fact, TestCategory("BVT"), TestCategory("Indexing")]
         //public async Task Test_Indexing_AddOneIndex()
         //{
-        //    bool isLocIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<IHashIndexInMemory<string, IPlayerGrain>, PlayerLocIndexGen>("locIdx1");
+        //    bool isLocIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<IHashIndexSingleBucket<string, IPlayerGrain>, PlayerLocIndexGen>("locIdx1");
         //    Assert.IsTrue(isLocIndexCreated);
         //}
 
         //[Fact, TestCategory("BVT"), TestCategory("Indexing")]
         //public async Task Test_Indexing_AddTwoIndexes()
         //{
-        //    bool isLocIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<IHashIndexInMemory<string, IPlayerGrain>, PlayerLocIndexGen>("locIdx2");
-        //    bool isScoreIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<IHashIndexInMemory<int, IPlayerGrain>, PlayerScoreIndexGen>("scoreIdx2");
+        //    bool isLocIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<IHashIndexSingleBucket<string, IPlayerGrain>, PlayerLocIndexGen>("locIdx2");
+        //    bool isScoreIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<IHashIndexSingleBucket<int, IPlayerGrain>, PlayerScoreIndexGen>("scoreIdx2");
 
         //    Assert.IsTrue(isLocIndexCreated);
         //    Assert.IsTrue(isScoreIndexCreated);
@@ -65,7 +65,7 @@ namespace UnitTests.IndexingTests
         //[Fact, TestCategory("BVT"), TestCategory("Indexing")]
         //public async Task Test_Indexing_GetIndex()
         //{
-        //    bool isLocIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<IHashIndexInMemory<string, IPlayerGrain>, PlayerLocIndexGen>("locIdx3");
+        //    bool isLocIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<IHashIndexSingleBucket<string, IPlayerGrain>, PlayerLocIndexGen>("locIdx3");
         //    Assert.IsTrue(isLocIndexCreated);
 
         //    IIndex<string, IPlayerGrain> locIdx = await GrainClient.GrainFactory.GetIndex<string, IPlayerGrain>("locIdx3");
@@ -76,7 +76,7 @@ namespace UnitTests.IndexingTests
         //[Fact, TestCategory("BVT"), TestCategory("Indexing")]
         //public async Task Test_Indexing_IndexLookup1()
         //{
-        //    bool isLocIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<IHashIndexInMemory<string, IPlayerGrain>, PlayerLocIndexGen>("locIdx4");
+        //    bool isLocIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<IHashIndexSingleBucket<string, IPlayerGrain>, PlayerLocIndexGen>("locIdx4");
         //    Assert.IsTrue(isLocIndexCreated);
 
         //    IIndex<string, IPlayerGrain> locIdx = await GrainClient.GrainFactory.GetIndex<string, IPlayerGrain>("locIdx4");
@@ -96,7 +96,7 @@ namespace UnitTests.IndexingTests
         //    IPlayerGrain p1 = GrainClient.GrainFactory.GetGrain<IPlayerGrain>(1);
         //    await p1.SetLocation("Redmond");
 
-        //    bool isLocIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<IHashIndexInMemory<string, IPlayerGrain>, PlayerLocIndexGen>("locIdx5");
+        //    bool isLocIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<IHashIndexSingleBucket<string, IPlayerGrain>, PlayerLocIndexGen>("locIdx5");
         //    Assert.IsTrue(isLocIndexCreated);
 
         //    IPlayerGrain p2 = GrainClient.GrainFactory.GetGrain<IPlayerGrain>(2);
@@ -129,7 +129,7 @@ namespace UnitTests.IndexingTests
         //    IPlayerGrain p1 = GrainClient.GrainFactory.GetGrain<IPlayerGrain>(1);
         //    await p1.SetLocation("Lausanne");
 
-        //    bool isLocIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<IHashIndexInMemory<string, IPlayerGrain>, PlayerLocIndexGen>("__GetLocation");
+        //    bool isLocIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<IHashIndexSingleBucket<string, IPlayerGrain>, PlayerLocIndexGen>("__GetLocation");
         //    Assert.IsTrue(isLocIndexCreated);
 
         //    IPlayerGrain p2 = GrainClient.GrainFactory.GetGrain<IPlayerGrain>(2);
@@ -163,7 +163,7 @@ namespace UnitTests.IndexingTests
             IPlayerGrain p1 = GrainClient.GrainFactory.GetGrain<IPlayerGrain>(1);
             await p1.SetLocation("San Fransisco");
 
-            //bool isLocIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<IHashIndexInMemory<string, IPlayerGrain>, PlayerLocIndexGen>("__GetLocation");
+            //bool isLocIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<IHashIndexSingleBucket<string, IPlayerGrain>, PlayerLocIndexGen>("__GetLocation");
             //Assert.IsTrue(isLocIndexCreated);
 
             IPlayerGrain p2 = GrainClient.GrainFactory.GetGrain<IPlayerGrain>(2);

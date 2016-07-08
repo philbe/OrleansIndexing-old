@@ -59,10 +59,10 @@
     <Compile Include="Extensions\GrainExtensions.cs" />
     <Compile Include="Extensions\GrainFactoryExtensions.cs" />
     <Compile Include="Extensions\TypeExtensions.cs" />
-    <Compile Include="Indexes\HashIndexInMemory.cs" />
+    <Compile Include="Indexes\HashIndexSingleBucket.cs" />
     <Compile Include="Indexes\HashIndexInMemoryState.cs" />
     <Compile Include="Indexes\Interfaces\IHashIndex.cs" />
-    <Compile Include="Indexes\Interfaces\IHashIndexInMemory.cs" />
+    <Compile Include="Indexes\Interfaces\IHashIndexSingleBucket.cs" />
     <Compile Include="Indexes\Interfaces\IIndex.cs" />
     <Compile Include="Indexes\Interfaces\IRangeIndex.cs" />
     <Compile Include="Core\IndexMetaData.cs" />

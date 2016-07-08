@@ -139,7 +139,7 @@ namespace Orleans.Runtime
             var createIndexMethod = (Func<IGrainFactory, Type, string, PropertyInfo, Tuple<object,object,object>>) Delegate.CreateDelegate(
                                     typeof(Func<IGrainFactory, Type, string, PropertyInfo, Tuple<object, object, object>>), 
                                     indexFactoryType.GetMethod("CreateIndex", BindingFlags.Static | BindingFlags.NonPublic));
-            Type genericDefaultIndexType = Type.GetType("Orleans.Indexing.IHashIndexInMemory`2" + AssemblySeparator + OrleansIndexingAssembly);
+            Type genericDefaultIndexType = Type.GetType("Orleans.Indexing.IHashIndexSingleBucket`2" + AssemblySeparator + OrleansIndexingAssembly);
 
             //for all discovered grain types
             foreach (var grainType in grainTypes)

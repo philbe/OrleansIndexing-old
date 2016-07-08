@@ -14,7 +14,7 @@ namespace Orleans.Indexing
     /// </summary>
     /// <typeparam name="K"></typeparam>
     /// <typeparam name="V"></typeparam>
-    public class HashIndexInMemory<K, V> : Grain<HashIndexInMemoryState<K,V>>, IHashIndexInMemory<K, V> where V : IIndexableGrain
+    public class HashIndexSingleBucket<K, V> : Grain<HashIndexSingleBucketState<K,V>>, IHashIndexSingleBucket<K, V> where V : IIndexableGrain
     {
         //private Func<K, K, bool> _equalsLambda = ((k1,k2) => k1.Equals(k2));
         //private Func<K, long> _hashLambda = (k => k.GetHashCode());
@@ -22,7 +22,7 @@ namespace Orleans.Indexing
         public override async Task OnActivateAsync()
         {
             //await ReadStateAsync();
-            if (State.IndexMap == null) State.IndexMap = new Dictionary<K, HashIndexInMemoryEntry<V>>();
+            if (State.IndexMap == null) State.IndexMap = new Dictionary<K, HashIndexSingleBucketEntry<V>>();
             State.IndexStatus = IndexStatus.Available;
             if (State.IndexStatus == IndexStatus.UnderConstruction)
             {
@@ -43,8 +43,8 @@ namespace Orleans.Indexing
             var updatedGrain = g.AsReference<V>(GrainFactory);
             var updt = (MemberUpdate)iUpdate.Value;
             var opType = updt.GetOperationType();
-            HashIndexInMemoryEntry<V> befEntry;
-            HashIndexInMemoryEntry<V> aftEntry;
+            HashIndexSingleBucketEntry<V> befEntry;
+            HashIndexSingleBucketEntry<V> aftEntry;
             if (opType == OperationType.Update)
             {
                 K befImg = (K)updt.GetBeforeImage();
@@ -69,7 +69,7 @@ namespace Orleans.Indexing
                     }
                     else
                     {
-                        aftEntry = new HashIndexInMemoryEntry<V>();
+                        aftEntry = new HashIndexSingleBucketEntry<V>();
                         befEntry.Values.Remove(updatedGrain);
                         aftEntry.Values.Add(updatedGrain);
                         State.IndexMap.Add(aftImg, aftEntry);
@@ -90,7 +90,7 @@ namespace Orleans.Indexing
                     }
                     else
                     {
-                        aftEntry = new HashIndexInMemoryEntry<V>();
+                        aftEntry = new HashIndexSingleBucketEntry<V>();
                         aftEntry.Values.Add(updatedGrain);
                         State.IndexMap.Add(aftImg, aftEntry);
                     }
@@ -112,7 +112,7 @@ namespace Orleans.Indexing
                 }
                 else
                 {
-                    aftEntry = new HashIndexInMemoryEntry<V>();
+                    aftEntry = new HashIndexSingleBucketEntry<V>();
                     aftEntry.Values.Add(updatedGrain);
                     State.IndexMap.Add(aftImg, aftEntry);
                 }
@@ -159,7 +159,7 @@ namespace Orleans.Indexing
                 GetLogger().Log((int)ErrorCode.IndexingIndexIsNotReadyYet, Severity.Error, "Index is not still available.", null, e);
                 throw e;
             }
-            HashIndexInMemoryEntry<V> entry;
+            HashIndexSingleBucketEntry<V> entry;
             if (State.IndexMap.TryGetValue(key, out entry))
             {
                 return new OrleansQueryResult<V>(entry.Values);
@@ -178,7 +178,7 @@ namespace Orleans.Indexing
                 GetLogger().Error((int)ErrorCode.IndexingIndexIsNotReadyYet, e.Message, e);
                 throw e;
             }
-            HashIndexInMemoryEntry<V> entry;
+            HashIndexSingleBucketEntry<V> entry;
             if (State.IndexMap.TryGetValue(key, out entry))
             {
                 if (entry.Values.Count() == 1)
