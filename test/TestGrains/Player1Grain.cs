@@ -9,7 +9,7 @@ using Orleans.Indexing;
 namespace UnitTests.Grains
 {
     [Serializable]
-    public class PlayerGrainState : PlayerProperties
+    public class Player1GrainState : Player1Properties
     {
         public string Email { get; set; }
     }
@@ -18,7 +18,7 @@ namespace UnitTests.Grains
     /// A simple grain that represent a player in a game
     /// </summary>
     [StorageProvider(ProviderName = "MemoryStore")]
-    public class PlayerGrain : IndexableGrain<PlayerGrainState, PlayerProperties>, IPlayerGrain
+    public class Player1Grain : IndexableGrain<Player1GrainState, Player1Properties>, IPlayer1Grain
     {
         private Logger logger;
         

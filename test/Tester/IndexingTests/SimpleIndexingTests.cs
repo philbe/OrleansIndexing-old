@@ -160,27 +160,27 @@ namespace UnitTests.IndexingTests
         {
             //await GrainClient.GrainFactory.DropAllIndexes<IPlayerGrain>();
 
-            IPlayerGrain p1 = GrainClient.GrainFactory.GetGrain<IPlayerGrain>(1);
+            IPlayer1Grain p1 = GrainClient.GrainFactory.GetGrain<IPlayer1Grain>(1);
             await p1.SetLocation("San Fransisco");
 
             //bool isLocIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<IHashIndexSingleBucket<string, IPlayerGrain>, PlayerLocIndexGen>("__GetLocation");
             //Assert.IsTrue(isLocIndexCreated);
 
-            IPlayerGrain p2 = GrainClient.GrainFactory.GetGrain<IPlayerGrain>(2);
-            IPlayerGrain p3 = GrainClient.GrainFactory.GetGrain<IPlayerGrain>(3);
+            IPlayer1Grain p2 = GrainClient.GrainFactory.GetGrain<IPlayer1Grain>(2);
+            IPlayer1Grain p3 = GrainClient.GrainFactory.GetGrain<IPlayer1Grain>(3);
 
             await p2.SetLocation("San Fransisco");
             await p3.SetLocation("San Diego");
 
-            IIndex<string, IPlayerGrain> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayerGrain>("__Location");
+            IIndex<string, IPlayer1Grain> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer1Grain>("__Location");
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
-            IOrleansQueryable<IPlayerGrain, PlayerProperties> q = from player in GrainClient.GrainFactory.GetActiveGrains<IPlayerGrain, PlayerProperties>()
+            IOrleansQueryable<IPlayer1Grain, Player1Properties> q = from player in GrainClient.GrainFactory.GetActiveGrains<IPlayer1Grain, Player1Properties>()
                                                                   where player.Location == "San Fransisco"
                                                                   select player;
 
-            IOrleansQueryResult<IPlayerGrain> result = await q.GetResults();
+            IOrleansQueryResult<IPlayer1Grain> result = await q.GetResults();
 
             int counter = 0;
             result.Subscribe(async entry =>

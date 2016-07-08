@@ -19,9 +19,9 @@ namespace UnitTests.IndexingTests
         [Fact, TestCategory("BVT"), TestCategory("Indexing")]
         public async Task Test_Indexing_NoIndex()
         {
-            IPlayerGrain p100 = GrainClient.GrainFactory.GetGrain<IPlayerGrain>(100);
-            IPlayerGrain p200 = GrainClient.GrainFactory.GetGrain<IPlayerGrain>(200);
-            IPlayerGrain p300 = GrainClient.GrainFactory.GetGrain<IPlayerGrain>(300);
+            IPlayer1Grain p100 = GrainClient.GrainFactory.GetGrain<IPlayer1Grain>(100);
+            IPlayer1Grain p200 = GrainClient.GrainFactory.GetGrain<IPlayer1Grain>(200);
+            IPlayer1Grain p300 = GrainClient.GrainFactory.GetGrain<IPlayer1Grain>(300);
 
             await p100.SetLocation("Tehran");
             await p200.SetLocation("Tehran");

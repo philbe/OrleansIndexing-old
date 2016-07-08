@@ -183,8 +183,10 @@ namespace Orleans.Runtime
                                         {
                                             string indexName = "__" + p.Name;
                                             Type indexType = (Type)indexAttributeType.GetProperty("IndexType").GetValue(indexAttrs[0]);
-                                            if(indexType.IsGenericTypeDefinition)
+                                            if (indexType.IsGenericTypeDefinition)
+                                            {
                                                 indexType = indexType.MakeGenericType(p.PropertyType, userDefinedIGrain);
+                                            }
                                             indexesOnGrain.Add(indexName, createIndexMethod(gfactory, indexType, indexName, p).Result);
                                         }
                                     }

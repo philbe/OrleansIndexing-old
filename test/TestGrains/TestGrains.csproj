@@ -52,7 +52,8 @@
     </Compile>
     <Compile Include="AsyncSimpleGrain.cs" />
     <Compile Include="CatalogTestGrain.cs" />
-    <Compile Include="PlayerGrain.cs" />
+    <Compile Include="Player2Grain.cs" />
+    <Compile Include="Player1Grain.cs" />
     <Compile Include="ChainedGrain.cs" />
     <Compile Include="CircularStateTestGrain.cs" />
     <Compile Include="ActivateDeactivateWatcherGrain.cs" />
