@@ -90,5 +90,10 @@ namespace Orleans.Indexing
         {
             return GetIndex(typeof(T), indexName);
         }
+
+        internal static IIndex<K,V> GetIndex<K,V>(string indexName) where V : IIndexableGrain
+        {
+            return (IIndex<K,V>)GetIndex(typeof(V), indexName);
+        }
     }
 }

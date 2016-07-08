@@ -52,9 +52,9 @@ namespace Orleans.Indexing
         /// <param name="indexName">the name of the index, which
         /// is the identifier of the index</param>
         /// <returns>the IIndex<K,V> with the specified name</returns>
-        public static async Task<IIndex<K, V>> GetIndex<K, V>(this IGrainFactory gf, string indexName) where V : IIndexableGrain
+        public static IIndex<K, V> GetIndex<K, V>(this IGrainFactory gf, string indexName) where V : IIndexableGrain
         {
-            return (await gf.GetGrain<IIndexFinder>(TypeUtils.GetFullName(typeof(V))).GetIndex(typeof(V), indexName)).AsReference<IIndex<K,V>>();
+            return IndexHandler.GetIndex<K,V>(indexName);
         }
 
         /// <summary>
@@ -66,9 +66,9 @@ namespace Orleans.Indexing
         /// that is being indexed</param>
         /// <returns>the IIndex with the specified name on the
         /// given grain interface type</returns>
-        internal static Task<IIndex> GetIndex(this IGrainFactory gf, string indexName, Type iGrainType)
+        internal static IIndex GetIndex(this IGrainFactory gf, string indexName, Type iGrainType)
         {
-            return gf.GetGrain<IIndexFinder>(TypeUtils.GetFullName(iGrainType)).GetIndex(iGrainType, indexName);
+            return IndexHandler.GetIndex(iGrainType, indexName);
         }
 
         /// <summary>

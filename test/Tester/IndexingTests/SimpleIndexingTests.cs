@@ -172,7 +172,7 @@ namespace UnitTests.IndexingTests
             await p2.SetLocation("San Fransisco");
             await p3.SetLocation("San Diego");
 
-            IIndex<string, IPlayerGrain> locIdx = await GrainClient.GrainFactory.GetIndex<string, IPlayerGrain>("__Location");
+            IIndex<string, IPlayerGrain> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayerGrain>("__Location");
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 

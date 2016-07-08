@@ -26,7 +26,7 @@ namespace Orleans.Indexing
         }
         public override async Task<IOrleansQueryResult<TIGrain>> GetResults()
         {
-            return (IOrleansQueryResult<TIGrain>)await (await GetGrainFactory().GetIndex(_indexName, typeof(TIGrain))).Lookup(_param);
+            return (IOrleansQueryResult<TIGrain>) await GetGrainFactory().GetIndex(_indexName, typeof(TIGrain)).Lookup(_param);
         }
     }
 }

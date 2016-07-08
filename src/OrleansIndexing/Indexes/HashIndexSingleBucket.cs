@@ -26,8 +26,7 @@ namespace Orleans.Indexing
             State.IndexStatus = IndexStatus.Available;
             if (State.IndexStatus == IndexStatus.UnderConstruction)
             {
-                string indexName = IndexUtils.GetIndexNameFromIndexGrain(this);
-                //var _ = GetIndexBuilder().BuildIndex(indexName, this, IndexUtils.GetIndexUpdateGenerator<V>(GrainFactory, indexName));
+                //var _ = GetIndexBuilder().BuildIndex(indexName, this, IndexUtils.GetIndexUpdateGenerator<V>(GrainFactory, IndexUtils.GetIndexNameFromIndexGrain(this)));
             }
             await base.OnActivateAsync();
         }
@@ -208,7 +207,7 @@ namespace Orleans.Indexing
 
         private IIndexBuilder<V> GetIndexBuilder()
         {
-            return GrainFactory.GetGrain<IIndexBuilder<V>>(((IIndex<K, V>)this).GetPrimaryKeyString());
+            return GrainFactory.GetGrain<IIndexBuilder<V>>(IndexUtils.GetIndexGrainID(typeof(V), IndexUtils.GetIndexNameFromIndexGrain(this)));
         }
 
         public async Task<bool> IsAvailable()
@@ -226,6 +225,11 @@ namespace Orleans.Indexing
         async Task<IOrleansQueryResult<IIndexableGrain>> IIndex.Lookup(object key)
         {
             return (IOrleansQueryResult<IIndexableGrain>)await Lookup((K)key);
+        }
+
+        public Task SetName(string name)
+        {
+            return TaskDone.Done;
         }
 
         /// <summary>
