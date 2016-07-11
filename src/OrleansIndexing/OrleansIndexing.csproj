@@ -58,7 +58,7 @@
     <Compile Include="Extensions\GrainFactoryExtensions.cs" />
     <Compile Include="Extensions\TypeExtensions.cs" />
     <Compile Include="Indexes\HashIndexSingleBucket.cs" />
-    <Compile Include="Indexes\HashIndexSingleBucketState.cs" />
+    <Compile Include="Indexes\HashIndexBucketState.cs" />
     <Compile Include="Indexes\Interfaces\IHashIndex.cs" />
     <Compile Include="Indexes\Interfaces\IHashIndexSingleBucket.cs" />
     <Compile Include="Indexes\Interfaces\IIndex.cs" />
