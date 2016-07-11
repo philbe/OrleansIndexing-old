@@ -31,7 +31,7 @@ namespace Orleans.Indexing
             await base.OnActivateAsync();
         }
 
-        public async Task<bool> ApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate)
+        public async Task<bool> ApplyIndexUpdate(IGrainFactory gf, IIndexableGrain g, Immutable<IMemberUpdate> iUpdate)
         {
             //the index can start processing update as soon as it becomes
             //visible to index handler and does not have to wait for any
@@ -39,7 +39,7 @@ namespace Orleans.Indexing
             //to have a Created state
             //if (State.IndexStatus == IndexStatus.Created) return true;
 
-            var updatedGrain = g.AsReference<V>(GrainFactory);
+            var updatedGrain = g.AsReference<V>(gf);
             var updt = (MemberUpdate)iUpdate.Value;
             var opType = updt.GetOperationType();
             HashIndexSingleBucketEntry<V> befEntry;

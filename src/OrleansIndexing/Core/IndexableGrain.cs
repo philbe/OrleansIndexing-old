@@ -103,7 +103,7 @@ namespace Orleans.Indexing
                     updates.Add(kvp.Key, mu);
                 }
 
-                success = await IndexHandler.ApplyIndexUpdates(iGrainTypes, this.AsReference<IIndexableGrain>(GrainFactory), updates.AsImmutable());
+                success = await IndexHandler.ApplyIndexUpdates(GrainFactory, iGrainTypes, this.AsReference<IIndexableGrain>(GrainFactory), updates.AsImmutable());
                 if (success)
                 {
                     UpdateBeforeImages(updates);

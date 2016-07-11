@@ -94,7 +94,7 @@ namespace Orleans.Indexing
             {
                 object grainImage = await iGrain.ExtractIndexImage(iUpdateGen);
                 //Add it to the index
-                if (await index.ApplyIndexUpdate(iGrain, ((IMemberUpdate)new IndexBuilderMemberUpdate(null, grainImage)).AsImmutable()))
+                if (await index.ApplyIndexUpdate(GrainFactory, iGrain, ((IMemberUpdate)new IndexBuilderMemberUpdate(null, grainImage)).AsImmutable()))
                 {
                     //Check again for it in the list of tombstones
                     //It might be added to tombstones while being added
@@ -102,7 +102,7 @@ namespace Orleans.Indexing
                     if (_tombstones.Contains(iGrain))
                     {
                         //then delete it from the index
-                        await index.ApplyIndexUpdate(iGrain, ((IMemberUpdate)new IndexBuilderMemberUpdate(grainImage, null)).AsImmutable());
+                        await index.ApplyIndexUpdate(GrainFactory, iGrain, ((IMemberUpdate)new IndexBuilderMemberUpdate(grainImage, null)).AsImmutable());
                     }
                 }
                 else
