@@ -26,7 +26,13 @@ namespace Orleans.Indexing
         }
         public override async Task<IOrleansQueryResult<TIGrain>> GetResults()
         {
-            return (IOrleansQueryResult<TIGrain>) await GetGrainFactory().GetIndex(_indexName, typeof(TIGrain)).Lookup(_param);
+            IIndex index = GetGrainFactory().GetIndex(_indexName, typeof(TIGrain));
+            //Type indexType = index.GetType();
+            //if(indexType.GetGenericTypeDefinition() == typeof(HashIndexPartitionedPerSilo<,>))
+            //{
+            //    indexType.GetMethod("SetGrainFactory").Invoke(index, new object[] { GetGrainFactory() });
+            //}
+            return (IOrleansQueryResult<TIGrain>) await index.Lookup(_param);
         }
     }
 }

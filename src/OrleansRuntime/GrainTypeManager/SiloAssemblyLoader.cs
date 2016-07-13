@@ -78,7 +78,7 @@ namespace Orleans.Runtime
 
                 Type grainStateType = null;
 
-                // check if grainType derives from Grain<T> where T is a concrete class
+                // check if grainType derives from Grai<nT> where T is a concrete class
 
                 var parentType = grainType.GetTypeInfo().BaseType;
                 while (parentType != typeof(Grain) && parentType != typeof(object))
@@ -139,6 +139,7 @@ namespace Orleans.Runtime
             var createIndexMethod = (Func<IGrainFactory, Type, string, PropertyInfo, Task<Tuple <object,object,object>>>) Delegate.CreateDelegate(
                                     typeof(Func<IGrainFactory, Type, string, PropertyInfo, Task<Tuple<object, object, object>>>), 
                                     indexFactoryType.GetMethod("CreateIndex", BindingFlags.Static | BindingFlags.NonPublic));
+            Type genericDefaultIndexType = Type.GetType("Orleans.Indexing.IHashIndexSingleBucket`2" + AssemblySeparator + OrleansIndexingAssembly);
 
             //for all discovered grain types
             foreach (var grainType in grainTypes)
@@ -178,15 +179,10 @@ namespace Orleans.Runtime
                                     //provided in the annotation
                                     foreach (PropertyInfo p in propertiesArg.GetProperties())
                                     {
-                                        var indexAttrs = p.GetCustomAttributes(indexAttributeType, false);
-                                        if (indexAttrs.Length > 0)
+                                        if (p.GetCustomAttributes(indexAttributeType, false).Length > 0)
                                         {
                                             string indexName = "__" + p.Name;
-                                            Type indexType = (Type)indexAttributeType.GetProperty("IndexType").GetValue(indexAttrs[0]);
-                                            if (indexType.IsGenericTypeDefinition)
-                                            {
-                                                indexType = indexType.MakeGenericType(p.PropertyType, userDefinedIGrain);
-                                            }
+                                            Type indexType = genericDefaultIndexType.MakeGenericType(p.PropertyType, userDefinedIGrain);
                                             indexesOnGrain.Add(indexName, createIndexMethod(gfactory, indexType, indexName, p).Result);
                                         }
                                     }

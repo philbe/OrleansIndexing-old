@@ -177,10 +177,48 @@ namespace UnitTests.IndexingTests
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
             IOrleansQueryable<IPlayer1Grain, Player1Properties> q = from player in GrainClient.GrainFactory.GetActiveGrains<IPlayer1Grain, Player1Properties>()
-                                                                  where player.Location == "San Fransisco"
-                                                                  select player;
+                                                                    where player.Location == "San Fransisco"
+                                                                    select player;
 
             IOrleansQueryResult<IPlayer1Grain> result = await q.GetResults();
+
+            int counter = 0;
+            result.Subscribe(async entry =>
+            {
+                counter++;
+                output.WriteLine("guid = {0}, location = {1}, primary key = {2}", entry, await entry.GetLocation(), entry.GetPrimaryKeyLong());
+            });
+            result.Dispose();
+
+            Assert.Equal(2, counter);
+        }
+
+        [Fact, TestCategory("BVT"), TestCategory("Indexing")]
+        public async Task Test_Indexing_IndexLookup5()
+        {
+            //await GrainClient.GrainFactory.DropAllIndexes<IPlayerGrain>();
+
+            IPlayer2Grain p1 = GrainClient.GrainFactory.GetGrain<IPlayer2Grain>(1);
+            await p1.SetLocation("San Fransisco");
+
+            //bool isLocIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<IHashIndexSingleBucket<string, IPlayerGrain>, PlayerLocIndexGen>("__GetLocation");
+            //Assert.IsTrue(isLocIndexCreated);
+
+            IPlayer2Grain p2 = GrainClient.GrainFactory.GetGrain<IPlayer2Grain>(2);
+            IPlayer2Grain p3 = GrainClient.GrainFactory.GetGrain<IPlayer2Grain>(3);
+
+            await p2.SetLocation("San Fransisco");
+            await p3.SetLocation("San Diego");
+
+            IIndex<string, IPlayer2Grain> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer2Grain>("__Location");
+
+            while (!await locIdx.IsAvailable()) Thread.Sleep(50);
+
+            IOrleansQueryable<IPlayer2Grain, Player2Properties> q = from player in GrainClient.GrainFactory.GetActiveGrains<IPlayer2Grain, Player2Properties>()
+                                                                    where player.Location == "San Fransisco"
+                                                                    select player;
+
+            IOrleansQueryResult<IPlayer2Grain> result = await q.GetResults();
 
             int counter = 0;
             result.Subscribe(async entry =>

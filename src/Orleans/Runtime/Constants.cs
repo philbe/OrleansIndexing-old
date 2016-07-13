@@ -42,6 +42,8 @@ namespace Orleans.Runtime
         public static readonly GrainId ClusterDirectoryServiceId = GrainId.GetSystemTargetGrainId(24);
         public static readonly GrainId StreamProviderManagerAgentSystemTargetId = GrainId.GetSystemTargetGrainId(25);
 
+        public const int HASH_INDEX_PARTITIONED_PER_SILO_BUCKET_SYSTEM_TARGET_TYPE_CODE = 253;
+
         public const int PULLING_AGENTS_MANAGER_SYSTEM_TARGET_TYPE_CODE = 254;
         public const int PULLING_AGENT_SYSTEM_TARGET_TYPE_CODE = 255;
 
@@ -89,6 +91,7 @@ namespace Orleans.Runtime
 
         private static readonly Dictionary<int, string> nonSingletonSystemTargetNames = new Dictionary<int, string>
         {
+            {HASH_INDEX_PARTITIONED_PER_SILO_BUCKET_SYSTEM_TARGET_TYPE_CODE, "HashIndexPartiotionedPerSiloBucket"},
             {PULLING_AGENT_SYSTEM_TARGET_TYPE_CODE, "PullingAgentSystemTarget"},
             {PULLING_AGENTS_MANAGER_SYSTEM_TARGET_TYPE_CODE, "PullingAgentsManagerSystemTarget"},
         };
