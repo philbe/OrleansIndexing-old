@@ -111,27 +111,37 @@ namespace Orleans.Indexing
         /// <param name="idxType"></param>
         /// <param name="indexName"></param>
         /// <returns></returns>
-        internal static async Task<Tuple<object, object, object>> CreateIndex(this IGrainFactory gf, Type idxType, string indexName, PropertyInfo indexedProperty)
+        internal static Tuple<object, object, object> CreateIndex(this IGrainFactory gf, Type idxType, string indexName, PropertyInfo indexedProperty)
         {
             Type iIndexType = idxType.GetGenericType(typeof(IIndex<,>));
             if (iIndexType != null)
             {
                 Type[] indexTypeArgs = iIndexType.GetGenericArguments();
-                //Type keyType = indexTypeArgs[0];
+                Type keyType = indexTypeArgs[0];
                 Type grainType = indexTypeArgs[1];
 
                 IIndex index;
                 if (typeof(IGrain).IsAssignableFrom(idxType))
                 {
                     index = (IIndex)gf.GetGrain(IndexUtils.GetIndexGrainID(grainType, indexName), idxType, idxType);
-                }
-                else if(idxType.IsClass)
-                {
-                    index = (IIndex)Activator.CreateInstance(idxType, indexName, Silo.CurrentSilo);
+
+                    Type idxImplType = TypeUtils.ResolveType(TypeCodeMapper.GetImplementation(idxType).GrainClass);
+
+                    if(idxImplType.IsGenericTypeDefinition)
+                        idxImplType = idxImplType.MakeGenericType(iIndexType.GetGenericArguments());
+
+                    MethodInfo initPerSilo;
+                    if ((initPerSilo = idxImplType.GetMethod("InitPerSilo", BindingFlags.Static | BindingFlags.Public)) != null)
+                    {
+                        var initPerSiloMethod = (Action<Silo, string>)Delegate.CreateDelegate(
+                                                typeof(Action<Silo, string>),
+                                                initPerSilo);
+                        initPerSiloMethod(Silo.CurrentSilo, indexName);
+                    }
                 }
                 else
                 {
-                    throw new Exception(string.Format("{0} is neither a grain nor a class. Index \"{1}\" cannot be created.", idxType, indexName));
+                    throw new Exception(string.Format("{0} is not a grain. Index \"{1}\" cannot be created.", idxType, indexName));
                 }
 
                 return Tuple.Create((object)index, (object)new IndexMetaData(idxType), (object)createIndexUpdateGenFromProperty(indexedProperty));
