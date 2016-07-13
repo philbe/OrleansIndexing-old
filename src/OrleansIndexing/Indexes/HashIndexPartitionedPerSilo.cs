@@ -14,19 +14,15 @@ namespace Orleans.Indexing
     /// </summary>
     /// <typeparam name="K"></typeparam>
     /// <typeparam name="V"></typeparam>
-    [Serializable]
-    public class HashIndexPartitionedPerSilo<K, V> : IHashIndex<K, V> where V : IIndexableGrain
+    [Reentrant]
+    [StatelessWorker]
+    public class HashIndexPartitionedPerSilo<K, V> : Grain, IHashIndexPartitionedPerSilo<K, V> where V : IIndexableGrain
     {
-        private string _name;
-        //private IGrainFactory _gf;
-
-        public HashIndexPartitionedPerSilo(string indexName, Silo silo)
+        public static void InitPerSilo(Silo silo, string indexName)
         {
-            _name = indexName;
-            //_gf = null;
             silo.RegisterSystemTarget(new HashIndexPartitionedPerSiloBucket(
                 indexName,
-                GetGrainID(),
+                GetGrainID(indexName),
                 silo.SiloAddress
             ));
         }
@@ -34,16 +30,16 @@ namespace Orleans.Indexing
         public Task<bool> ApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, SiloAddress siloAddress)
         {
             IHashIndexPartitionedPerSiloBucket bucketInCurrentSilo = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IHashIndexPartitionedPerSiloBucket>(
-                GetGrainID(),
+                GetGrainID(IndexUtils.GetIndexNameFromIndexGrain(this)),
                 siloAddress
             );
             return bucketInCurrentSilo.ApplyIndexUpdate(g, iUpdate/*, siloAddress*/);
         }
 
-        private GrainId GetGrainID()
+        private static GrainId GetGrainID(string indexName)
         {
             return GrainId.GetSystemTargetGrainId(Constants.HASH_INDEX_PARTITIONED_PER_SILO_BUCKET_SYSTEM_TARGET_TYPE_CODE,
-                                               IndexUtils.GetIndexGrainID(typeof(V), _name));
+                                               IndexUtils.GetIndexGrainID(typeof(V), indexName));
         }
 
         public Task<bool> IsUnique()
@@ -53,21 +49,18 @@ namespace Orleans.Indexing
 
         public async Task<IOrleansQueryResult<V>> Lookup(K key)
         {
-            IGrainFactory gf = GrainClient.GrainFactory;
-            //if (_gf == null) gf = GrainClient.GrainFactory;
-            //else gf = _gf;
-
-            Dictionary<SiloAddress, SiloStatus> hosts = await gf.GetGrain<IManagementGrain>(/*RuntimeInterfaceConstants.SYSTEM_MANAGEMENT_ID*/ 1).GetHosts(true);
+            Dictionary<SiloAddress, SiloStatus> hosts = await SiloUtils.GetHosts(true);
             var numHosts = hosts.Keys.Count;
 
             Task<IOrleansQueryResult<IIndexableGrain>>[] queriesToSilos = new Task<IOrleansQueryResult<IIndexableGrain>>[numHosts];
 
             int i = 0;
             IList<IOrleansQueryResult<V>> result = new List<IOrleansQueryResult<V>>();
+            GrainId grainID = GetGrainID(IndexUtils.GetIndexNameFromIndexGrain(this));
             foreach (SiloAddress siloAddress in hosts.Keys)
             {
-                queriesToSilos[i] = ((GrainFactory)gf).GetSystemTarget<IHashIndexPartitionedPerSiloBucket>(
-                    GetGrainID(),
+                queriesToSilos[i] = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IHashIndexPartitionedPerSiloBucket>(
+                    grainID,
                     siloAddress
                 ).Lookup(key);
                 ++i;
@@ -89,7 +82,6 @@ namespace Orleans.Indexing
 
         public Task Dispose()
         {
-            //State.IndexMap.Clear();
             return TaskDone.Done;
         }
 
@@ -102,15 +94,5 @@ namespace Orleans.Indexing
         {
             return (IOrleansQueryResult<IIndexableGrain>)await Lookup((K)key);
         }
-
-        public string GetName()
-        {
-            return _name;
-        }
-
-        //public void SetGrainFactory(IGrainFactory gf)
-        //{
-        //    _gf = gf;
-        //}
     }
 }
