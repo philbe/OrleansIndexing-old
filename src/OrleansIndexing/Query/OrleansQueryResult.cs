@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Orleans.Runtime;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -27,6 +28,21 @@ namespace Orleans.Indexing
         {
             //_queryResultObservers = new List<IObserver<T>>();
             _queryResult = queryResult;
+
+        }
+        public OrleansQueryResult(IOrleansQueryResult<IIndexableGrain> queryResult)
+        {
+            _queryResult = new List<TIGrain>();
+            queryResult.Subscribe(new QueryResultObserver<IIndexableGrain, TIGrain>((IList<TIGrain>)_queryResult));
+
+        }
+        public OrleansQueryResult(IList<IOrleansQueryResult<TIGrain>> queryResults)
+        {
+            _queryResult = new List<TIGrain>();
+            foreach (IOrleansQueryResult<TIGrain> res in queryResults)
+            {
+                res.Subscribe(new QueryResultObserver<TIGrain, TIGrain>((IList<TIGrain>)_queryResult));
+            }
 
         }
 
@@ -82,6 +98,32 @@ namespace Orleans.Indexing
                 //    _queryResultObservers.Remove(_observer);
                 //}
             }
+        }
+    }
+
+    internal class QueryResultObserver<TIn, TOut> : IObserver<TIn> where TIn : IAddressable
+    {
+        private IList<TOut> _queryResult;
+
+        public QueryResultObserver(IList<TOut> _queryResult)
+        {
+            this._queryResult = _queryResult;
+        }
+
+        public void OnCompleted()
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void OnError(Exception error)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnNext(TIn value)
+        {
+            //throw new NotImplementedException();
+            _queryResult.Add(value.AsReference<TOut>());
         }
     }
 }
