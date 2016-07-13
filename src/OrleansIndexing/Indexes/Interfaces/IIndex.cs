@@ -1,5 +1,6 @@
 ﻿using Orleans;
 using Orleans.Concurrency;
+using Orleans.Runtime;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -20,7 +21,7 @@ namespace Orleans.Indexing
         /// <param name="updatedGrain">the grain that issued the update</param>
         /// <param name="iUpdate">contains the data for the update</param>
         /// <returns>true, if the index update was successful, otherwise false</returns>
-        Task<bool> ApplyIndexUpdate(IGrainFactory gf, IIndexableGrain updatedGrain, Immutable<IMemberUpdate> iUpdate);
+        Task<bool> ApplyIndexUpdate(IIndexableGrain updatedGrain, Immutable<IMemberUpdate> iUpdate, SiloAddress siloAddress = null);
         
         /// <summary>
         /// Disposes of the index and removes all the data stored

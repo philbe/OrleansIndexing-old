@@ -21,7 +21,7 @@ namespace Orleans.Indexing
     /// </summary>
     public static class IndexHandler
     {
-        internal static async Task<bool> ApplyIndexUpdates(IGrainFactory gf, IList<Type> iGrainTypes, IIndexableGrain updatedGrain, Immutable<IDictionary<string, IMemberUpdate>> iUpdates)
+        internal static async Task<bool> ApplyIndexUpdates(IList<Type> iGrainTypes, IIndexableGrain updatedGrain, Immutable<IDictionary<string, IMemberUpdate>> iUpdates, SiloAddress siloAddress)
         {
             var updates = iUpdates.Value;
             foreach (Type iGrainType in iGrainTypes)
@@ -31,7 +31,7 @@ namespace Orleans.Indexing
                 IList<Task<bool>> updateIndexTasks = new List<Task<bool>>();
                 foreach (KeyValuePair<string, IMemberUpdate> updt in updates)
                 {
-                    updateIndexTasks.Add(((IIndex)idxs[updt.Key].Item1).ApplyIndexUpdate(gf, updatedGrain, updt.Value.AsImmutable()));
+                    updateIndexTasks.Add(((IIndex)idxs[updt.Key].Item1).ApplyIndexUpdate(updatedGrain, updt.Value.AsImmutable(), siloAddress));
                 }
                 await Task.WhenAll(updateIndexTasks);
                 bool allSuccessful = true;
@@ -42,6 +42,7 @@ namespace Orleans.Indexing
                 if (!allSuccessful)
                 {
                     //TODO: we should do something about the failed index updates
+                    throw new Exception(string.Format("Not all index updates where successful for updatedGrain = {1}", updatedGrain));
                 }
             }
             return true;
