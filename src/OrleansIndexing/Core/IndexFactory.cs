@@ -127,8 +127,7 @@ namespace Orleans.Indexing
                 }
                 else if(idxType.IsClass)
                 {
-                    index = (IIndex)Activator.CreateInstance(idxType);
-                    await index.SetName(indexName);
+                    index = (IIndex)Activator.CreateInstance(idxType, indexName, Silo.CurrentSilo);
                 }
                 else
                 {
