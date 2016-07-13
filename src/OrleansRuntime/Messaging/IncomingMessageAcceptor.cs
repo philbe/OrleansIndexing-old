@@ -86,7 +86,7 @@ namespace Orleans.Runtime.Messaging
         protected virtual bool RecordOpenedSocket(Socket sock)
         {
             GrainId client;
-            if (!ReceiveSocketPreample(sock, false, out client)) return false;
+            if (!ReceiveSocketPreample(sock, true, out client)) return false;
 
             NetworkingStatisticsGroup.OnOpenedReceiveSocket();
             return true;
@@ -105,24 +105,24 @@ namespace Orleans.Runtime.Messaging
 
             if (Log.IsVerbose2) Log.Verbose2(ErrorCode.MessageAcceptor_Connection, "Received connection from {0} at source address {1}", client, sock.RemoteEndPoint.ToString());
 
-            if (expectProxiedConnection)
-            {
-                // Proxied Gateway Connection - must have sender id
-                if (client.Equals(Constants.SiloDirectConnectionId))
-                {
-                    Log.Error(ErrorCode.MessageAcceptor_NotAProxiedConnection, string.Format("Gateway received unexpected non-proxied connection from {0} at source address {1}", client, sock.RemoteEndPoint));
-                    return false;
-                }
-            }
-            else
-            {
-                // Direct connection - should not have sender id
-                if (!client.Equals(Constants.SiloDirectConnectionId))
-                {
-                    Log.Error(ErrorCode.MessageAcceptor_UnexpectedProxiedConnection, string.Format("Silo received unexpected proxied connection from {0} at source address {1}", client, sock.RemoteEndPoint));
-                    return false;
-                }
-            }
+            //if (expectProxiedConnection)
+            //{
+            //    // Proxied Gateway Connection - must have sender id
+            //    if (client.Equals(Constants.SiloDirectConnectionId))
+            //    {
+            //        Log.Error(ErrorCode.MessageAcceptor_NotAProxiedConnection, string.Format("Gateway received unexpected non-proxied connection from {0} at source address {1}", client, sock.RemoteEndPoint));
+            //        return false;
+            //    }
+            //}
+            //else
+            //{
+            //    // Direct connection - should not have sender id
+            //    if (!client.Equals(Constants.SiloDirectConnectionId))
+            //    {
+            //        Log.Error(ErrorCode.MessageAcceptor_UnexpectedProxiedConnection, string.Format("Silo received unexpected proxied connection from {0} at source address {1}", client, sock.RemoteEndPoint));
+            //        return false;
+            //    }
+            //}
 
             lock (Lockable)
             {
