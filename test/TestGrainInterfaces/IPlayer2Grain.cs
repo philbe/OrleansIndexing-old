@@ -10,7 +10,7 @@ namespace UnitTests.GrainInterfaces
     {
         public int Score { get; set; }
 
-        [Index(typeof(HashIndexPartitionedPerSilo<string, IPlayer2Grain>))]
+        [Index(typeof(IHashIndexPartitionedPerSilo<string, IPlayer2Grain>))]
         public string Location { get; set; }
     }
 
