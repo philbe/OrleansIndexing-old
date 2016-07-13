@@ -43,6 +43,7 @@
     <Compile Include="Core\Annotations\IndexAttribute.cs" />
     <Compile Include="Core\IndexableGrain.cs" />
     <Compile Include="Core\IndexBuilder.cs" />
+    <Compile Include="Core\SiloUtils.cs" />
     <Compile Include="Core\IndexUtils.cs" />
     <Compile Include="Core\IndexFactory.cs" />
     <Compile Include="Core\IndexHandler.cs" />
