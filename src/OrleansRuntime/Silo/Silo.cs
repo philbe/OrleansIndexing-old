@@ -254,13 +254,11 @@ namespace Orleans.Runtime
                 mc.InstallGateway(nodeConfig.ProxyGatewayEndpoint);
             
             messageCenter = mc;
-
-            SiloIdentity = SiloAddress.ToLongString();
-
+            
             // GrainRuntime can be created only here, after messageCenter was created.
             grainRuntime = new GrainRuntime(
                 globalConfig.ServiceId,
-                SiloIdentity, 
+                SiloAddress, 
                 grainFactory,
                 new TimerRegistry(),
                 new ReminderRegistry(),

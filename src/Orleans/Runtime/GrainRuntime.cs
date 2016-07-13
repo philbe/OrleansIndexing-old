@@ -6,10 +6,10 @@ namespace Orleans.Runtime
 {
     internal class GrainRuntime : IGrainRuntime
     {
-        public GrainRuntime(Guid serviceId, string siloId, IGrainFactory grainFactory, ITimerRegistry timerRegistry, IReminderRegistry reminderRegistry, IStreamProviderManager streamProviderManager, IServiceProvider serviceProvider)
+        public GrainRuntime(Guid serviceId, SiloAddress siloAddress, IGrainFactory grainFactory, ITimerRegistry timerRegistry, IReminderRegistry reminderRegistry, IStreamProviderManager streamProviderManager, IServiceProvider serviceProvider)
         {
             ServiceId = serviceId;
-            SiloIdentity = siloId;
+            SiloAddress = siloAddress;
             GrainFactory = grainFactory;
             TimerRegistry = timerRegistry;
             ReminderRegistry = reminderRegistry;
@@ -19,7 +19,9 @@ namespace Orleans.Runtime
 
         public Guid ServiceId { get; private set; }
 
-        public string SiloIdentity { get; private set; }
+        public SiloAddress SiloAddress { get; private set; }
+
+        public string SiloIdentity { get { return SiloAddress.ToLongString(); } }
 
         public IGrainFactory GrainFactory { get; private set; }
         

@@ -78,6 +78,11 @@ namespace Orleans
             get { return Runtime.SiloIdentity; }
         }
 
+        internal SiloAddress RuntimeAddress
+        {
+            get { return Runtime.SiloAddress; }
+        }
+
         /// <summary>
         /// Registers a timer to send periodic callbacks to this grain.
         /// </summary>
