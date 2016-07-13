@@ -41,15 +41,6 @@ namespace Orleans.Indexing
         /// <param name="key">the lookup key</param>
         /// <returns>the result of lookup into the hash-index</returns>
         Task<IOrleansQueryResult<IIndexableGrain>> Lookup(object key);
-
-        /// <summary>
-        /// Sets the name of index for the IIndex implementations
-        /// that are not grains. For IIndex implementations that
-        /// are grain, the index name is extracted from grain ID.
-        /// </summary>
-        /// <param name="indexName">name of the index that plays
-        /// the role of an ID for the index</param>
-        Task SetName(string indexName);
     }
 
     /// <summary>
