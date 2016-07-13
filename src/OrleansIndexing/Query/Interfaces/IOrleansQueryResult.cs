@@ -22,5 +22,6 @@ namespace Orleans.Indexing
     /// type of elements in the query result</typeparam>
     public interface IOrleansQueryResult<out TGrain> : IObservable<TGrain>, IDisposable where TGrain : IIndexableGrain
     {
+        TGrain GetFirst();
     }
 }

@@ -75,6 +75,11 @@ namespace Orleans.Indexing
             _queryResult = null;
         }
 
+        public TIGrain GetFirst()
+        {
+            return _queryResult.First();
+        }
+
         //
         // Private class Disposer: Implements the IDisposable. Observable returns an instance to the observer for easy unsubscription
         //
