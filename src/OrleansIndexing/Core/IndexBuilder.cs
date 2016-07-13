@@ -37,7 +37,7 @@ namespace Orleans.Indexing
                     _failedToIndex = new HashSet<T>();
 
                     //getting the current list of active silos
-                    var silos = (await ActiveGrainScanner.GetHosts(true)).Keys;
+                    var silos = (await SiloUtils.GetHosts(true)).Keys;
 
                     //for each silo, the list of active grains of type T are found,
                     //and then each one is added to the index
