@@ -89,24 +89,34 @@ namespace Orleans.Indexing
                 BinaryExpression operation = (BinaryExpression)exprTree.Body;
                 if (operation.NodeType == ExpressionType.Equal)
                 {
-                    ConstantExpression constantExpr = null;
+                    Expression constantExpr = null;
                     Expression fieldExpr = null;
-                    if (operation.Right is ConstantExpression)
+                    if (operation.Right is ConstantExpression || operation.Right is MemberExpression)
                     {
-                        constantExpr = (ConstantExpression)operation.Right;
+                        constantExpr = operation.Right;
                         fieldExpr = operation.Left;
                     }
-                    else if (operation.Left is ConstantExpression)
+                    else if (operation.Left is ConstantExpression || operation.Right is MemberExpression)
                     {
-                        constantExpr = (ConstantExpression)operation.Left;
+                        constantExpr = operation.Left;
                         fieldExpr = operation.Right;
                     }
 
                     if (constantExpr != null && fieldExpr != null)
                     {
-                        lookupValue = constantExpr.Value;
-                        indexName = GetIndexName(exprTree, iGrainType, fieldExpr);
-                        return true;
+                        if (constantExpr is ConstantExpression)
+                        {
+                            lookupValue = ((ConstantExpression)constantExpr).Value;
+                            indexName = GetIndexName(exprTree, iGrainType, fieldExpr);
+                            return true;
+                        }
+                        else if(constantExpr is MemberExpression)
+                        {
+                            object targetObj = Expression.Lambda<Func<object>>(((MemberExpression)operation.Right).Expression).Compile()();
+                            lookupValue = ((FieldInfo)((MemberExpression)operation.Right).Member).GetValue(targetObj);
+                            indexName = GetIndexName(exprTree, iGrainType, fieldExpr);
+                            return true;
+                        }
                     }
                 }
             }
@@ -127,7 +137,8 @@ namespace Orleans.Indexing
             if (fieldExpr is MemberExpression)
             {
                 Expression innerFieldExpr = ((MemberExpression)fieldExpr).Expression;
-                if (innerFieldExpr.NodeType == ExpressionType.Parameter && innerFieldExpr.Equals(iGrainParam))
+                if ((innerFieldExpr.NodeType == ExpressionType.Parameter && innerFieldExpr.Equals(iGrainParam)) ||
+                    (innerFieldExpr.NodeType == ExpressionType.Convert && ((UnaryExpression)innerFieldExpr).Operand.Equals(iGrainParam)))
                 {
                     return IndexUtils.GetIndexNameOnInterfaceGetter(iGrainType, ((MemberExpression)fieldExpr).Member.Name);
                 }
