@@ -67,5 +67,11 @@ namespace UnitTests.Grains
             //return TaskDone.Done;
             return base.WriteStateAsync();
         }
+
+        public Task Deactivate()
+        {
+            DeactivateOnIdle();
+            return TaskDone.Done;
+        }
     }
 }

@@ -6,7 +6,7 @@ using Orleans.Indexing;
 namespace UnitTests.GrainInterfaces
 {
     [Serializable]
-    public class Player2Properties
+    public class Player2Properties : PlayerProperties
     {
         public int Score { get; set; }
 
@@ -14,14 +14,7 @@ namespace UnitTests.GrainInterfaces
         public string Location { get; set; }
     }
 
-    public interface IPlayer2Grain : IGrainWithIntegerKey, IIndexableGrain<Player2Properties>
+    public interface IPlayer2Grain : IPlayerGrain, IIndexableGrain<Player2Properties>
     {
-        Task<string> GetEmail();
-        Task<string> GetLocation();
-        Task<int> GetScore();
-
-        Task SetEmail(string email);
-        Task SetLocation(string location);
-        Task SetScore(int score);
     }
 }

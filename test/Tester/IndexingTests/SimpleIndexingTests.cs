@@ -156,6 +156,28 @@ namespace UnitTests.IndexingTests
         //    Assert.AreEqual(2, counter);
         //}
 
+        private async Task<int> CountPlayersIn<TIGrain, TProperties>(string city) where TIGrain : IPlayerGrain, IIndexableGrain where TProperties : PlayerProperties
+        {
+            IOrleansQueryable<TIGrain, TProperties> q = from player in GrainClient.GrainFactory.GetActiveGrains<TIGrain, TProperties>()
+                                                        where player.Location == city
+                                                        select player;
+
+            IOrleansQueryResult<TIGrain> result = await q.GetResults();
+
+            int counter = 0;
+            result.Subscribe(async entry =>
+            {
+                counter++;
+                output.WriteLine("guid = {0}, location = {1}, primary key = {2}", entry, await entry.GetLocation(), entry.GetPrimaryKeyLong());
+            });
+            result.Dispose();
+
+            return counter;
+        }
+
+        /// <summary>
+        /// Tests basic functionality of HashIndexSingleBucker
+        /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Indexing")]
         public async Task Test_Indexing_IndexLookup4()
         {
@@ -177,23 +199,18 @@ namespace UnitTests.IndexingTests
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
-            IOrleansQueryable<IPlayer1Grain, Player1Properties> q = from player in GrainClient.GrainFactory.GetActiveGrains<IPlayer1Grain, Player1Properties>()
-                                                                    where player.Location == "San Fransisco"
-                                                                    select player;
+            Assert.Equal(2, await CountPlayersIn<IPlayer1Grain, Player1Properties>("San Fransisco"));
 
-            IOrleansQueryResult<IPlayer1Grain> result = await q.GetResults();
+            await p2.Deactivate();
 
-            int counter = 0;
-            result.Subscribe(async entry =>
-            {
-                counter++;
-                output.WriteLine("guid = {0}, location = {1}, primary key = {2}", entry, await entry.GetLocation(), entry.GetPrimaryKeyLong());
-            });
-            result.Dispose();
+            Thread.Sleep(1000);
 
-            Assert.Equal(2, counter);
+            Assert.Equal(1, await CountPlayersIn<IPlayer1Grain, Player1Properties>("San Fransisco"));
         }
 
+        /// <summary>
+        /// Tests basic functionality of HashIndexPartitionedPerSilo with 1 Silo
+        /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Indexing")]
         public async Task Test_Indexing_IndexLookup5()
         {
@@ -220,23 +237,18 @@ namespace UnitTests.IndexingTests
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
-            IOrleansQueryable<IPlayer2Grain, Player2Properties> q = from player in GrainClient.GrainFactory.GetActiveGrains<IPlayer2Grain, Player2Properties>()
-                                                                    where player.Location == "Tehran"
-                                                                    select player;
+            Assert.Equal(2, await CountPlayersIn<IPlayer2Grain, Player2Properties>("Tehran"));
 
-            IOrleansQueryResult<IPlayer2Grain> result = await q.GetResults();
+            await p2.Deactivate();
 
-            int counter = 0;
-            result.Subscribe(async entry =>
-            {
-                counter++;
-                output.WriteLine("guid = {0}, location = {1}, primary key = {2}", entry, await entry.GetLocation(), entry.GetPrimaryKeyLong());
-            });
-            result.Dispose();
+            Thread.Sleep(1000);
 
-            Assert.AreEqual(2, counter);
+            Assert.Equal(1, await CountPlayersIn<IPlayer2Grain, Player2Properties>("Tehran"));
         }
 
+        /// <summary>
+        /// Tests basic functionality of HashIndexPartitionedPerSilo with 2 Silos
+        /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Indexing")]
         public async Task Test_Indexing_IndexLookup6()
         {
@@ -264,21 +276,13 @@ namespace UnitTests.IndexingTests
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
-            IOrleansQueryable<IPlayer2Grain, Player2Properties> q = from player in GrainClient.GrainFactory.GetActiveGrains<IPlayer2Grain, Player2Properties>()
-                                                                    where player.Location == "San Fransisco"
-                                                                    select player;
+            Assert.Equal(2, await CountPlayersIn<IPlayer2Grain, Player2Properties>("San Fransisco"));
 
-            IOrleansQueryResult<IPlayer2Grain> result = await q.GetResults();
+            await p2.Deactivate();
 
-            int counter = 0;
-            result.Subscribe(async entry =>
-            {
-                counter++;
-                output.WriteLine("guid = {0}, location = {1}, primary key = {2}", entry, await entry.GetLocation(), entry.GetPrimaryKeyLong());
-            });
-            result.Dispose();
+            Thread.Sleep(1000);
 
-            Assert.Equal(2, counter);
+            Assert.Equal(1, await CountPlayersIn<IPlayer2Grain, Player2Properties>("San Fransisco"));
         }
     }
 }
