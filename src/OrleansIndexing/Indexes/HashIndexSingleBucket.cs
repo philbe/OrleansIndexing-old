@@ -19,7 +19,7 @@ namespace Orleans.Indexing
         //private Func<K, K, bool> _equalsLambda = ((k1,k2) => k1.Equals(k2));
         //private Func<K, long> _hashLambda = (k => k.GetHashCode());
 
-        public override async Task OnActivateAsync()
+        public override Task OnActivateAsync()
         {
             //await ReadStateAsync();
             if (State.IndexMap == null) State.IndexMap = new Dictionary<K, HashIndexSingleBucketEntry<V>>();
@@ -28,7 +28,7 @@ namespace Orleans.Indexing
             {
                 //var _ = GetIndexBuilder().BuildIndex(indexName, this, IndexUtils.GetIndexUpdateGenerator<V>(GrainFactory, IndexUtils.GetIndexNameFromIndexGrain(this)));
             }
-            await base.OnActivateAsync();
+            return base.OnActivateAsync();
         }
 
         public async Task<bool> ApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, SiloAddress siloAddress)

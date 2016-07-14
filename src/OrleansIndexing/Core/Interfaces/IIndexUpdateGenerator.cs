@@ -29,12 +29,20 @@ namespace Orleans.Indexing
         /// Creates an update object after receiving the current state of the grain
         /// and an earlier image of the grain 
         /// </summary>
-        /// <param name="indexedGrain">the grain from which we want to
-        /// extract some state to be indexed</param>
+        /// <param name="indexedGrainProperties">the properties of the grain from
+        /// which we want to extract some state to be indexed</param>
         /// <param name="beforeImage">the before-image of the indexedGrain,
         /// which was captured earlier via a call to ExtractIndexImage(indexedGrain)</param>
         /// <returns>an IMemberUpdate instance that contains the update information</returns>
         IMemberUpdate CreateMemberUpdate(object indexedGrainProperties, object beforeImage);
+
+        /// <summary>
+        /// Creates an update object using the current image of the grain (used during activation)
+        /// </summary>
+        /// <param name="afterImage">the after-image of the indexedGrain,
+        /// which was captured earlier via a call to ExtractIndexImage(indexedGrain)</param>
+        /// <returns>an IMemberUpdate instance that contains the update information</returns>
+        IMemberUpdate CreateMemberUpdate(object afterImage);
     }
 
     public abstract class IIndexUpdateGenerator<K, TProperties> : IIndexUpdateGenerator
@@ -58,6 +66,11 @@ namespace Orleans.Indexing
             return CreateMemberUpdate((TProperties)indexedGrainProperties, (K)beforeImage);
         }
 
+        IMemberUpdate IIndexUpdateGenerator.CreateMemberUpdate(object afterImage)
+        {
+            return CreateMemberUpdate((K)afterImage);
+        }
+
         /// <summary>
         /// This method is the typed version of CreateMemberUpdate
         /// </summary>
@@ -68,5 +81,13 @@ namespace Orleans.Indexing
         /// <returns>an IMemberUpdate instance that contains the update information</returns>
         /// <returns></returns>
         public abstract IMemberUpdate CreateMemberUpdate(TProperties indexedGrainProperties, K beforeImage);
+
+        /// <summary>
+        /// Creates an update object using the current image of the grain (used during activation)
+        /// </summary>
+        /// <param name="afterImage">the after-image of the indexedGrain,
+        /// which was captured earlier via a call to ExtractIndexImage(indexedGrain)</param>
+        /// <returns>an IMemberUpdate instance that contains the update information</returns>
+        public abstract IMemberUpdate CreateMemberUpdate(K afterImage);
     }
 }

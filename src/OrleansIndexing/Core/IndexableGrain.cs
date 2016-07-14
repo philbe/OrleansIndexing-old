@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System;
 using Orleans.Runtime;
 using System.Reflection;
+using System.Linq;
 
 namespace Orleans.Indexing
 {
@@ -64,12 +65,44 @@ namespace Orleans.Indexing
         /// 
         /// Then, the before-images are created and stored in memory.
         /// </summary>
-        public override async Task OnActivateAsync()
+        public override Task OnActivateAsync()
         {
             _iUpdateGens = IndexHandler.GetIndexes(getIIndexableGrainTypes()[0]);
             _beforeImages = new Dictionary<string, object>().AsImmutable<IDictionary<string, object>>();
             AddMissingBeforeImages();
-            await base.OnActivateAsync();
+            return Task.WhenAll(InsertIntoActiveIndexes(), base.OnActivateAsync());
+        }
+
+        public override Task OnDeactivateAsync()
+        {
+            return Task.WhenAll(RemoveFromActiveIndexes(), base.OnDeactivateAsync());
+        }
+
+        /// <summary>
+        /// Inserts the current grain to the active indexes only
+        /// if it already has a persisted state
+        /// </summary>
+        protected Task InsertIntoActiveIndexes()
+        {
+            //check if it contains anything to be indexed
+            if (_beforeImages.Value.Values.Any(e => e != null))
+            {
+                return UpdateIndexes(true, Properties);
+            }
+            return TaskDone.Done;
+        }
+
+        /// <summary>
+        /// Removes the current grain from active indexes
+        /// </summary>
+        protected Task RemoveFromActiveIndexes()
+        {
+            //check if it has anything indexed
+            if (_beforeImages.Value.Values.Any(e => e != null))
+            {
+                return UpdateIndexes(false, default(TProperties));
+            }
+            return TaskDone.Done;
         }
 
         /// <summary>
@@ -86,7 +119,7 @@ namespace Orleans.Indexing
         /// again. In the case of a positive result from ApplyIndexUpdates,
         /// the list of before-images is replaced by the list of after-images.
         /// </summary>
-        protected async Task UpdateIndexes()
+        protected async Task UpdateIndexes(bool isOnActivate, TProperties props)
         {
             IList<Type> iGrainTypes = getIIndexableGrainTypes();
             bool success = false;
@@ -99,7 +132,8 @@ namespace Orleans.Indexing
                 IDictionary<string, object> befImgs = _beforeImages.Value;
                 foreach (KeyValuePair<string, Tuple<object, object, object>> kvp in iUpdateGens)
                 {
-                    IMemberUpdate mu = ((IIndexUpdateGenerator)kvp.Value.Item3).CreateMemberUpdate(Properties, befImgs[kvp.Key]);
+                    IMemberUpdate mu = isOnActivate ? ((IIndexUpdateGenerator)kvp.Value.Item3).CreateMemberUpdate(befImgs[kvp.Key])
+                                                    : ((IIndexUpdateGenerator)kvp.Value.Item3).CreateMemberUpdate(props, befImgs[kvp.Key]);
                     updates.Add(kvp.Key, mu);
                 }
 
@@ -218,7 +252,7 @@ namespace Orleans.Indexing
             // during WriteStateAsync for a stateful indexable grain,
             // the indexes get updated after base.WriteStateAsync is done.
             await base.WriteStateAsync();
-            await UpdateIndexes();
+            await UpdateIndexes(false, Properties);
         }
 
         Task<object> IIndexableGrain.ExtractIndexImage(IIndexUpdateGenerator iUpdateGen)
@@ -245,7 +279,7 @@ namespace Orleans.Indexing
             // The only thing that should be done during
             // WriteStateAsync for a stateless indexable grain
             // is to update its indexes
-            return UpdateIndexes();
+            return UpdateIndexes(false, Properties);
         }
 
         protected override Task ReadStateAsync()

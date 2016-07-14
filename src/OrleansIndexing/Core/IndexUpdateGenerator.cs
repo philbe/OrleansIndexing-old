@@ -38,8 +38,13 @@ namespace Orleans.Indexing
 
         public IMemberUpdate CreateMemberUpdate(object gProps, object befImg)
         {
-            object aftImg = ExtractIndexImage(gProps);
+            object aftImg = gProps == null ? null : ExtractIndexImage(gProps);
             return new MemberUpdate(befImg, aftImg);
+        }
+
+        public IMemberUpdate CreateMemberUpdate(object aftImg)
+        {
+            return new MemberUpdate(null, aftImg);
         }
 
         public object ExtractIndexImage(object gProps)
