@@ -180,10 +180,10 @@ namespace Orleans.Runtime
                                     foreach (PropertyInfo p in propertiesArg.GetProperties())
                                     {
                                         var indexAttrs = p.GetCustomAttributes(indexAttributeType, false);
-                                        if (indexAttrs.Length > 0)
+                                        foreach (var indexAttr in indexAttrs)
                                         {
                                             string indexName = "__" + p.Name;
-                                            Type indexType = (Type)indexAttributeType.GetProperty("IndexType").GetValue(indexAttrs[0]);
+                                            Type indexType = (Type)indexAttributeType.GetProperty("IndexType").GetValue(indexAttr);
                                             if (indexType.IsGenericTypeDefinition)
                                             {
                                                 indexType = indexType.MakeGenericType(p.PropertyType, userDefinedIGrain);
