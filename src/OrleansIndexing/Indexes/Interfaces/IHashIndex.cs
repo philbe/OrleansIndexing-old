@@ -24,7 +24,7 @@ namespace Orleans.Indexing
         /// </summary>
         /// <returns>true, if there should be at most one grain
         /// associated with each key, otherwise false</returns>
-        Task<bool> IsUnique();
+        //Task<bool> IsUnique();
 
         /// <summary>
         /// This method retrieves the unique result of a lookup into the

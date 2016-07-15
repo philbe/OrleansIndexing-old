@@ -31,7 +31,8 @@ namespace Orleans.Indexing
                 IList<Task<bool>> updateIndexTasks = new List<Task<bool>>();
                 foreach (KeyValuePair<string, IMemberUpdate> updt in updates)
                 {
-                    updateIndexTasks.Add(((IIndex)idxs[updt.Key].Item1).ApplyIndexUpdate(updatedGrain, updt.Value.AsImmutable(), siloAddress));
+                    var idxInfo = idxs[updt.Key];
+                    updateIndexTasks.Add(((IIndex)idxInfo.Item1).ApplyIndexUpdate(updatedGrain, updt.Value.AsImmutable(), ((IndexMetaData)idxInfo.Item2).IsUniqueIndex(), siloAddress));
                 }
                 await Task.WhenAll(updateIndexTasks);
                 bool allSuccessful = true;

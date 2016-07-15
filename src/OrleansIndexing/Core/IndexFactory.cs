@@ -111,7 +111,7 @@ namespace Orleans.Indexing
         /// <param name="idxType"></param>
         /// <param name="indexName"></param>
         /// <returns></returns>
-        internal static Tuple<object, object, object> CreateIndex(this IGrainFactory gf, Type idxType, string indexName, PropertyInfo indexedProperty)
+        internal static Tuple<object, object, object> CreateIndex(this IGrainFactory gf, Type idxType, string indexName, bool isUniqueIndex, PropertyInfo indexedProperty)
         {
             Type iIndexType = idxType.GetGenericType(typeof(IIndex<,>));
             if (iIndexType != null)
@@ -133,10 +133,10 @@ namespace Orleans.Indexing
                     MethodInfo initPerSilo;
                     if ((initPerSilo = idxImplType.GetMethod("InitPerSilo", BindingFlags.Static | BindingFlags.Public)) != null)
                     {
-                        var initPerSiloMethod = (Action<Silo, string>)Delegate.CreateDelegate(
-                                                typeof(Action<Silo, string>),
+                        var initPerSiloMethod = (Action<Silo, string, bool>)Delegate.CreateDelegate(
+                                                typeof(Action<Silo, string, bool>),
                                                 initPerSilo);
-                        initPerSiloMethod(Silo.CurrentSilo, indexName);
+                        initPerSiloMethod(Silo.CurrentSilo, indexName, isUniqueIndex);
                     }
                 }
                 else
@@ -144,7 +144,7 @@ namespace Orleans.Indexing
                     throw new Exception(string.Format("{0} is not a grain. Index \"{1}\" cannot be created.", idxType, indexName));
                 }
 
-                return Tuple.Create((object)index, (object)new IndexMetaData(idxType), (object)createIndexUpdateGenFromProperty(indexedProperty));
+                return Tuple.Create((object)index, (object)new IndexMetaData(idxType, isUniqueIndex), (object)createIndexUpdateGenFromProperty(indexedProperty));
             }
             else
             {

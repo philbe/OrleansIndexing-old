@@ -32,13 +32,13 @@ namespace Orleans.Indexing
             State = new HashIndexBucketState<K, V>();
             State.IndexMap = new Dictionary<K, HashIndexSingleBucketEntry<V>>();
             State.IndexStatus = IndexStatus.Available;
-            State.IsUnique = false; //a per-silo index cannot check for uniqueness
+            //State.IsUnique = false; //a per-silo index cannot check for uniqueness
             _parentIndexName = parentIndexName;
 
             logger = LogManager.GetLogger(string.Format("{0}.HashIndexPartitionedPerSiloBucket<{1},{2}>", parentIndexName, typeof(K), typeof(V)), LoggerType.Runtime);
         }
 
-        public async Task<bool> ApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, SiloAddress siloAddress)
+        public async Task<bool> ApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, bool isUniqueIndex, SiloAddress siloAddress)
         {
             //the index can start processing update as soon as it becomes
             //visible to index handler and does not have to wait for any
@@ -67,7 +67,7 @@ namespace Orleans.Indexing
                         }
                         else
                         {
-                            if (State.IsUnique && aftEntry.Values.Count > 0)
+                            if (isUniqueIndex && aftEntry.Values.Count > 0)
                             {
                                 throw new Exception(string.Format("The uniqueness property of index is violated after an update operation for before-image = {0}, after-image = {1} and grain = {2}", befImg, aftImg, updatedGrain.GetPrimaryKey()));
                             }
@@ -89,7 +89,7 @@ namespace Orleans.Indexing
                     {
                         if (!aftEntry.Values.Contains(updatedGrain))
                         {
-                            if (State.IsUnique && aftEntry.Values.Count > 0)
+                            if (isUniqueIndex && aftEntry.Values.Count > 0)
                             {
                                 throw new Exception(string.Format("The uniqueness property of index is violated after an update operation for (not found before-image = {0}), after-image = {1} and grain = {2}", befImg, aftImg, updatedGrain.GetPrimaryKey()));
                             }
@@ -111,7 +111,7 @@ namespace Orleans.Indexing
                 {
                     if (!aftEntry.Values.Contains(updatedGrain))
                     {
-                        if (State.IsUnique && aftEntry.Values.Count > 0)
+                        if (isUniqueIndex && aftEntry.Values.Count > 0)
                         {
                             throw new Exception(string.Format("The uniqueness property of index is violated after an insert operation for after-image = {1} and grain = {2}", aftImg, updatedGrain.GetPrimaryKey()));
                         }
@@ -150,10 +150,10 @@ namespace Orleans.Indexing
             return true;
         }
 
-        public Task<bool> IsUnique()
-        {
-            return Task.FromResult(State.IsUnique);
-        }
+        //public Task<bool> IsUnique()
+        //{
+        //    return Task.FromResult(State.IsUnique);
+        //}
 
         public async Task<IOrleansQueryResult<V>> Lookup(K key)
         {

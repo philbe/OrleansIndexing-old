@@ -18,7 +18,7 @@ namespace Orleans.Indexing
     [StatelessWorker]
     public class HashIndexPartitionedPerSilo<K, V> : Grain, IHashIndexPartitionedPerSilo<K, V> where V : IIndexableGrain
     {
-        public static void InitPerSilo(Silo silo, string indexName)
+        public static void InitPerSilo(Silo silo, string indexName, bool isUnique)
         {
             silo.RegisterSystemTarget(new HashIndexPartitionedPerSiloBucket(
                 indexName,
@@ -27,13 +27,13 @@ namespace Orleans.Indexing
             ));
         }
 
-        public Task<bool> ApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, SiloAddress siloAddress)
+        public Task<bool> ApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, bool isUniqueIndex, SiloAddress siloAddress)
         {
             IHashIndexPartitionedPerSiloBucket bucketInCurrentSilo = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IHashIndexPartitionedPerSiloBucket>(
                 GetGrainID(IndexUtils.GetIndexNameFromIndexGrain(this)),
                 siloAddress
             );
-            return bucketInCurrentSilo.ApplyIndexUpdate(g, iUpdate/*, siloAddress*/);
+            return bucketInCurrentSilo.ApplyIndexUpdate(g, iUpdate, isUniqueIndex/*, siloAddress*/);
         }
 
         private static GrainId GetGrainID(string indexName)

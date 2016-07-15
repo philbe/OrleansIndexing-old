@@ -16,7 +16,7 @@ namespace Orleans.Indexing
         /// <summary>
         /// Determines whether there is a uniqueness constraint on this hash-index
         /// </summary>
-        public bool IsUnique { set; get; }
+        //public bool IsUnique { set; get; }
 
         /// <summary>
         /// The actual storage of the indexed values

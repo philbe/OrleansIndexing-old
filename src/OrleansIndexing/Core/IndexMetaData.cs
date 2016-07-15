@@ -15,15 +15,17 @@ namespace Orleans.Indexing
     public class IndexMetaData
     {
         private Type _indexType;
+        private bool _isUniqueIndex;
 
         /// <summary>
         /// Constructs an IndexMetaData, which currently only
         /// consists of the type of the index
         /// </summary>
         /// <param name="indexType">the type of the index</param>
-        public IndexMetaData(Type indexType)
+        public IndexMetaData(Type indexType, bool isUniqueIndex)
         {
             _indexType = indexType;
+            _isUniqueIndex = isUniqueIndex;
         }
         
         /// <returns>the type of the index</returns>
@@ -56,6 +58,11 @@ namespace Orleans.Indexing
             return grainType.GetCustomAttributes(typeof(StatelessWorkerAttribute), true).Length > 0 ||
                 grainType.GetInterfaces()
                     .Any(i => i.GetCustomAttributes(typeof(StatelessWorkerAttribute), true).Length > 0);
+        }
+
+        public bool IsUniqueIndex()
+        {
+            return _isUniqueIndex;
         }
     }
 }

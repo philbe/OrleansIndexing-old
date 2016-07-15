@@ -21,7 +21,7 @@ namespace Orleans.Indexing
         /// <param name="updatedGrain">the grain that issued the update</param>
         /// <param name="iUpdate">contains the data for the update</param>
         /// <returns>true, if the index update was successful, otherwise false</returns>
-        Task<bool> ApplyIndexUpdate(IIndexableGrain updatedGrain, Immutable<IMemberUpdate> iUpdate, SiloAddress siloAddress = null);
+        Task<bool> ApplyIndexUpdate(IIndexableGrain updatedGrain, Immutable<IMemberUpdate> iUpdate, bool isUnique, SiloAddress siloAddress = null);
         
         /// <summary>
         /// Disposes of the index and removes all the data stored

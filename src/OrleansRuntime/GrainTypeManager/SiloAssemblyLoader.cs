@@ -136,8 +136,8 @@ namespace Orleans.Runtime
             Type genericIIndexableGrainType = Type.GetType("Orleans.Indexing.IIndexableGrain`1" + AssemblySeparator + OrleansIndexingAssembly);
             Type indexAttributeType = Type.GetType("Orleans.Indexing.IndexAttribute" + AssemblySeparator + OrleansIndexingAssembly);
             Type indexFactoryType = Type.GetType("Orleans.Indexing.IndexFactory" + AssemblySeparator + OrleansIndexingAssembly);
-            var createIndexMethod = (Func<IGrainFactory, Type, string, PropertyInfo, Tuple <object,object,object>>) Delegate.CreateDelegate(
-                                    typeof(Func<IGrainFactory, Type, string, PropertyInfo, Tuple<object, object, object>>), 
+            var createIndexMethod = (Func<IGrainFactory, Type, string, bool, PropertyInfo, Tuple <object,object,object>>) Delegate.CreateDelegate(
+                                    typeof(Func<IGrainFactory, Type, string, bool, PropertyInfo, Tuple<object, object, object>>), 
                                     indexFactoryType.GetMethod("CreateIndex", BindingFlags.Static | BindingFlags.NonPublic));
             Type genericDefaultIndexType = Type.GetType("Orleans.Indexing.IHashIndexSingleBucket`2" + AssemblySeparator + OrleansIndexingAssembly);
 
@@ -188,7 +188,7 @@ namespace Orleans.Runtime
                                             {
                                                 indexType = indexType.MakeGenericType(p.PropertyType, userDefinedIGrain);
                                             }
-                                            indexesOnGrain.Add(indexName, createIndexMethod(gfactory, indexType, indexName, p));
+                                            indexesOnGrain.Add(indexName, createIndexMethod(gfactory, indexType, indexName, false, p));
                                         }
                                     }
                                     result.Add(userDefinedIGrain, indexesOnGrain);

@@ -6,15 +6,21 @@ namespace Orleans.Indexing
     public sealed class IndexAttribute : Attribute
     {
         public Type IndexType { get; private set; }
+        public bool IsUnique { get; private set; }
 
         public IndexAttribute()
         {
             IndexType = typeof(IHashIndexSingleBucket<,>);
         }
 
-        public IndexAttribute(Type indexType)
+        public IndexAttribute(Type IndexType) : this(IndexType, false)
         {
-            IndexType = indexType;
+        }
+
+        public IndexAttribute(Type IndexType, bool IsUnique)
+        {
+            this.IndexType = IndexType;
+            this.IsUnique = IsUnique;
         }
     }
 }
