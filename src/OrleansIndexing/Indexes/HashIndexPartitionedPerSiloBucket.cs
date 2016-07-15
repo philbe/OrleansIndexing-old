@@ -191,7 +191,7 @@ namespace Orleans.Indexing
                 }
                 else
                 {
-                    var e = new Exception(string.Format("There are {0} values for the unique lookup key \"{1}->{2}\" does not exist on index \"{2}\".", entry.Values.Count(), key, _parentIndexName, IndexUtils.GetIndexNameFromIndexGrain(this)));
+                    var e = new Exception(string.Format("There are {0} values for the unique lookup key \"{1}\" does not exist on index \"{2}->{3}\".", entry.Values.Count(), key, _parentIndexName, IndexUtils.GetIndexNameFromIndexGrain(this)));
                     logger.Error((int)ErrorCode.IndexingIndexIsNotReadyYet, e.Message, e);
                     throw e;
                 }
