@@ -8,6 +8,7 @@ using Orleans.Concurrency;
 using Orleans.Runtime;
 using K = System.Object;
 using V = Orleans.Indexing.IIndexableGrain;
+using Orleans.Providers;
 
 namespace Orleans.Indexing
 {
@@ -19,6 +20,7 @@ namespace Orleans.Indexing
     /// </summary>
     /// <typeparam name="K"></typeparam>
     /// <typeparam name="V"></typeparam>
+    [StorageProvider(ProviderName = Constants.MEMORY_STORAGE_PROVIDER_NAME)]
     internal class HashIndexPartitionedPerSiloBucket/*<K, V>*/ : SystemTarget, IHashIndexPartitionedPerSiloBucket/*<K, V> where V : IIndexableGrain*/
     {
         private HashIndexBucketState<K, V> State;

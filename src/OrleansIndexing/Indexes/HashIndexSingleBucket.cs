@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Orleans.Concurrency;
 using Orleans.Runtime;
+using Orleans.Providers;
 
 namespace Orleans.Indexing
 {
@@ -14,6 +15,7 @@ namespace Orleans.Indexing
     /// </summary>
     /// <typeparam name="K"></typeparam>
     /// <typeparam name="V"></typeparam>
+    [StorageProvider(ProviderName = Constants.MEMORY_STORAGE_PROVIDER_NAME)]
     public class HashIndexSingleBucket<K, V> : Grain<HashIndexBucketState<K,V>>, IHashIndexSingleBucket<K, V> where V : IIndexableGrain
     {
         //private Func<K, K, bool> _equalsLambda = ((k1,k2) => k1.Equals(k2));
