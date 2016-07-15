@@ -150,9 +150,9 @@ namespace Orleans.Indexing
         //    return Task.FromResult(State.IsUnique);
         //}
 
-        public async Task<IOrleansQueryResult<V>> Lookup(K key)
+        public Task<IOrleansQueryResult<V>> Lookup(K key)
         {
-            if (!(State.IndexStatus == IndexStatus.Available || await IsAvailable()))
+            if (!(State.IndexStatus == IndexStatus.Available))
             {
                 var e = new Exception(string.Format("Index is not still available."));
                 GetLogger().Error((int)ErrorCode.IndexingIndexIsNotReadyYet, "Index is not still available.", e);
@@ -161,17 +161,17 @@ namespace Orleans.Indexing
             HashIndexSingleBucketEntry<V> entry;
             if (State.IndexMap.TryGetValue(key, out entry))
             {
-                return new OrleansQueryResult<V>(entry.Values);
+                return Task.FromResult((IOrleansQueryResult<V>)new OrleansQueryResult<V>(entry.Values));
             }
             else
             {
-                return new OrleansQueryResult<V>(Enumerable.Empty<V>());
+                return Task.FromResult((IOrleansQueryResult<V>)new OrleansQueryResult<V>(Enumerable.Empty<V>()));
             }
         }
 
-        public async Task<V> LookupUnique(K key)
+        public Task<V> LookupUnique(K key)
         {
-            if (!(State.IndexStatus == IndexStatus.Available || await IsAvailable()))
+            if (!(State.IndexStatus == IndexStatus.Available))
             {
                 var e = new Exception(string.Format("Index is not still available."));
                 GetLogger().Error((int)ErrorCode.IndexingIndexIsNotReadyYet, e.Message, e);
@@ -182,7 +182,7 @@ namespace Orleans.Indexing
             {
                 if (entry.Values.Count() == 1)
                 {
-                    return entry.Values.GetEnumerator().Current;
+                    return Task.FromResult(entry.Values.GetEnumerator().Current);
                 }
                 else
                 {
@@ -217,7 +217,7 @@ namespace Orleans.Indexing
 
         async Task<IOrleansQueryResult<IIndexableGrain>> IIndex.Lookup(object key)
         {
-            return (IOrleansQueryResult<IIndexableGrain>)await Lookup((K)key);
+            return (IOrleansQueryResult<IIndexableGrain>)await Lookup((K)key).ConfigureAwait(false);
         }
     }
 }
