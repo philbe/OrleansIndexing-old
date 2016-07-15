@@ -20,6 +20,8 @@ namespace Orleans.Indexing
         /// </summary>
         /// <param name="updatedGrain">the grain that issued the update</param>
         /// <param name="iUpdate">contains the data for the update</param>
+        /// <param name="isUnique">whether this is a unique index that we are updating</param>
+        /// <param name="siloAddress">The address of the silo where the grain resides.</param>
         /// <returns>true, if the index update was successful, otherwise false</returns>
         Task<bool> ApplyIndexUpdate(IIndexableGrain updatedGrain, Immutable<IMemberUpdate> iUpdate, bool isUnique, SiloAddress siloAddress = null);
         
