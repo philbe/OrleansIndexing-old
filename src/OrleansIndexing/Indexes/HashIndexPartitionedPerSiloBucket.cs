@@ -206,7 +206,9 @@ namespace Orleans.Indexing
 
         public Task Dispose()
         {
+            State.IndexStatus = IndexStatus.Disposed;
             State.IndexMap.Clear();
+            Runtime.Silo.CurrentSilo.UnregisterSystemTarget(this);
             return TaskDone.Done;
         }
 

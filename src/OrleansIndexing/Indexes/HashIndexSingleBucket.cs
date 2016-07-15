@@ -203,7 +203,9 @@ namespace Orleans.Indexing
 
         public Task Dispose()
         {
+            State.IndexStatus = IndexStatus.Disposed;
             State.IndexMap.Clear();
+            Runtime.DeactivateOnIdle(this);
             return TaskDone.Done;
         }
 

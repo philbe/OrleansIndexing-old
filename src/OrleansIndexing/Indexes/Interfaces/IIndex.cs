@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Orleans.Indexing
 {
-    public enum IndexStatus { /*Created,*/ UnderConstruction, Available }
+    public enum IndexStatus { /*Created,*/ UnderConstruction, Available, Disposed }
 
     /// <summary>
     /// This interface defines the functionality
