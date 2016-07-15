@@ -284,5 +284,38 @@ namespace UnitTests.IndexingTests
 
             Assert.Equal(1, await CountPlayersIn<IPlayer2Grain, Player2Properties>("San Fransisco"));
         }
+
+        /// <summary>
+        /// Tests basic functionality of HashIndexPartitionedPerKey
+        /// </summary>
+        [Fact, TestCategory("BVT"), TestCategory("Indexing")]
+        public async Task Test_Indexing_IndexLookup7()
+        {
+            //await GrainClient.GrainFactory.DropAllIndexes<IPlayerGrain>();
+
+            IPlayer3Grain p1 = GrainClient.GrainFactory.GetGrain<IPlayer3Grain>(1);
+            await p1.SetLocation("San Fransisco");
+
+            //bool isLocIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<IHashIndexSingleBucket<string, IPlayerGrain>, PlayerLocIndexGen>("__Location");
+            //Assert.IsTrue(isLocIndexCreated);
+
+            IPlayer3Grain p2 = GrainClient.GrainFactory.GetGrain<IPlayer3Grain>(2);
+            IPlayer3Grain p3 = GrainClient.GrainFactory.GetGrain<IPlayer3Grain>(3);
+
+            await p2.SetLocation("San Fransisco");
+            await p3.SetLocation("San Diego");
+
+            IIndex<string, IPlayer3Grain> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer3Grain>("__Location");
+
+            while (!await locIdx.IsAvailable()) Thread.Sleep(50);
+
+            Assert.AreEqual(2, await CountPlayersIn<IPlayer3Grain, Player3Properties>("San Fransisco"));
+
+            await p2.Deactivate();
+
+            Thread.Sleep(1000);
+
+            Assert.AreEqual(1, await CountPlayersIn<IPlayer3Grain, Player3Properties>("San Fransisco"));
+        }
     }
 }
