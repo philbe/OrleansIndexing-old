@@ -139,9 +139,13 @@ namespace Orleans.Indexing
                         initPerSiloMethod(Silo.CurrentSilo, indexName, isUniqueIndex);
                     }
                 }
+                else if (idxType.IsClass)
+                {
+                    index = (IIndex)Activator.CreateInstance(idxType, indexName, isUniqueIndex);
+                }
                 else
                 {
-                    throw new Exception(string.Format("{0} is not a grain. Index \"{1}\" cannot be created.", idxType, indexName));
+                    throw new Exception(string.Format("{0} is neither a grain nor a class. Index \"{1}\" cannot be created.", idxType, indexName));
                 }
 
                 return Tuple.Create((object)index, (object)new IndexMetaData(idxType, isUniqueIndex), (object)createIndexUpdateGenFromProperty(indexedProperty));
