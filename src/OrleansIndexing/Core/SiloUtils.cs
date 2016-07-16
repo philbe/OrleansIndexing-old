@@ -28,8 +28,10 @@ namespace Orleans.Indexing
         private static async Task<IMembershipTable> GetMembershipTable()
         {
             IMembershipTable membershipTable = null;
-            var factory = new MembershipFactory();
-            membershipTable = factory.GetMembershipTable(Silo.CurrentSilo.GlobalConfig.LivenessType, Silo.CurrentSilo.GlobalConfig.MembershipTableAssembly);
+            {
+                var factory = new MembershipFactory();
+                membershipTable = factory.GetMembershipTable(Silo.CurrentSilo.GlobalConfig.LivenessType, Silo.CurrentSilo.GlobalConfig.MembershipTableAssembly);
+            }
 
             await membershipTable.InitializeMembershipTable(Silo.CurrentSilo.GlobalConfig, false,
                 TraceLogger.GetLogger(membershipTable.GetType().Name));

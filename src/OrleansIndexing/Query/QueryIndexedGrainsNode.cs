@@ -32,7 +32,7 @@ namespace Orleans.Indexing
             //{
             //    indexType.GetMethod("SetGrainFactory").Invoke(index, new object[] { GetGrainFactory() });
             //}
-            return (IOrleansQueryResult<TIGrain>) await index.Lookup(_param);
+            return (IOrleansQueryResult<TIGrain>) await index.Lookup(_param).ConfigureAwait(false);
         }
     }
 }

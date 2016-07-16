@@ -87,7 +87,7 @@ namespace Orleans.Indexing
             //check if it contains anything to be indexed
             if (_beforeImages.Value.Values.Any(e => e != null))
             {
-                return UpdateIndexes(true, Properties);
+                return UpdateActiveIndexes(true, Properties);
             }
             return TaskDone.Done;
         }
@@ -100,7 +100,7 @@ namespace Orleans.Indexing
             //check if it has anything indexed
             if (_beforeImages.Value.Values.Any(e => e != null))
             {
-                return UpdateIndexes(false, default(TProperties));
+                return UpdateActiveIndexes(false, default(TProperties));
             }
             return TaskDone.Done;
         }
@@ -119,7 +119,15 @@ namespace Orleans.Indexing
         /// again. In the case of a positive result from ApplyIndexUpdates,
         /// the list of before-images is replaced by the list of after-images.
         /// </summary>
-        protected async Task UpdateIndexes(bool isOnActivate, TProperties props)
+        protected Task UpdateIndexes(bool isOnActivate, TProperties props)
+        {
+            return Task.WhenAll(UpdateActiveIndexes(isOnActivate, props), UpdateInitializedIndexes(isOnActivate, props));
+        }
+
+        /// <summary>
+        /// Updates A-indexes.
+        /// </summary>
+        protected async Task UpdateActiveIndexes(bool isOnActivate, TProperties props)
         {
             IList<Type> iGrainTypes = getIIndexableGrainTypes();
             bool success = false;
@@ -127,14 +135,16 @@ namespace Orleans.Indexing
             {
                 IDictionary<string, IMemberUpdate> updates = new Dictionary<string, IMemberUpdate>();
                 IDictionary<string, Tuple<object, object, object>> iUpdateGens = _iUpdateGens;
-                if (iUpdateGens.Count == 0) return;
-
-                IDictionary<string, object> befImgs = _beforeImages.Value;
-                foreach (KeyValuePair<string, Tuple<object, object, object>> kvp in iUpdateGens)
                 {
-                    IMemberUpdate mu = isOnActivate ? ((IIndexUpdateGenerator)kvp.Value.Item3).CreateMemberUpdate(befImgs[kvp.Key])
-                                                    : ((IIndexUpdateGenerator)kvp.Value.Item3).CreateMemberUpdate(props, befImgs[kvp.Key]);
-                    updates.Add(kvp.Key, mu);
+                    if (iUpdateGens.Count == 0) return;
+
+                    IDictionary<string, object> befImgs = _beforeImages.Value;
+                    foreach (KeyValuePair<string, Tuple<object, object, object>> kvp in iUpdateGens)
+                    {
+                        IMemberUpdate mu = isOnActivate ? ((IIndexUpdateGenerator)kvp.Value.Item3).CreateMemberUpdate(befImgs[kvp.Key])
+                                                        : ((IIndexUpdateGenerator)kvp.Value.Item3).CreateMemberUpdate(props, befImgs[kvp.Key]);
+                        updates.Add(kvp.Key, mu);
+                    }
                 }
 
                 success = await IndexHandler.ApplyIndexUpdates(iGrainTypes, this.AsReference<IIndexableGrain>(GrainFactory), updates.AsImmutable(), RuntimeAddress);
@@ -151,6 +161,14 @@ namespace Orleans.Indexing
                 }
 
             } while (!success);
+        }
+
+        /// <summary>
+        /// Updates I-indexes.
+        /// </summary>
+        protected Task UpdateInitializedIndexes(bool isOnActivate, TProperties props)
+        {
+            return TaskDone.Done;
         }
 
         /// <summary>
@@ -251,8 +269,8 @@ namespace Orleans.Indexing
 
             // during WriteStateAsync for a stateful indexable grain,
             // the indexes get updated after base.WriteStateAsync is done.
-            await base.WriteStateAsync();
-            await UpdateIndexes(false, Properties);
+            await Task.WhenAll(base.WriteStateAsync(), UpdateActiveIndexes(false, Properties)).ConfigureAwait(false);
+            await UpdateInitializedIndexes(false, Properties).ConfigureAwait(false);
         }
 
         Task<object> IIndexableGrain.ExtractIndexImage(IIndexUpdateGenerator iUpdateGen)

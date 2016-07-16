@@ -133,7 +133,7 @@ namespace Orleans.Indexing
                         if (State.IndexMap.TryGetValue(befImg, out befEntry) && befEntry.Values.Contains(updatedGrain))
                         {
                             befEntry.Values.Remove(updatedGrain);
-                            var isAvailable = await GetIndexBuilder(gFactory).AddTombstone(updatedGrain);
+                            var isAvailable = await GetIndexBuilder(gFactory).AddTombstone(updatedGrain).ConfigureAwait(false);
                             if(State.IndexStatus != IndexStatus.Available && isAvailable)
                             {
                                 State.IndexStatus = IndexStatus.Available;

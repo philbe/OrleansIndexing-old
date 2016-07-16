@@ -6,8 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
-
 namespace Orleans.Indexing
 {
     public class ActiveGrainScanner
@@ -33,16 +31,16 @@ namespace Orleans.Indexing
 
         private static async Task<IEnumerable<Tuple<GrainId, string, int>>> GetGrainActivations()
         {
-            Dictionary<SiloAddress, SiloStatus> hosts = await SiloUtils.GetHosts(true);
+            Dictionary<SiloAddress, SiloStatus> hosts = await SiloUtils.GetHosts(true).ConfigureAwait(false);
             SiloAddress[] silos = hosts.Keys.ToArray();
-            return await GetGrainActivations(silos);
+            return await GetGrainActivations(silos).ConfigureAwait(false);
         }
 
         internal static async Task<IEnumerable<Tuple<GrainId, string, int>>> GetGrainActivations(params SiloAddress[] hostsIds)
         {
-            List<Task<List<Tuple<GrainId, string, int>>>> all = SiloUtils.GetSiloAddresses(hostsIds).Select(s => SiloUtils.GetSiloControlReference(s).GetGrainStatistics()).ToList();
-            await Task.WhenAll(all);
-            return all.SelectMany(s => s.Result);
+            IEnumerable<Task<List<Tuple<GrainId, string, int>>>> all = SiloUtils.GetSiloAddresses(hostsIds).Select(s => SiloUtils.GetSiloControlReference(s).GetGrainStatistics());
+            List<Tuple<GrainId, string, int>>[] result =  await Task.WhenAll(all).ConfigureAwait(false);
+            return result.SelectMany(s => s);
         }
     }
 }

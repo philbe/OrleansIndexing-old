@@ -58,12 +58,10 @@ namespace Orleans.Indexing
         public async Task<IOrleansQueryResult<V>> Lookup(K key)
         {
             Dictionary<SiloAddress, SiloStatus> hosts = await SiloUtils.GetHosts(true);
-            var numHosts = hosts.Keys.Count;
 
-            Task<IOrleansQueryResult<IIndexableGrain>>[] queriesToSilos = new Task<IOrleansQueryResult<IIndexableGrain>>[numHosts];
+            Task<IOrleansQueryResult<IIndexableGrain>>[] queriesToSilos = new Task<IOrleansQueryResult<IIndexableGrain>>[hosts.Keys.Count];
 
             int i = 0;
-            IList<IOrleansQueryResult<V>> result = new List<IOrleansQueryResult<V>>();
             GrainId grainID = GetGrainID(IndexUtils.GetIndexNameFromIndexGrain(this));
             foreach (SiloAddress siloAddress in hosts.Keys)
             {
@@ -74,18 +72,19 @@ namespace Orleans.Indexing
                 ++i;
             }
 
-            await Task.WhenAll(queriesToSilos);
+            IOrleansQueryResult<IIndexableGrain>[] results = await Task.WhenAll(queriesToSilos).ConfigureAwait(false);
 
-            for(i = 0; i< numHosts; ++i)
+            IList<IOrleansQueryResult<V>> result = new List<IOrleansQueryResult<V>>();
+            for (i = 0; i< results.Length; ++i)
             {
-                result.Add(new OrleansQueryResult<V>(queriesToSilos[i].Result));
+                result.Add(new OrleansQueryResult<V>(results[i]));
             }
             return new OrleansQueryResult<V>(result);
         }
 
         public async Task<V> LookupUnique(K key)
         {
-            return (await Lookup(key)).GetFirst();
+            return (await Lookup(key).ConfigureAwait(false)).GetFirst();
         }
 
         public async Task Dispose()
@@ -107,7 +106,7 @@ namespace Orleans.Indexing
                 ).Dispose();
                 ++i;
             }
-            await Task.WhenAll(disposeToSilos);
+            await Task.WhenAll(disposeToSilos).ConfigureAwait(false);
         }
 
         public Task<bool> IsAvailable()
@@ -117,7 +116,7 @@ namespace Orleans.Indexing
 
         async Task<IOrleansQueryResult<IIndexableGrain>> IIndex.Lookup(object key)
         {
-            return (IOrleansQueryResult<IIndexableGrain>)await Lookup((K)key);
+            return (IOrleansQueryResult<IIndexableGrain>)await Lookup((K)key).ConfigureAwait(false);
         }
     }
 }

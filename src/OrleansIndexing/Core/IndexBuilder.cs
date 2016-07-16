@@ -102,7 +102,7 @@ namespace Orleans.Indexing
                     if (_tombstones.Contains(iGrain))
                     {
                         //then delete it from the index
-                        await index.ApplyIndexUpdate(iGrain, ((IMemberUpdate)new IndexBuilderMemberUpdate(grainImage, null)).AsImmutable(), indexMetaData.IsUniqueIndex());
+                        await index.ApplyIndexUpdate(iGrain, ((IMemberUpdate)new IndexBuilderMemberUpdate(grainImage, null)).AsImmutable(), indexMetaData.IsUniqueIndex()).ConfigureAwait(false);
                     }
                 }
                 else

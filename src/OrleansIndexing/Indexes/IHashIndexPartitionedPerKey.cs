@@ -48,8 +48,8 @@ namespace Orleans.Indexing
                     );
                     var befTask = befImgBucket.ApplyIndexUpdate(g, iUpdate, isUniqueIndex, OperationType.Delete);
                     var aftTask = aftImgBucket.ApplyIndexUpdate(g, iUpdate, isUniqueIndex, OperationType.Insert);
-                    await Task.WhenAll(befTask, aftTask).ConfigureAwait(false);
-                    return befTask.Result && aftTask.Result;
+                    bool[] results = await Task.WhenAll(befTask, aftTask).ConfigureAwait(false);
+                    return results[0] && results[1];
                 }
             }
             else if(opType == OperationType.Insert)

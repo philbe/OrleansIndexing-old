@@ -34,16 +34,17 @@ namespace Orleans.Indexing
                     var idxInfo = idxs[updt.Key];
                     updateIndexTasks.Add(((IIndex)idxInfo.Item1).ApplyIndexUpdate(updatedGrain, updt.Value.AsImmutable(), ((IndexMetaData)idxInfo.Item2).IsUniqueIndex(), siloAddress));
                 }
-                await Task.WhenAll(updateIndexTasks);
+                bool[] updateResults = await Task.WhenAll(updateIndexTasks).ConfigureAwait(false);
                 bool allSuccessful = true;
-                foreach (Task<bool> utask in updateIndexTasks)
+                foreach (bool updateRes in updateResults)
                 {
-                    allSuccessful = allSuccessful && (await utask);
+                    allSuccessful &= updateRes;
+                    if (!allSuccessful) break;
                 }
                 if (!allSuccessful)
                 {
                     //TODO: we should do something about the failed index updates
-                    throw new Exception(string.Format("Not all index updates where successful for updatedGrain = {1}", updatedGrain));
+                    throw new Exception(string.Format("Not all index updates where successful"));
                 }
             }
             return true;
