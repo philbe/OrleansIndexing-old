@@ -206,6 +206,11 @@ namespace UnitTests.IndexingTests
             Thread.Sleep(1000);
 
             Assert.Equal(1, await CountPlayersIn<IPlayer1Grain, Player1Properties>("San Fransisco"));
+
+            p2 = GrainClient.GrainFactory.GetGrain<IPlayer1Grain>(2);
+            Assert.Equal("San Fransisco", await p2.GetLocation());
+
+            Assert.Equal(2, await CountPlayersIn<IPlayer1Grain, Player1Properties>("San Fransisco"));
         }
 
         /// <summary>
@@ -244,6 +249,11 @@ namespace UnitTests.IndexingTests
             Thread.Sleep(1000);
 
             Assert.Equal(1, await CountPlayersIn<IPlayer2Grain, Player2Properties>("Tehran"));
+
+            p2 = GrainClient.GrainFactory.GetGrain<IPlayer2Grain>(2);
+            Assert.Equal("Tehran", await p2.GetLocation());
+
+            Assert.Equal(2, await CountPlayersIn<IPlayer2Grain, Player2Properties>("Tehran"));
         }
 
         /// <summary>
@@ -283,6 +293,11 @@ namespace UnitTests.IndexingTests
             Thread.Sleep(1000);
 
             Assert.Equal(1, await CountPlayersIn<IPlayer2Grain, Player2Properties>("San Fransisco"));
+
+            p2 = GrainClient.GrainFactory.GetGrain<IPlayer2Grain>(2);
+            Assert.Equal("San Fransisco", await p2.GetLocation());
+
+            Assert.Equal(2, await CountPlayersIn<IPlayer2Grain, Player2Properties>("San Fransisco"));
         }
 
         /// <summary>
@@ -309,13 +324,18 @@ namespace UnitTests.IndexingTests
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
-            Assert.AreEqual(2, await CountPlayersIn<IPlayer3Grain, Player3Properties>("San Fransisco"));
+            Assert.Equal(2, await CountPlayersIn<IPlayer3Grain, Player3Properties>("San Fransisco"));
 
             await p2.Deactivate();
 
             Thread.Sleep(1000);
 
-            Assert.AreEqual(1, await CountPlayersIn<IPlayer3Grain, Player3Properties>("San Fransisco"));
+            Assert.Equal(1, await CountPlayersIn<IPlayer3Grain, Player3Properties>("San Fransisco"));
+
+            p2 = GrainClient.GrainFactory.GetGrain<IPlayer3Grain>(2);
+            Assert.Equal("San Fransisco", await p2.GetLocation());
+
+            Assert.Equal(2, await CountPlayersIn<IPlayer3Grain, Player3Properties>("San Fransisco"));
         }
     }
 }
