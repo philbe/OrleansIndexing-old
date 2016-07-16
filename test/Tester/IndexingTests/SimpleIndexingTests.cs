@@ -184,7 +184,7 @@ namespace UnitTests.IndexingTests
             //await GrainClient.GrainFactory.DropAllIndexes<IPlayerGrain>();
 
             IPlayer1Grain p1 = GrainClient.GrainFactory.GetGrain<IPlayer1Grain>(1);
-            await p1.SetLocation("San Fransisco");
+            await p1.SetLocation("Seattle");
 
             //bool isLocIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<IHashIndexSingleBucket<string, IPlayerGrain>, PlayerLocIndexGen>("__GetLocation");
             //Assert.IsTrue(isLocIndexCreated);
@@ -192,25 +192,25 @@ namespace UnitTests.IndexingTests
             IPlayer1Grain p2 = GrainClient.GrainFactory.GetGrain<IPlayer1Grain>(2);
             IPlayer1Grain p3 = GrainClient.GrainFactory.GetGrain<IPlayer1Grain>(3);
 
-            await p2.SetLocation("San Fransisco");
-            await p3.SetLocation("San Diego");
+            await p2.SetLocation("Seattle");
+            await p3.SetLocation("San Fransisco");
 
             IIndex<string, IPlayer1Grain> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer1Grain>("__Location");
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
-            Assert.Equal(2, await CountPlayersIn<IPlayer1Grain, Player1Properties>("San Fransisco"));
+            Assert.Equal(2, await CountPlayersIn<IPlayer1Grain, Player1Properties>("Seattle"));
 
             await p2.Deactivate();
 
             Thread.Sleep(1000);
 
-            Assert.Equal(1, await CountPlayersIn<IPlayer1Grain, Player1Properties>("San Fransisco"));
+            Assert.Equal(1, await CountPlayersIn<IPlayer1Grain, Player1Properties>("Seattle"));
 
             p2 = GrainClient.GrainFactory.GetGrain<IPlayer1Grain>(2);
-            Assert.Equal("San Fransisco", await p2.GetLocation());
+            Assert.Equal("Seattle", await p2.GetLocation());
 
-            Assert.Equal(2, await CountPlayersIn<IPlayer1Grain, Player1Properties>("San Fransisco"));
+            Assert.Equal(2, await CountPlayersIn<IPlayer1Grain, Player1Properties>("Seattle"));
         }
 
         /// <summary>
@@ -271,7 +271,7 @@ namespace UnitTests.IndexingTests
             }
 
             IPlayer2Grain p1 = GrainClient.GrainFactory.GetGrain<IPlayer2Grain>(1);
-            await p1.SetLocation("San Fransisco");
+            await p1.SetLocation("Seattle");
 
             //bool isLocIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<IHashIndexSingleBucket<string, IPlayerGrain>, PlayerLocIndexGen>("__GetLocation");
             //Assert.IsTrue(isLocIndexCreated);
@@ -279,25 +279,25 @@ namespace UnitTests.IndexingTests
             IPlayer2Grain p2 = GrainClient.GrainFactory.GetGrain<IPlayer2Grain>(2);
             IPlayer2Grain p3 = GrainClient.GrainFactory.GetGrain<IPlayer2Grain>(3);
 
-            await p2.SetLocation("San Fransisco");
-            await p3.SetLocation("San Diego");
+            await p2.SetLocation("Seattle");
+            await p3.SetLocation("San Fransisco");
 
             IIndex<string, IPlayer2Grain> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer2Grain>("__Location");
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
-            Assert.Equal(2, await CountPlayersIn<IPlayer2Grain, Player2Properties>("San Fransisco"));
+            Assert.Equal(2, await CountPlayersIn<IPlayer2Grain, Player2Properties>("Seattle"));
 
             await p2.Deactivate();
 
             Thread.Sleep(1000);
 
-            Assert.Equal(1, await CountPlayersIn<IPlayer2Grain, Player2Properties>("San Fransisco"));
+            Assert.Equal(1, await CountPlayersIn<IPlayer2Grain, Player2Properties>("Seattle"));
 
             p2 = GrainClient.GrainFactory.GetGrain<IPlayer2Grain>(2);
-            Assert.Equal("San Fransisco", await p2.GetLocation());
+            Assert.Equal("Seattle", await p2.GetLocation());
 
-            Assert.Equal(2, await CountPlayersIn<IPlayer2Grain, Player2Properties>("San Fransisco"));
+            Assert.Equal(2, await CountPlayersIn<IPlayer2Grain, Player2Properties>("Seattle"));
         }
 
         /// <summary>
@@ -309,7 +309,7 @@ namespace UnitTests.IndexingTests
             //await GrainClient.GrainFactory.DropAllIndexes<IPlayerGrain>();
 
             IPlayer3Grain p1 = GrainClient.GrainFactory.GetGrain<IPlayer3Grain>(1);
-            await p1.SetLocation("San Fransisco");
+            await p1.SetLocation("Seattle");
 
             //bool isLocIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<IHashIndexSingleBucket<string, IPlayerGrain>, PlayerLocIndexGen>("__Location");
             //Assert.IsTrue(isLocIndexCreated);
@@ -317,25 +317,25 @@ namespace UnitTests.IndexingTests
             IPlayer3Grain p2 = GrainClient.GrainFactory.GetGrain<IPlayer3Grain>(2);
             IPlayer3Grain p3 = GrainClient.GrainFactory.GetGrain<IPlayer3Grain>(3);
 
-            await p2.SetLocation("San Fransisco");
-            await p3.SetLocation("San Diego");
+            await p2.SetLocation("Seattle");
+            await p3.SetLocation("San Fransisco");
 
             IIndex<string, IPlayer3Grain> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer3Grain>("__Location");
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
-            Assert.Equal(2, await CountPlayersIn<IPlayer3Grain, Player3Properties>("San Fransisco"));
+            Assert.Equal(2, await CountPlayersIn<IPlayer3Grain, Player3Properties>("Seattle"));
 
             await p2.Deactivate();
 
             Thread.Sleep(1000);
 
-            Assert.Equal(1, await CountPlayersIn<IPlayer3Grain, Player3Properties>("San Fransisco"));
+            Assert.Equal(1, await CountPlayersIn<IPlayer3Grain, Player3Properties>("Seattle"));
 
             p2 = GrainClient.GrainFactory.GetGrain<IPlayer3Grain>(2);
-            Assert.Equal("San Fransisco", await p2.GetLocation());
+            Assert.Equal("Seattle", await p2.GetLocation());
 
-            Assert.Equal(2, await CountPlayersIn<IPlayer3Grain, Player3Properties>("San Fransisco"));
+            Assert.Equal(2, await CountPlayersIn<IPlayer3Grain, Player3Properties>("Seattle"));
         }
     }
 }
