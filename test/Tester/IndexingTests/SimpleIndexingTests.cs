@@ -158,21 +158,26 @@ namespace UnitTests.IndexingTests
 
         private async Task<int> CountPlayersIn<TIGrain, TProperties>(string city) where TIGrain : IPlayerGrain, IIndexableGrain where TProperties : PlayerProperties
         {
+            var taskCompletionSource = new TaskCompletionSource<int>();
+            Task<int> tsk = taskCompletionSource.Task;
+            Action<int> responseHandler = taskCompletionSource.SetResult;
+
             IOrleansQueryable<TIGrain, TProperties> q = from player in GrainClient.GrainFactory.GetActiveGrains<TIGrain, TProperties>()
                                                         where player.Location == city
                                                         select player;
 
-            IOrleansQueryResult<TIGrain> result = await q.GetResults();
 
             int counter = 0;
-            result.Subscribe(async entry =>
+            var _ = q.GetResults(new QueryResultObserver<TIGrain>(async entry =>
             {
                 counter++;
                 output.WriteLine("guid = {0}, location = {1}, primary key = {2}", entry, await entry.GetLocation(), entry.GetPrimaryKeyLong());
-            });
-            result.Dispose();
+            }, () => {
+                responseHandler(counter);
+                return TaskDone.Done;
+            }));
 
-            return counter;
+            return await tsk.ConfigureAwait(false);
         }
 
         /// <summary>
