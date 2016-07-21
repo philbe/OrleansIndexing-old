@@ -133,14 +133,14 @@ namespace Orleans.Indexing
                         if (State.IndexMap.TryGetValue(befImg, out befEntry) && befEntry.Values.Contains(updatedGrain))
                         {
                             befEntry.Values.Remove(updatedGrain);
-                            var isAvailable = await GetIndexBuilder().AddTombstone(updatedGrain); 
+                            var isAvailable = await GetIndexBuilder().AddTombstone(updatedGrain);
                             if(State.IndexStatus != IndexStatus.Available && isAvailable)
                             {
                                 State.IndexStatus = IndexStatus.Available;
                                 writeTask = base.WriteStateAsync();
                             }
                         }
-                        await writeTask; 
+                        await writeTask;
                     }
                 }
             }
@@ -152,7 +152,7 @@ namespace Orleans.Indexing
         //    return Task.FromResult(State.IsUnique);
         //}
 
-        public  Task<IOrleansQueryResult<V>> Lookup(K key)
+        public async Task Lookup(IOrleansQueryResult<V> result, K key)
         {
             if (!(State.IndexStatus == IndexStatus.Available))
             {
@@ -163,11 +163,12 @@ namespace Orleans.Indexing
             HashIndexSingleBucketEntry<V> entry;
             if (State.IndexMap.TryGetValue(key, out entry))
             {
-                return Task.FromResult((IOrleansQueryResult<V>)new OrleansQueryResult<V>(entry.Values));
+                await result.OnNextBatchAsync(entry.Values);
+                await result.OnCompletedAsync();
             }
             else
             {
-                return Task.FromResult((IOrleansQueryResult<V>)new OrleansQueryResult<V>(Enumerable.Empty<V>()));
+                await result.OnCompletedAsync();
             }
         }
 
@@ -217,19 +218,19 @@ namespace Orleans.Indexing
         public async Task<bool> IsAvailable()
         {
             if (State.IndexStatus == IndexStatus.Available) return true;
-            var isDone = await GetIndexBuilder().IsDone(); 
+            var isDone = await GetIndexBuilder().IsDone();
             if(isDone)
             {
                 State.IndexStatus = IndexStatus.Available;
-                await base.WriteStateAsync(); 
+                await base.WriteStateAsync();
                 return true;
             }
             return true;
         }
 
-        async Task<IOrleansQueryResult<IIndexableGrain>> IIndex.Lookup(object key)
+        Task IIndex.Lookup(IOrleansQueryResult<IIndexableGrain> result, object key)
         {
-            return (IOrleansQueryResult<IIndexableGrain>)await Lookup((K)key); 
+            return Lookup(result.Cast<V>(), (K)key);
         }
 
         /// <summary>

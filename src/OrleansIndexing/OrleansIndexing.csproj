@@ -81,6 +81,10 @@
     <Compile Include="Query\Interfaces\IOrleansQueryProvider.cs" />
     <Compile Include="Query\Interfaces\IOrleansQueryable.cs" />
     <Compile Include="Query\Interfaces\IOrleansQueryResult.cs" />
+    <Compile Include="Query\QueryResult\OrleansFirstQueryResult.cs" />
+    <Compile Include="Query\QueryResult\QueryResultObserver.cs" />
+    <Compile Include="Query\QueryResult\QueryFirstResultObserver.cs" />
+    <Compile Include="Query\QueryResult\OrleansQueryResultCaster.cs" />
     <Compile Include="Query\QueryGrainsNode.cs" />
     <Compile Include="Query\QueryIndexedGrainsNode.cs" />
     <Compile Include="Query\OrleansQueryableExtensions.cs" />

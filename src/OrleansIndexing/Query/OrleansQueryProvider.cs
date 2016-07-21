@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Reflection;
+using Orleans.Streams;
 
 namespace Orleans.Indexing
 {
@@ -38,8 +39,9 @@ namespace Orleans.Indexing
             {
                 var methodCall = ((MethodCallExpression)expression);
                 IGrainFactory gf;
-                if(IsWhereClause(methodCall) 
-                    && CheckIsOrleansIndex(methodCall.Arguments[0], iGrainType, iPropertiesType, out gf)
+                IStreamProvider streamProvider;
+                if (IsWhereClause(methodCall) 
+                    && CheckIsOrleansIndex(methodCall.Arguments[0], iGrainType, iPropertiesType, out gf, out streamProvider)
                     && methodCall.Arguments[1].NodeType == ExpressionType.Quote
                     && ((UnaryExpression)methodCall.Arguments[1]).Operand.NodeType == ExpressionType.Lambda)
                 {
@@ -48,22 +50,25 @@ namespace Orleans.Indexing
                     object lookupValue;
                     if(TryGetIndexNameAndLookupValue(whereClause, iGrainType, out indexName, out lookupValue))
                     {
-                        return (IQueryable)Activator.CreateInstance(typeof(QueryIndexedGrainsNode<,>).MakeGenericType(iGrainType, iPropertiesType), gf, indexName, lookupValue);
+                        return (IQueryable)Activator.CreateInstance(typeof(QueryIndexedGrainsNode<,>).MakeGenericType(iGrainType, iPropertiesType), gf, streamProvider, indexName, lookupValue);
                     }
                 }
             }
             throw new NotSupportedException();
         }
 
-        private bool CheckIsOrleansIndex(Expression e, Type iGrainType, Type iPropertiesType, out IGrainFactory gf)
+        private bool CheckIsOrleansIndex(Expression e, Type iGrainType, Type iPropertiesType, out IGrainFactory gf, out IStreamProvider streamProvider)
         {
             if(e.NodeType == ExpressionType.Constant &&
                 typeof(QueryActiveGrainsNode<,>).MakeGenericType(iGrainType, iPropertiesType).IsAssignableFrom(((ConstantExpression)e).Value.GetType().GetGenericTypeDefinition().MakeGenericType(iGrainType, iPropertiesType)))
             {
-                gf = ((QueryGrainsNode)((ConstantExpression)e).Value).GetGrainFactory();
+                var qNode = ((QueryGrainsNode)((ConstantExpression)e).Value);
+                gf = qNode.GetGrainFactory();
+                streamProvider = qNode.GetStreamProvider();
                 return true;
             }
             gf = null;
+            streamProvider = null;
             return false;
         }
 

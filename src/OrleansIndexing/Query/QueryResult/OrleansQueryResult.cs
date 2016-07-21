@@ -1,4 +1,5 @@
 ﻿using Orleans.Runtime;
+using Orleans.Streams;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,9 +9,12 @@ using System.Threading.Tasks;
 namespace Orleans.Indexing
 {
     /// <summary>
-    /// This class encapsulates the result of a query.
+    /// This class represents the result of a query.
+    /// 
+    /// OrleansQueryResult is actually a stream of results
+    /// that can be observed by its client.
     /// </summary>
-    /// <typeparam name="TIGrain"></typeparam>
+    /// <typeparam name="TIGrain">type of grain for query result</typeparam>
     [Serializable]
     public class OrleansQueryResult<TIGrain> : IOrleansQueryResult<TIGrain> where TIGrain : IIndexableGrain
     {
@@ -21,114 +25,89 @@ namespace Orleans.Indexing
         //just a simple implementation. This implementation should
         //be replaced with a more sophisticated approach to asynchronously
         //read the results on demand
-        protected IEnumerable<TIGrain> _queryResult;
+
+        protected IAsyncStream<TIGrain> _stream;
+
+        //public OrleansQueryResult()
+        //{
+        //    //_stream = stream;
+        //    throw new NotImplementedException();
+        //}
 
         // Accept a queryResult instance which we shall observe
-        public OrleansQueryResult(IEnumerable<TIGrain> queryResult)
+        public OrleansQueryResult(IAsyncStream<TIGrain> stream)
         {
-            //_queryResultObservers = new List<IObserver<T>>();
-            _queryResult = queryResult;
-
-        }
-        public OrleansQueryResult(IOrleansQueryResult<IIndexableGrain> queryResult)
-        {
-            _queryResult = new List<TIGrain>();
-            queryResult.Subscribe(new QueryResultObserver<IIndexableGrain, TIGrain>((IList<TIGrain>)_queryResult));
-
-        }
-        public OrleansQueryResult(IList<IOrleansQueryResult<TIGrain>> queryResults)
-        {
-            _queryResult = new List<TIGrain>();
-            foreach (IOrleansQueryResult<TIGrain> res in queryResults)
-            {
-                res.Subscribe(new QueryResultObserver<TIGrain, TIGrain>((IList<TIGrain>)_queryResult));
-            }
-
+            _stream = stream;
         }
 
-        // This method allows the observers to attach themselves. It returns a disposer object to the observer
-        // which the observer can utilize to unsubscribe
-        public IDisposable Subscribe(IObserver<TIGrain> observer)
+        public IOrleansQueryResult<TOGrain> Cast<TOGrain>() where TOGrain : IIndexableGrain
         {
-            //if (!_queryResultObservers.Contains(observer))
-            //{
-            //    _queryResultObservers.Add(observer);
-                inspectQueryResult(observer);
-            //}
-
-            return new Disposer(/*_queryResultObservers, */observer);
-        }
-
-        // This method is used to inspect the query result.
-        public void inspectQueryResult(IObserver<TIGrain> observer)
-        {
-            foreach (TIGrain elem in _queryResult)
-            {
-                observer.OnNext(elem);
-            }
+            return new OrleansQueryResultCaster<TIGrain, TOGrain>(this);
+            //return (IOrleansQueryResult<TOGrain>)this;
         }
 
         public void Dispose()
         {
-            //_queryResultObservers.Clear();
-            //_queryResultObservers = null;
-            _queryResult = null;
+            _stream = null;
         }
 
-        public TIGrain GetFirst()
+        //public async Task<TIGrain> GetFirst()
+        //{
+        //    var taskCompletionSource = new TaskCompletionSource<TIGrain>();
+        //    Task<TIGrain> tsk = taskCompletionSource.Task;
+        //    Action<TIGrain> responseHandler = taskCompletionSource.SetResult;
+        //    await _stream.SubscribeAsync(new QueryFirstResultObserver<TIGrain>(responseHandler));
+        //    return await tsk;
+        //}
+
+        public Task OnCompletedAsync()
         {
-            return _queryResult.First();
+            return _stream.OnCompletedAsync();
         }
 
-        //
-        // Private class Disposer: Implements the IDisposable. Observable returns an instance to the observer for easy unsubscription
-        //
-        private class Disposer : IDisposable
+        public Task OnErrorAsync(Exception ex)
         {
-            // The observers list received from the observable
-            //private IList<IObserver<T>> _queryResultObservers;
-            // The observer instance to unsubscribe
-            //private IObserver<T> _observer;
-
-            public Disposer(/*IList<IObserver<T>> _subObservers,*/ IObserver<TIGrain> observer)
-            {
-                //_queryResultObservers = _subObservers;
-                //_observer = observer;
-            }
-
-            public void Dispose()
-            {
-                //if (_queryResultObservers.Contains(_observer))
-                //{
-                //    _queryResultObservers.Remove(_observer);
-                //}
-            }
+            return _stream.OnErrorAsync(ex);
         }
-    }
 
-    internal class QueryResultObserver<TIn, TOut> : IObserver<TIn> where TIn : IAddressable
-    {
-        private IList<TOut> _queryResult;
-
-        public QueryResultObserver(IList<TOut> _queryResult)
+        public virtual Task OnNextAsync(TIGrain item, StreamSequenceToken token = null)
         {
-            this._queryResult = _queryResult;
+            return _stream.OnNextAsync(item, token);
         }
 
-        public void OnCompleted()
+        public virtual Task OnNextBatchAsync(IEnumerable<TIGrain> batch, StreamSequenceToken token = null)
         {
-            //throw new NotImplementedException();
+            return Task.WhenAll(batch.Select(item => _stream.OnNextAsync(item, token)));
+            //TODO: replace with the code below, as soon as stream.OnNextBatchAsync is supported.
+            //return _stream.OnNextBatchAsync(batch, token); //not supported yet!
         }
 
-        public void OnError(Exception error)
+        public Task<StreamSubscriptionHandle<TIGrain>> SubscribeAsync(IAsyncObserver<TIGrain> observer)
         {
-            throw new NotImplementedException();
+            return _stream.SubscribeAsync(observer);
         }
 
-        public void OnNext(TIn value)
+        public Task<StreamSubscriptionHandle<TIGrain>> SubscribeAsync(IAsyncObserver<TIGrain> observer, StreamSequenceToken token, StreamFilterPredicate filterFunc = null, object filterData = null)
         {
-            //throw new NotImplementedException();
-            _queryResult.Add(value.AsReference<TOut>());
+            return _stream.SubscribeAsync(observer, token, filterFunc, filterData);
         }
+
+        //private class DisposableCombiner : IDisposable
+        //{
+        //    IList<IDisposable> disposables = new List<IDisposable>();
+
+        //    public void Dispose()
+        //    {
+        //        foreach (IDisposable d in disposables)
+        //        {
+        //            d.Dispose();
+        //        }
+        //    }
+
+        //    public void AddDisposable(IDisposable d)
+        //    {
+        //        disposables.Add(d);
+        //    }
+        //}
     }
 }

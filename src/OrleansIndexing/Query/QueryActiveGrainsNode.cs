@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections;
 using System.Linq.Expressions;
+using Orleans.Streams;
 
 namespace Orleans.Indexing
 {
@@ -15,11 +16,11 @@ namespace Orleans.Indexing
     /// </summary>
     public class QueryActiveGrainsNode<TIGrain, TProperties> : QueryGrainsNode<TIGrain, TProperties> where TIGrain : IIndexableGrain
     {
-        public QueryActiveGrainsNode(IGrainFactory gf) : base(gf)
+        public QueryActiveGrainsNode(IGrainFactory gf, IStreamProvider streamProvider) : base(gf, streamProvider)
         {
         }
 
-        public override Task<IOrleansQueryResult<TIGrain>> GetResults()
+        public override Task GetResults(IAsyncBatchObserver<TIGrain> observer)
         {
             throw new NotSupportedException(string.Format("Traversing over all the active grains of {0} is not supported.", typeof(TIGrain)));
         }

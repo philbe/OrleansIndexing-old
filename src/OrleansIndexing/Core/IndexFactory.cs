@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Orleans.Runtime;
 using System.Linq.Expressions;
 using System.Reflection;
+using Orleans.Streams;
 
 namespace Orleans.Indexing
 {
@@ -22,12 +23,35 @@ namespace Orleans.Indexing
         /// type to query over its active instances</typeparam>
         /// <param name="gf">the grain factory instance</param>
         /// <param name="filterExpr">the filter expression of the query</param>
+        /// <param name="queryResultObserver">the observer object to be called
+        /// on every grain found for the query</param>
         /// <returns>the result of the query</returns>
-        public static Task<IOrleansQueryResult<TIGrain>> GetActiveGrains<TIGrain, TProperties>(this IGrainFactory gf, Expression<Func<TProperties, bool>> filterExpr) where TIGrain : IIndexableGrain
+        public static Task GetActiveGrains<TIGrain, TProperties>(this IGrainFactory gf, Expression<Func<TProperties, bool>> filterExpr, IAsyncBatchObserver<TIGrain> queryResultObserver) where TIGrain : IIndexableGrain
         {
             return GrainClient.GrainFactory.GetActiveGrains<TIGrain, TProperties>()
                                            .Where(filterExpr)
-                                           .GetResults();
+                                           .GetResults(queryResultObserver);
+        }
+
+        /// <summary>
+        /// This method queries the active grains for the given
+        /// grain interface and the filter expression. The filter
+        /// expression should contain an indexed field.
+        /// </summary>
+        /// <typeparam name="TIGrain">the given grain interface
+        /// type to query over its active instances</typeparam>
+        /// <param name="gf">the grain factory instance</param>
+        /// <param name="streamProvider">the stream provider for the query results</param>
+        /// <returns>the query to lookup all active grains of a given type</returns>
+        /// <param name="filterExpr">the filter expression of the query</param>
+        /// <param name="queryResultObserver">the observer object to be called
+        /// on every grain found for the query</param>
+        /// <returns>the result of the query</returns>
+        public static Task GetActiveGrains<TIGrain, TProperties>(this IGrainFactory gf, IStreamProvider streamProvider, Expression<Func<TProperties, bool>> filterExpr, IAsyncBatchObserver<TIGrain> queryResultObserver) where TIGrain : IIndexableGrain
+        {
+            return GrainClient.GrainFactory.GetActiveGrains<TIGrain, TProperties>(streamProvider)
+                                           .Where(filterExpr)
+                                           .GetResults(queryResultObserver);
         }
 
         /// <summary>
@@ -40,7 +64,21 @@ namespace Orleans.Indexing
         /// <returns>the query to lookup all active grains of a given type</returns>
         public static IOrleansQueryable<TIGrain, TProperty> GetActiveGrains<TIGrain, TProperty>(this IGrainFactory gf) where TIGrain : IIndexableGrain
         {
-            return new QueryActiveGrainsNode<TIGrain, TProperty>(gf);
+            return GetActiveGrains<TIGrain, TProperty>(gf, GrainClient.GetStreamProvider(Constants.INDEXING_STREAM_PROVIDER_NAME));
+        }
+
+        /// <summary>
+        /// This method queries the active grains for the given
+        /// grain interface.
+        /// </summary>
+        /// <typeparam name="TIGrain">the given grain interface
+        /// type to query over its active instances</typeparam>
+        /// <param name="gf">the grain factory instance</param>
+        /// <param name="streamProvider">the stream provider for the query results</param>
+        /// <returns>the query to lookup all active grains of a given type</returns>
+        public static IOrleansQueryable<TIGrain, TProperty> GetActiveGrains<TIGrain, TProperty>(this IGrainFactory gf, IStreamProvider streamProvider) where TIGrain : IIndexableGrain
+        {
+            return new QueryActiveGrainsNode<TIGrain, TProperty>(gf, streamProvider);
         }
 
         /// <summary>
@@ -188,7 +226,7 @@ namespace Orleans.Indexing
         //        {
         //            Type indexBuilderType = typeof(IIndexBuilder<>).MakeGenericType(new Type[] { iGrainType });
         //            IIndexBuilder indexBuilder = gf.GetGrain<IIndexBuilder<IIndexableGrain>>(IndexUtils.GetIndexGrainID(iGrainType, indexName), indexBuilderType);
-        //            var _ = indexBuilder.BuildIndex(indexName, index, new IndexUpdateGenType()).ConfigureAwait(false); //builds the index on its own without coming back here
+        //            var _ = indexBuilder.BuildIndex(indexName, index, new IndexUpdateGenType()); //builds the index on its own without coming back here
         //        }
         //        return isRegistered;
         //    }

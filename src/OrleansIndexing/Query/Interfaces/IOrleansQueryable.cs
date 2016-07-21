@@ -1,5 +1,6 @@
 ﻿using Orleans.Runtime;
 using Orleans.Runtime.MembershipService;
+using Orleans.Streams;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,6 @@ namespace Orleans.Indexing
     /// </summary>
     public interface IOrleansQueryable<TGrain, TProperties> : /*IOrleansQueryable, */ IOrderedQueryable<TProperties> where TGrain : IIndexableGrain
     {
-        Task<IOrleansQueryResult<TGrain>> GetResults();
+        Task GetResults(IAsyncBatchObserver<TGrain> observer);
     }
 }

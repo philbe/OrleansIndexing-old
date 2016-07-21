@@ -42,7 +42,7 @@ namespace Orleans.Indexing
         /// </summary>
         /// <param name="key">the lookup key</param>
         /// <returns>the result of lookup into the hash-index</returns>
-        Task<IOrleansQueryResult<IIndexableGrain>> Lookup(object key);
+        Task Lookup(IOrleansQueryResult<IIndexableGrain> result, object key);
     }
 
     /// <summary>
@@ -56,6 +56,6 @@ namespace Orleans.Indexing
         /// </summary>
         /// <param name="key">the lookup key</param>
         /// <returns>the result of lookup into the hash-index</returns>
-        Task<IOrleansQueryResult<V>> Lookup(K key);
+        Task Lookup(IOrleansQueryResult<V> result, K key);
     }
 }

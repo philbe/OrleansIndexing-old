@@ -150,7 +150,7 @@ namespace Orleans.Indexing
         //    return Task.FromResult(State.IsUnique);
         //}
 
-        public Task<IOrleansQueryResult<V>> Lookup(K key)
+        public async Task Lookup(IOrleansQueryResult<V> result, K key)
         {
             if (!(State.IndexStatus == IndexStatus.Available))
             {
@@ -161,11 +161,12 @@ namespace Orleans.Indexing
             HashIndexSingleBucketEntry<V> entry;
             if (State.IndexMap.TryGetValue(key, out entry))
             {
-                return Task.FromResult((IOrleansQueryResult<V>)new OrleansQueryResult<V>(entry.Values));
+                await result.OnNextBatchAsync(entry.Values);
+                await result.OnCompletedAsync();
             }
             else
             {
-                return Task.FromResult((IOrleansQueryResult<V>)new OrleansQueryResult<V>(Enumerable.Empty<V>()));
+                await result.OnCompletedAsync();
             }
         }
 
@@ -215,9 +216,9 @@ namespace Orleans.Indexing
             return Task.FromResult(State.IndexStatus == IndexStatus.Available);
         }
 
-        async Task<IOrleansQueryResult<IIndexableGrain>> IIndex.Lookup(object key)
+        Task IIndex.Lookup(IOrleansQueryResult<IIndexableGrain> result, object key)
         {
-            return (IOrleansQueryResult<IIndexableGrain>)await Lookup((K)key).ConfigureAwait(false);
+            return Lookup(result.Cast<V>(), (K)key);
         }
     }
 }

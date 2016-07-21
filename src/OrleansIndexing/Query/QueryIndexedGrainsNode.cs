@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections;
 using System.Linq.Expressions;
+using Orleans.Streams;
 
 namespace Orleans.Indexing
 {
@@ -19,12 +20,12 @@ namespace Orleans.Indexing
 
         private object _param;
 
-        public QueryIndexedGrainsNode(IGrainFactory grainFactory, string indexName, object param) : base(grainFactory)
+        public QueryIndexedGrainsNode(IGrainFactory grainFactory, IStreamProvider streamProvider, string indexName, object param) : base(grainFactory, streamProvider)
         {
             _indexName = indexName;
             _param = param;
         }
-        public override async Task<IOrleansQueryResult<TIGrain>> GetResults()
+        public override async Task GetResults(IAsyncBatchObserver<TIGrain> observer)
         {
             IIndex index = GetGrainFactory().GetIndex(_indexName, typeof(TIGrain));
             //Type indexType = index.GetType();
@@ -32,7 +33,16 @@ namespace Orleans.Indexing
             //{
             //    indexType.GetMethod("SetGrainFactory").Invoke(index, new object[] { GetGrainFactory() });
             //}
-            return (IOrleansQueryResult<TIGrain>) await index.Lookup(_param).ConfigureAwait(false);
+            //a stream is created for the query result
+            IAsyncStream<TIGrain> resultStream = GetStreamProvider().GetStream<TIGrain>(Guid.NewGuid(), IndexUtils.GetIndexGrainID(typeof(TIGrain), _indexName));
+
+            IOrleansQueryResult<TIGrain> result = new OrleansQueryResult<TIGrain>(resultStream);
+            
+            //the observer is attached to the query result
+            await result.SubscribeAsync(observer);
+            
+            //the actual lookup for the query result to be streamed to the observer
+            await index.Lookup(result.Cast<IIndexableGrain>(), _param);
         }
     }
 }

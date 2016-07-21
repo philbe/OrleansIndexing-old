@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections;
 using System.Linq.Expressions;
+using Orleans.Streams;
 
 namespace Orleans.Indexing
 {
@@ -16,15 +17,22 @@ namespace Orleans.Indexing
     public abstract class QueryGrainsNode
     {
         private IGrainFactory _grainFactory;
+        private IStreamProvider _streamProvider;
 
-        public QueryGrainsNode(IGrainFactory gf)
+        public QueryGrainsNode(IGrainFactory gf, IStreamProvider streamProvider)
         {
             _grainFactory = gf;
+            _streamProvider = streamProvider;
         }
 
         public IGrainFactory GetGrainFactory()
         {
             return _grainFactory;
+        }
+
+        public IStreamProvider GetStreamProvider()
+        {
+            return _streamProvider;
         }
     }
     /// <summary>
@@ -33,7 +41,7 @@ namespace Orleans.Indexing
     public abstract class QueryGrainsNode<TIGrain, TProperties> : QueryGrainsNode, IOrleansQueryable<TIGrain, TProperties> where TIGrain : IIndexableGrain
     {
 
-        public QueryGrainsNode(IGrainFactory gf) : base(gf)
+        public QueryGrainsNode(IGrainFactory gf, IStreamProvider streamProvider) : base(gf, streamProvider)
         {
         }
 
@@ -66,7 +74,7 @@ namespace Orleans.Indexing
         /// on this query object
         /// </summary>
         /// <returns>the query result</returns>
-        public abstract Task<IOrleansQueryResult<TIGrain>> GetResults();
+        public abstract Task GetResults(IAsyncBatchObserver<TIGrain> observer);
 
         public IEnumerator<TProperties> GetEnumerator()
         {

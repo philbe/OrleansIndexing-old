@@ -155,7 +155,7 @@ namespace Orleans.Indexing
         //    return Task.FromResult(State.IsUnique);
         //}
 
-        public Task<IOrleansQueryResult<V>> Lookup(K key)
+        public async Task Lookup(IOrleansQueryResult<V> result, K key)
         {
             if (!(State.IndexStatus == IndexStatus.Available))
             {
@@ -166,11 +166,36 @@ namespace Orleans.Indexing
             HashIndexSingleBucketEntry<V> entry;
             if (State.IndexMap.TryGetValue(key, out entry))
             {
-                return Task.FromResult((IOrleansQueryResult<V>)new OrleansQueryResult<V>(entry.Values));
+                await result.OnNextBatchAsync(entry.Values);
+                await result.OnCompletedAsync();
             }
             else
             {
-                return Task.FromResult((IOrleansQueryResult<V>)new OrleansQueryResult<V>(Enumerable.Empty<V>()));
+                await result.OnCompletedAsync();
+            }
+        }
+
+        //Task IIndex.Lookup(IOrleansQueryResult<IIndexableGrain> result, object key)
+        //{
+        //    return Lookup((IOrleansQueryResult<V>)result, (K)key);
+        //}
+
+        public Task<IEnumerable<V>> LookupWholeResult(K key)
+        {
+            if (!(State.IndexStatus == IndexStatus.Available))
+            {
+                var e = new Exception(string.Format("Index is not still available."));
+                logger.Error((int)ErrorCode.IndexingIndexIsNotReadyYet, "Index is not still available.", e);
+                throw e;
+            }
+            HashIndexSingleBucketEntry<V> entry;
+            if (State.IndexMap.TryGetValue(key, out entry))
+            {
+                return Task.FromResult((IEnumerable<V>)entry.Values);
+            }
+            else
+            {
+                return Task.FromResult(Enumerable.Empty<V>());
             }
         }
 
@@ -220,11 +245,6 @@ namespace Orleans.Indexing
         public Task<bool> IsAvailable()
         {
             return Task.FromResult(State.IndexStatus == IndexStatus.Available);
-        }
-
-        async Task<IOrleansQueryResult<IIndexableGrain>> IIndex.Lookup(object key)
-        {
-            return (IOrleansQueryResult<IIndexableGrain>)await Lookup((K)key).ConfigureAwait(false);
         }
     }
 }
