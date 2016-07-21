@@ -21,15 +21,5 @@ namespace Orleans.Indexing
     //internal interface IHashIndexPartitionedPerSiloBucket<K, V> : ISystemTarget, IHashIndex<K, V> where V : IIndexableGrain
     internal interface IHashIndexPartitionedPerSiloBucket : ISystemTarget, IHashIndex<object, IIndexableGrain>
     {
-        /// <summary>
-        /// This method is used for extracting the whole result of
-        /// a lookup from an IHashIndexPartitionedPerSiloBucket.
-        /// 
-        /// TODO: This should not be necessary if we could call streams
-        /// from within a SystemTarget
-        /// </summary>
-        /// <param name="key">the lookup key</param>
-        /// <returns>the result of the lookup</returns>
-        Task<IEnumerable<IIndexableGrain>> LookupWholeResult(object key);
     }
 }

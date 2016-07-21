@@ -180,7 +180,7 @@ namespace Orleans.Indexing
         //    return Lookup((IOrleansQueryResult<V>)result, (K)key);
         //}
 
-        public Task<IEnumerable<V>> LookupWholeResult(K key)
+        public Task<IEnumerable<V>> Lookup(K key)
         {
             if (!(State.IndexStatus == IndexStatus.Available))
             {

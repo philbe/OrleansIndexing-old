@@ -57,11 +57,6 @@ namespace Orleans.Indexing
             return Task.FromResult(false);
         }
 
-        public Task Lookup(IOrleansQueryResult<V> result, K key)
-        {
-            return ((IIndex)this).Lookup(result.Cast<IIndexableGrain>(), key);
-        }
-
         public async Task<V> LookupUnique(K key)
         {
             var result = new OrleansFirstQueryResult<V>();
@@ -102,11 +97,23 @@ namespace Orleans.Indexing
             return Task.FromResult(_status == IndexStatus.Available);
         }
 
-        async Task IIndex.Lookup(IOrleansQueryResult<IIndexableGrain> result, object key)
+        async Task<IEnumerable<IIndexableGrain>> IIndex.Lookup(object key)
         {
             //get all silos
             Dictionary<SiloAddress, SiloStatus> hosts = await SiloUtils.GetHosts(true);
 
+            IEnumerable<IIndexableGrain>[] queriesToSilos = await Task.WhenAll(GetResultQueries(hosts, key));
+            
+            return queriesToSilos.SelectMany(res => res);
+        }
+
+        public async Task<IEnumerable<V>> Lookup(K key)
+        {
+            return (await ((IIndex)this).Lookup(key)).Select(e => e.AsReference<V>());
+        }
+
+        private ISet<Task<IEnumerable<IIndexableGrain>>> GetResultQueries(Dictionary<SiloAddress, SiloStatus> hosts, object key)
+        {
             //Task[] queriesToSilos = new Task[hosts.Keys.Count];
             ISet<Task<IEnumerable<IIndexableGrain>>> queriesToSilos = new HashSet<Task<IEnumerable<IIndexableGrain>>>();
 
@@ -118,9 +125,24 @@ namespace Orleans.Indexing
                 queriesToSilos.Add(InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IHashIndexPartitionedPerSiloBucket>(
                     grainID,
                     siloAddress
-                ).LookupWholeResult(/*result, */key)); //TODO: because of a bug in OrleansStream, a SystemTarget cannot work with streams. It should be fixed later.
+                ).Lookup(/*result, */key)); //TODO: because of a bug in OrleansStream, a SystemTarget cannot work with streams. It should be fixed later.
                 ++i;
             }
+
+            return queriesToSilos;
+        }
+
+        public Task Lookup(IOrleansQueryResult<V> result, K key)
+        {
+            return ((IIndex)this).Lookup(result.Cast<IIndexableGrain>(), key);
+        }
+
+        async Task IIndex.Lookup(IOrleansQueryResult<IIndexableGrain> result, object key)
+        {
+            //get all silos
+            Dictionary<SiloAddress, SiloStatus> hosts = await SiloUtils.GetHosts(true);
+
+            ISet<Task<IEnumerable<IIndexableGrain>>> queriesToSilos = GetResultQueries(hosts, key);
 
             //TODO: After fixing the problem with OrleansStream, this part is not needed anymore
             while (queriesToSilos.Count > 0)

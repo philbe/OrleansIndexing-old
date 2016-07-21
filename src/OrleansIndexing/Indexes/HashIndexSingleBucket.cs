@@ -16,7 +16,7 @@ namespace Orleans.Indexing
     /// <typeparam name="K"></typeparam>
     /// <typeparam name="V"></typeparam>
     [StorageProvider(ProviderName = Constants.MEMORY_STORAGE_PROVIDER_NAME)]
-    public class HashIndexSingleBucket<K, V> : Grain<HashIndexBucketState<K,V>>, IHashIndexSingleBucket<K, V> where V : IIndexableGrain
+    public class HashIndexSingleBucket<K, V> : Grain<HashIndexBucketState<K,V>>, IHashIndexSingleBucket<K, V> where V : class, IIndexableGrain
     {
         //private Func<K, K, bool> _equalsLambda = ((k1,k2) => k1.Equals(k2));
         //private Func<K, long> _hashLambda = (k => k.GetHashCode());
@@ -231,6 +231,30 @@ namespace Orleans.Indexing
         Task IIndex.Lookup(IOrleansQueryResult<IIndexableGrain> result, object key)
         {
             return Lookup(result.Cast<V>(), (K)key);
+        }
+
+        public Task<IEnumerable<V>> Lookup(K key)
+        {
+            if (!(State.IndexStatus == IndexStatus.Available))
+            {
+                var e = new Exception(string.Format("Index is not still available."));
+                GetLogger().Error((int)ErrorCode.IndexingIndexIsNotReadyYet, "Index is not still available.", e);
+                throw e;
+            }
+            HashIndexSingleBucketEntry<V> entry;
+            if (State.IndexMap.TryGetValue(key, out entry))
+            {
+                return Task.FromResult((IEnumerable<V>)entry.Values);
+            }
+            else
+            {
+                return Task.FromResult(Enumerable.Empty<V>());
+            }
+        }
+
+        async Task<IEnumerable<IIndexableGrain>> IIndex.Lookup(object key)
+        {
+            return await Lookup((K)key);
         }
 
         /// <summary>

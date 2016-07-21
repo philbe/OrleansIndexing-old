@@ -15,7 +15,7 @@ namespace Orleans.Indexing
     /// <typeparam name="K"></typeparam>
     /// <typeparam name="V"></typeparam>
     [Serializable]
-    public class IHashIndexPartitionedPerKey<K, V> : IHashIndex<K, V> where V : IIndexableGrain
+    public class IHashIndexPartitionedPerKey<K, V> : IHashIndex<K, V> where V : class, IIndexableGrain
     {
         private string _indexName;
         //private bool _isUnique;
@@ -105,6 +105,19 @@ namespace Orleans.Indexing
         Task IIndex.Lookup(IOrleansQueryResult<IIndexableGrain> result, object key)
         {
             return Lookup(result.Cast<V>(), (K)key);
+        }
+
+        public Task<IEnumerable<V>> Lookup(K key)
+        {
+            IHashIndexPartitionedPerKeyBucket<K, V> targetBucket = RuntimeClient.Current.InternalGrainFactory.GetGrain<IHashIndexPartitionedPerKeyBucket<K, V>>(
+                   IndexUtils.GetIndexGrainID(typeof(V), _indexName) + "_" + key.GetHashCode()
+               );
+            return targetBucket.Lookup(key);
+        }
+
+        async Task<IEnumerable<IIndexableGrain>> IIndex.Lookup(object key)
+        {
+            return await Lookup((K)key);
         }
     }
 }

@@ -43,6 +43,17 @@ namespace Orleans.Indexing
         /// <param name="key">the lookup key</param>
         /// <returns>the result of lookup into the hash-index</returns>
         Task Lookup(IOrleansQueryResult<IIndexableGrain> result, object key);
+
+        /// <summary>
+        /// This method is used for extracting the whole result of
+        /// a lookup from an IHashIndexPartitionedPerSiloBucket.
+        /// 
+        /// TODO: This should not be necessary if we could call streams
+        /// from within a SystemTarget, and the stream were efficient enough
+        /// </summary>
+        /// <param name="key">the lookup key</param>
+        /// <returns>the result of the lookup</returns>
+        Task<IEnumerable<IIndexableGrain>> Lookup(object key);
     }
 
     /// <summary>
@@ -57,5 +68,16 @@ namespace Orleans.Indexing
         /// <param name="key">the lookup key</param>
         /// <returns>the result of lookup into the hash-index</returns>
         Task Lookup(IOrleansQueryResult<V> result, K key);
+
+        /// <summary>
+        /// This method is used for extracting the whole result of
+        /// a lookup from an IHashIndexPartitionedPerSiloBucket.
+        /// 
+        /// TODO: This should not be necessary if we could call streams
+        /// from within a SystemTarget, and the stream were efficient enough
+        /// </summary>
+        /// <param name="key">the lookup key</param>
+        /// <returns>the result of the lookup</returns>
+        Task<IEnumerable<V>> Lookup(K key);
     }
 }
