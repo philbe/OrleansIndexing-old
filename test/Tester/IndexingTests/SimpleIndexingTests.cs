@@ -84,7 +84,7 @@ namespace UnitTests.IndexingTests
 
         //    while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
-        //    IOrleansQueryResult<IPlayerGrain> result = await locIdx.Lookup("Seattle");
+        //    IOrleansQueryResultStream<IPlayerGrain> result = await locIdx.Lookup("Seattle");
         //    int counter = 0;
         //    result.Subscribe(p => counter += 1);
         //    result.Dispose();
@@ -110,7 +110,7 @@ namespace UnitTests.IndexingTests
 
         //    while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
-        //    IOrleansQueryResult<IPlayerGrain> result = await locIdx.Lookup("Redmond");
+        //    IOrleansQueryResultStream<IPlayerGrain> result = await locIdx.Lookup("Redmond");
         //    int counter = 0;
         //    result.Subscribe(async entry =>
         //    {
@@ -143,7 +143,7 @@ namespace UnitTests.IndexingTests
 
         //    while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
-        //    IOrleansQueryResult<IPlayerGrain> result = await GrainClient.GrainFactory.GetActiveGrains<IPlayerGrain>(p => (p.GetLocation().Result) == "Lausanne");
+        //    IOrleansQueryResultStream<IPlayerGrain> result = await GrainClient.GrainFactory.GetActiveGrains<IPlayerGrain>(p => (p.GetLocation().Result) == "Lausanne");
 
         //    int counter = 0;
         //    result.Subscribe(async entry =>
@@ -168,7 +168,7 @@ namespace UnitTests.IndexingTests
 
 
             int counter = 0;
-            var _ = q.GetResults(new QueryResultObserver<TIGrain>(async entry =>
+            var _ = q.GetResults(new QueryResultStreamObserver<TIGrain>(async entry =>
             {
                 counter++;
                 output.WriteLine("guid = {0}, location = {1}, primary key = {2}", entry, await entry.GetLocation(), entry.GetPrimaryKeyLong());

@@ -15,14 +15,14 @@ namespace Orleans.Indexing
     /// </summary>
     /// <typeparam name="TIGrain">type of grain for query result</typeparam>
     [Serializable]
-    public class OrleansFirstQueryResult<TIGrain> : OrleansQueryResult<TIGrain> where TIGrain : IIndexableGrain
+    public class OrleansFirstQueryResultStream<TIGrain> : OrleansQueryResultStream<TIGrain> where TIGrain : IIndexableGrain
     {
-        public OrleansFirstQueryResult() : this(CreateNewStream())
+        public OrleansFirstQueryResultStream() : this(CreateNewStream())
         {
         }
 
         // Accept a queryResult instance which we shall observe
-        public OrleansFirstQueryResult(IAsyncStream<TIGrain> stream) : base(stream)
+        public OrleansFirstQueryResultStream(IAsyncStream<TIGrain> stream) : base(stream)
         {
         }
 

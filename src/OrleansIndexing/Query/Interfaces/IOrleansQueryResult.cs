@@ -11,7 +11,7 @@ namespace Orleans.Indexing
     /// Extension for the built-in <see cref="IObservable"/> and <see cref="IDisposable"/>
     /// allowing for Orleans specific operations, which represents the results of a query
     /// </summary>
-    //interface IOrleansQueryResult : IOrleansObservable, IDisposable
+    //interface IOrleansQueryResultStream : IOrleansObservable, IDisposable
     //{
     //}
 
@@ -24,10 +24,10 @@ namespace Orleans.Indexing
     /// </summary>
     /// <typeparam name="TGrain">the grain interface type, which is the
     /// type of elements in the query result</typeparam>
-    public interface IOrleansQueryResult<TGrain> : IAsyncObservable<TGrain>, IAsyncBatchObserver<TGrain>, IDisposable where TGrain : IIndexableGrain
+    public interface IOrleansQueryResultStream<TGrain> : IAsyncObservable<TGrain>, IAsyncBatchObserver<TGrain>, IDisposable where TGrain : IIndexableGrain
     {
         //Task<TGrain> GetFirst();
 
-        IOrleansQueryResult<Y> Cast<Y>() where Y : IIndexableGrain;
+        IOrleansQueryResultStream<Y> Cast<Y>() where Y : IIndexableGrain;
     }
 }

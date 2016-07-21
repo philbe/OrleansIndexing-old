@@ -11,12 +11,12 @@ namespace Orleans.Indexing
     /// <summary>
     /// This class represents the result of a query.
     /// 
-    /// OrleansQueryResult is actually a stream of results
+    /// OrleansQueryResultStream is actually a stream of results
     /// that can be observed by its client.
     /// </summary>
     /// <typeparam name="TIGrain">type of grain for query result</typeparam>
     [Serializable]
-    public class OrleansQueryResult<TIGrain> : IOrleansQueryResult<TIGrain> where TIGrain : IIndexableGrain
+    public class OrleansQueryResultStream<TIGrain> : IOrleansQueryResultStream<TIGrain> where TIGrain : IIndexableGrain
     {
         // List of observers
         //private IList<IObserver<T>> _queryResultObservers;
@@ -28,22 +28,22 @@ namespace Orleans.Indexing
 
         protected IAsyncStream<TIGrain> _stream;
 
-        //public OrleansQueryResult()
+        //public OrleansQueryResultStream()
         //{
         //    //_stream = stream;
         //    throw new NotImplementedException();
         //}
 
         // Accept a queryResult instance which we shall observe
-        public OrleansQueryResult(IAsyncStream<TIGrain> stream)
+        public OrleansQueryResultStream(IAsyncStream<TIGrain> stream)
         {
             _stream = stream;
         }
 
-        public IOrleansQueryResult<TOGrain> Cast<TOGrain>() where TOGrain : IIndexableGrain
+        public IOrleansQueryResultStream<TOGrain> Cast<TOGrain>() where TOGrain : IIndexableGrain
         {
-            return new OrleansQueryResultCaster<TIGrain, TOGrain>(this);
-            //return (IOrleansQueryResult<TOGrain>)this;
+            return new OrleansQueryResultStreamCaster<TIGrain, TOGrain>(this);
+            //return (IOrleansQueryResultStream<TOGrain>)this;
         }
 
         public void Dispose()
@@ -56,7 +56,7 @@ namespace Orleans.Indexing
         //    var taskCompletionSource = new TaskCompletionSource<TIGrain>();
         //    Task<TIGrain> tsk = taskCompletionSource.Task;
         //    Action<TIGrain> responseHandler = taskCompletionSource.SetResult;
-        //    await _stream.SubscribeAsync(new QueryFirstResultObserver<TIGrain>(responseHandler));
+        //    await _stream.SubscribeAsync(new QueryFirstResultStreamObserver<TIGrain>(responseHandler));
         //    return await tsk;
         //}
 

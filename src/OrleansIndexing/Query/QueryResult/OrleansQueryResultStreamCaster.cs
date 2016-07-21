@@ -9,32 +9,32 @@ using System.Threading.Tasks;
 namespace Orleans.Indexing
 {
     /// <summary>
-    /// This class casts IOrleansQueryResult{FromTP} to IOrleansQueryResult{ToTP}.
+    /// This class casts IOrleansQueryResultStream{FromTP} to IOrleansQueryResultStream{ToTP}.
     /// 
-    /// As IOrleansQueryResult{T} cannot be a covariant type (because it extends IAsyncObservable),
-    /// this class is required when a conversion between two IOrleansQueryResult types is required.
+    /// As IOrleansQueryResultStream{T} cannot be a covariant type (because it extends IAsyncObservable),
+    /// this class is required when a conversion between two IOrleansQueryResultStream types is required.
     /// 
     /// It is not possible to subscribe to an instance of this class directly.
-    /// One should use the original IOrleansQueryResult{FromTP} for subscription.
+    /// One should use the original IOrleansQueryResultStream{FromTP} for subscription.
     /// </summary>
-    /// <typeparam name="FromTP">type of grain for input IOrleansQueryResult</typeparam>
-    /// <typeparam name="ToTP">type of grain for output IOrleansQueryResult</typeparam>
+    /// <typeparam name="FromTP">type of grain for input IOrleansQueryResultStream</typeparam>
+    /// <typeparam name="ToTP">type of grain for output IOrleansQueryResultStream</typeparam>
 
     [Serializable]
-    public class OrleansQueryResultCaster<FromTP, ToTP> : IOrleansQueryResult<ToTP> where FromTP : IIndexableGrain where ToTP : IIndexableGrain
+    public class OrleansQueryResultStreamCaster<FromTP, ToTP> : IOrleansQueryResultStream<ToTP> where FromTP : IIndexableGrain where ToTP : IIndexableGrain
     {
-        protected IOrleansQueryResult<FromTP> _stream;
+        protected IOrleansQueryResultStream<FromTP> _stream;
         
         // Accept a queryResult instance which we shall observe
-        public OrleansQueryResultCaster(IOrleansQueryResult<FromTP> stream)
+        public OrleansQueryResultStreamCaster(IOrleansQueryResultStream<FromTP> stream)
         {
             _stream = stream;
         }
 
-        public IOrleansQueryResult<TOGrain> Cast<TOGrain>() where TOGrain : IIndexableGrain
+        public IOrleansQueryResultStream<TOGrain> Cast<TOGrain>() where TOGrain : IIndexableGrain
         {
-            if (typeof(TOGrain) == typeof(FromTP)) return (IOrleansQueryResult<TOGrain>)_stream;
-            return new OrleansQueryResultCaster<FromTP, TOGrain>(_stream);
+            if (typeof(TOGrain) == typeof(FromTP)) return (IOrleansQueryResultStream<TOGrain>)_stream;
+            return new OrleansQueryResultStreamCaster<FromTP, TOGrain>(_stream);
         }
 
         public void Dispose()

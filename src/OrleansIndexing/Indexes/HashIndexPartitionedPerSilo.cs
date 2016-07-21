@@ -59,11 +59,11 @@ namespace Orleans.Indexing
 
         public async Task<V> LookupUnique(K key)
         {
-            var result = new OrleansFirstQueryResult<V>();
+            var result = new OrleansFirstQueryResultStream<V>();
             var taskCompletionSource = new TaskCompletionSource<V>();
             Task<V> tsk = taskCompletionSource.Task;
             Action<V> responseHandler = taskCompletionSource.SetResult;
-            await result.SubscribeAsync(new QueryFirstResultObserver<V>(responseHandler));
+            await result.SubscribeAsync(new QueryFirstResultStreamObserver<V>(responseHandler));
             await Lookup(result, key);
             return await tsk;
         }
@@ -78,7 +78,7 @@ namespace Orleans.Indexing
             Task[] disposeToSilos = new Task[numHosts];
 
             int i = 0;
-            IList<IOrleansQueryResult<V>> result = new List<IOrleansQueryResult<V>>();
+            IList<IOrleansQueryResultStream<V>> result = new List<IOrleansQueryResultStream<V>>();
             GrainId grainID = GetGrainID(IndexUtils.GetIndexNameFromIndexGrain(this));
             foreach (SiloAddress siloAddress in hosts.Keys)
             {
@@ -132,12 +132,12 @@ namespace Orleans.Indexing
             return queriesToSilos;
         }
 
-        public Task Lookup(IOrleansQueryResult<V> result, K key)
+        public Task Lookup(IOrleansQueryResultStream<V> result, K key)
         {
             return ((IIndex)this).Lookup(result.Cast<IIndexableGrain>(), key);
         }
 
-        async Task IIndex.Lookup(IOrleansQueryResult<IIndexableGrain> result, object key)
+        async Task IIndex.Lookup(IOrleansQueryResultStream<IIndexableGrain> result, object key)
         {
             //get all silos
             Dictionary<SiloAddress, SiloStatus> hosts = await SiloUtils.GetHosts(true);

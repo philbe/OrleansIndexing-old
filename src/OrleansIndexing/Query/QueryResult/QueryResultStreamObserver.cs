@@ -13,11 +13,11 @@ namespace Orleans.Indexing
     /// in order to watch the result of a query
     /// </summary>
     /// <typeparam name="T">type of objects that are being observed</typeparam>
-    public class QueryResultObserver<T> : IAsyncBatchObserver<T>
+    public class QueryResultStreamObserver<T> : IAsyncBatchObserver<T>
     {
         private Func<T, Task> _onNext;
         private Func<Task> _onCompleted;
-        public QueryResultObserver(Func<T, Task> onNext, Func<Task> onCompleted = null)
+        public QueryResultStreamObserver(Func<T, Task> onNext, Func<Task> onCompleted = null)
         {
             _onNext = onNext;
             _onCompleted = onCompleted;

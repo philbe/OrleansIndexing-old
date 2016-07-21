@@ -36,7 +36,7 @@ namespace Orleans.Indexing
             //a stream is created for the query result
             IAsyncStream<TIGrain> resultStream = GetStreamProvider().GetStream<TIGrain>(Guid.NewGuid(), IndexUtils.GetIndexGrainID(typeof(TIGrain), _indexName));
 
-            IOrleansQueryResult<TIGrain> result = new OrleansQueryResult<TIGrain>(resultStream);
+            IOrleansQueryResultStream<TIGrain> result = new OrleansQueryResultStream<TIGrain>(resultStream);
             
             //the observer is attached to the query result
             await result.SubscribeAsync(observer);

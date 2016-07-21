@@ -155,7 +155,7 @@ namespace Orleans.Indexing
         //    return Task.FromResult(State.IsUnique);
         //}
 
-        public async Task Lookup(IOrleansQueryResult<V> result, K key)
+        public async Task Lookup(IOrleansQueryResultStream<V> result, K key)
         {
             if (!(State.IndexStatus == IndexStatus.Available))
             {
@@ -175,9 +175,9 @@ namespace Orleans.Indexing
             }
         }
 
-        //Task IIndex.Lookup(IOrleansQueryResult<IIndexableGrain> result, object key)
+        //Task IIndex.Lookup(IOrleansQueryResultStream<IIndexableGrain> result, object key)
         //{
-        //    return Lookup((IOrleansQueryResult<V>)result, (K)key);
+        //    return Lookup((IOrleansQueryResultStream<V>)result, (K)key);
         //}
 
         public Task<IEnumerable<V>> Lookup(K key)

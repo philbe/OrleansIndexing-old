@@ -71,7 +71,7 @@ namespace Orleans.Indexing
             return true;
         }
 
-        public Task Lookup(IOrleansQueryResult<V> result, K key)
+        public Task Lookup(IOrleansQueryResultStream<V> result, K key)
         {
             IHashIndexPartitionedPerKeyBucket<K, V> targetBucket = RuntimeClient.Current.InternalGrainFactory.GetGrain<IHashIndexPartitionedPerKeyBucket<K, V>>(
                 IndexUtils.GetIndexGrainID(typeof(V), _indexName) + "_" + key.GetHashCode()
@@ -81,11 +81,11 @@ namespace Orleans.Indexing
 
         public async Task<V> LookupUnique(K key)
         {
-            var result = new OrleansFirstQueryResult<V>();
+            var result = new OrleansFirstQueryResultStream<V>();
             var taskCompletionSource = new TaskCompletionSource<V>();
             Task<V> tsk = taskCompletionSource.Task;
             Action<V> responseHandler = taskCompletionSource.SetResult;
-            await result.SubscribeAsync(new QueryFirstResultObserver<V>(responseHandler));
+            await result.SubscribeAsync(new QueryFirstResultStreamObserver<V>(responseHandler));
             await Lookup(result, key);
             return await tsk;
         }
@@ -102,7 +102,7 @@ namespace Orleans.Indexing
             return Task.FromResult(true);
         }
 
-        Task IIndex.Lookup(IOrleansQueryResult<IIndexableGrain> result, object key)
+        Task IIndex.Lookup(IOrleansQueryResultStream<IIndexableGrain> result, object key)
         {
             return Lookup(result.Cast<V>(), (K)key);
         }

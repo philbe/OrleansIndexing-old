@@ -13,10 +13,10 @@ namespace Orleans.Indexing
     /// in order to watch the first result of a query
     /// </summary>
     /// <typeparam name="T">type of object that is being observed</typeparam>
-    public class QueryFirstResultObserver<T> : IAsyncObserver<T>
+    public class QueryFirstResultStreamObserver<T> : IAsyncObserver<T>
     {
         private Action<T> _action;
-        public QueryFirstResultObserver(Action<T> action)
+        public QueryFirstResultStreamObserver(Action<T> action)
         {
             _action = action;
         }
