@@ -48,7 +48,7 @@ namespace Orleans.Indexing
 
             GrainFactory gFactory = InsideRuntimeClient.Current.InternalGrainFactory;
 
-            var updatedGrain = g.AsReference<V>(gFactory);
+            var updatedGrain = g;//.AsReference<V>(gFactory);
             var updt = (MemberUpdate)iUpdate.Value;
             var opType = updt.GetOperationType();
             HashIndexSingleBucketEntry<V> befEntry;
