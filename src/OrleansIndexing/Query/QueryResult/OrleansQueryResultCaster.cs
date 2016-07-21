@@ -23,22 +23,8 @@ namespace Orleans.Indexing
     [Serializable]
     public class OrleansQueryResultCaster<FromTP, ToTP> : IOrleansQueryResult<ToTP> where FromTP : IIndexableGrain where ToTP : IIndexableGrain
     {
-        // List of observers
-        //private IList<IObserver<T>> _queryResultObservers;
-
-        //Currently, the whole result is stored here, but it is
-        //just a simple implementation. This implementation should
-        //be replaced with a more sophisticated approach to asynchronously
-        //read the results on demand
-
         protected IOrleansQueryResult<FromTP> _stream;
-
-        //public OrleansQueryResult()
-        //{
-        //    //_stream = stream;
-        //    throw new NotImplementedException();
-        //}
-
+        
         // Accept a queryResult instance which we shall observe
         public OrleansQueryResultCaster(IOrleansQueryResult<FromTP> stream)
         {
@@ -56,15 +42,6 @@ namespace Orleans.Indexing
             _stream.Dispose();
         }
 
-        //public async Task<TIGrain> GetFirst()
-        //{
-        //    var taskCompletionSource = new TaskCompletionSource<TIGrain>();
-        //    Task<TIGrain> tsk = taskCompletionSource.Task;
-        //    Action<TIGrain> responseHandler = taskCompletionSource.SetResult;
-        //    await _stream.SubscribeAsync(new QueryFirstResultObserver<TIGrain>(responseHandler));
-        //    return await tsk;
-        //}
-
         public Task OnCompletedAsync()
         {
             return _stream.OnCompletedAsync();
@@ -75,12 +52,12 @@ namespace Orleans.Indexing
             return _stream.OnErrorAsync(ex);
         }
 
-        public virtual Task OnNextAsync(ToTP item, StreamSequenceToken token = null)
+        public Task OnNextAsync(ToTP item, StreamSequenceToken token = null)
         {
             return _stream.OnNextAsync(item.AsReference<FromTP>(), token);
         }
 
-        public virtual Task OnNextBatchAsync(IEnumerable<ToTP> batch, StreamSequenceToken token = null)
+        public Task OnNextBatchAsync(IEnumerable<ToTP> batch, StreamSequenceToken token = null)
         {
             return Task.WhenAll(batch.Select(item => (_stream.OnNextAsync(item.AsReference<FromTP>(), token))));
             //TODO: replace with the code below, as soon as stream.OnNextBatchAsync is supported.
