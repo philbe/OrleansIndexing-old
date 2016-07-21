@@ -30,7 +30,7 @@ namespace Orleans.Indexing
         {
             return GrainClient.GrainFactory.GetActiveGrains<TIGrain, TProperties>()
                                            .Where(filterExpr)
-                                           .GetResults(queryResultObserver);
+                                           .ObserveResults(queryResultObserver);
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Orleans.Indexing
         {
             return GrainClient.GrainFactory.GetActiveGrains<TIGrain, TProperties>(streamProvider)
                                            .Where(filterExpr)
-                                           .GetResults(queryResultObserver);
+                                           .ObserveResults(queryResultObserver);
         }
 
         /// <summary>

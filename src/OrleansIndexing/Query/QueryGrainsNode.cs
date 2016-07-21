@@ -74,7 +74,7 @@ namespace Orleans.Indexing
         /// on this query object
         /// </summary>
         /// <returns>the query result</returns>
-        public abstract Task GetResults(IAsyncBatchObserver<TIGrain> observer);
+        public abstract Task ObserveResults(IAsyncBatchObserver<TIGrain> observer);
 
         public IEnumerator<TProperties> GetEnumerator()
         {

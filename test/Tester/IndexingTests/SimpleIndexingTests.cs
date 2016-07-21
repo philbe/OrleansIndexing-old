@@ -168,7 +168,7 @@ namespace UnitTests.IndexingTests
 
 
             int counter = 0;
-            var _ = q.GetResults(new QueryResultStreamObserver<TIGrain>(async entry =>
+            var _ = q.ObserveResults(new QueryResultStreamObserver<TIGrain>(async entry =>
             {
                 counter++;
                 output.WriteLine("guid = {0}, location = {1}, primary key = {2}", entry, await entry.GetLocation(), entry.GetPrimaryKeyLong());

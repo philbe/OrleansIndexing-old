@@ -25,7 +25,7 @@ namespace Orleans.Indexing
             _indexName = indexName;
             _param = param;
         }
-        public override async Task GetResults(IAsyncBatchObserver<TIGrain> observer)
+        public override async Task ObserveResults(IAsyncBatchObserver<TIGrain> observer)
         {
             IIndex index = GetGrainFactory().GetIndex(_indexName, typeof(TIGrain));
             //Type indexType = index.GetType();
