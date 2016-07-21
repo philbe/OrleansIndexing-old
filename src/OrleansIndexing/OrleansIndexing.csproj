@@ -100,7 +100,7 @@
     <Compile Include="Properties\orleans.codegen.cs" />
     <Compile Include="Query\Interfaces\IOrleansQueryProvider.cs" />
     <Compile Include="Query\Interfaces\IOrleansQueryable.cs" />
-    <Compile Include="Query\Interfaces\IOrleansQueryResult.cs" />
+    <Compile Include="Query\Interfaces\IOrleansQueryResultStream.cs" />
     <Compile Include="Query\QueryResult\OrleansFirstQueryResultStream.cs" />
     <Compile Include="Query\QueryResult\QueryResultStreamObserver.cs" />
     <Compile Include="Query\QueryResult\QueryFirstResultStreamObserver.cs" />
