@@ -35,15 +35,15 @@ namespace Orleans.Indexing
 
         private async Task<IEnumerable<Tuple<GrainId, string, int>>> GetGrainActivations()
         {
-            Dictionary<SiloAddress, SiloStatus> hosts = await GetHosts(true).ConfigureAwait(false);
+            Dictionary<SiloAddress, SiloStatus> hosts = await GetHosts(true);
             SiloAddress[] silos = hosts.Keys.ToArray();
-            return await GetGrainActivations(silos).ConfigureAwait(false);
+            return await GetGrainActivations(silos);
         }
 
         private async Task<IEnumerable<Tuple<GrainId, string, int>>> GetGrainActivations(SiloAddress[] hostsIds)
         {
             IEnumerable<Task<List<Tuple<GrainId, string, int>>>> all = SiloUtils.GetSiloAddresses(hostsIds).Select(s => SiloUtils.GetSiloControlReference(s).GetGrainStatistics());
-            List<Tuple<GrainId, string, int>>[] result = await Task.WhenAll(all).ConfigureAwait(false);
+            List<Tuple<GrainId, string, int>>[] result = await Task.WhenAll(all);
             return result.SelectMany(s => s);
         }
 

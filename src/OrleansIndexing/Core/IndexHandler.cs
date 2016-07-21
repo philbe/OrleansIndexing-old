@@ -37,7 +37,9 @@ namespace Orleans.Indexing
                         updateIndexTasks.Add(((IIndex)idxInfo.Item1).ApplyIndexUpdate(updatedGrain, updt.Value.AsImmutable(), ((IndexMetaData)idxInfo.Item2).IsUniqueIndex(), siloAddress));
                     }
                 }
-                bool[] updateResults = await Task.WhenAll(updateIndexTasks); 
+
+                bool[] updateResults = await Task.WhenAll(updateIndexTasks);
+
                 bool allSuccessful = true;
                 foreach (bool updateRes in updateResults)
                 {

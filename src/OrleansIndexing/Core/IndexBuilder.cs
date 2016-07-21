@@ -83,7 +83,7 @@ namespace Orleans.Indexing
                         indexName, typeof(T)), e);
 
                     _status = IndexBuilderStatus.Created;
-                    await BuildIndex(indexName, index, indexMetaData, iUpdateGen).ConfigureAwait(false);
+                    await BuildIndex(indexName, index, indexMetaData, iUpdateGen);
                 }
             }
         }
@@ -102,7 +102,7 @@ namespace Orleans.Indexing
                     if (_tombstones.Contains(iGrain))
                     {
                         //then delete it from the index
-                        await index.ApplyIndexUpdate(iGrain, ((IMemberUpdate)new IndexBuilderMemberUpdate(grainImage, null)).AsImmutable(), indexMetaData.IsUniqueIndex()).ConfigureAwait(false);
+                        await index.ApplyIndexUpdate(iGrain, ((IMemberUpdate)new IndexBuilderMemberUpdate(grainImage, null)).AsImmutable(), indexMetaData.IsUniqueIndex());
                     }
                 }
                 else

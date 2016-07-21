@@ -106,7 +106,7 @@ namespace Orleans.Indexing
                 ).Dispose();
                 ++i;
             }
-            await Task.WhenAll(disposeToSilos).ConfigureAwait(false);
+            await Task.WhenAll(disposeToSilos);
         }
 
         public Task<bool> IsAvailable()

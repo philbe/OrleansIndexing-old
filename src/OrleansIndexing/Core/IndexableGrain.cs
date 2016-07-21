@@ -270,8 +270,8 @@ namespace Orleans.Indexing
 
             // during WriteStateAsync for a stateful indexable grain,
             // the indexes get updated after base.WriteStateAsync is done.
-            await Task.WhenAll(base.WriteStateAsync(), UpdateActiveIndexes(false, Properties)); 
-            await UpdateInitializedIndexes(false, Properties).ConfigureAwait(false);
+            await Task.WhenAll(base.WriteStateAsync(), UpdateActiveIndexes(false, Properties));
+            await UpdateInitializedIndexes(false, Properties);
         }
 
         Task<object> IIndexableGrain.ExtractIndexImage(IIndexUpdateGenerator iUpdateGen)
