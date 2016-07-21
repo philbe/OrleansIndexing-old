@@ -23,6 +23,7 @@ namespace Orleans.Indexing
         /// <summary>
         /// an immutable cached version of IIndexUpdateGenerator instances
         /// for the current indexes on the grain.
+        /// The tuple contains Index, IndexMetaData, IndexUpdateGenerator
         /// </summary>
         private IDictionary<string, Tuple<object, object, object>> _iUpdateGens;
 
@@ -269,7 +270,7 @@ namespace Orleans.Indexing
 
             // during WriteStateAsync for a stateful indexable grain,
             // the indexes get updated after base.WriteStateAsync is done.
-            await Task.WhenAll(base.WriteStateAsync(), UpdateActiveIndexes(false, Properties)).ConfigureAwait(false);
+            await Task.WhenAll(base.WriteStateAsync(), UpdateActiveIndexes(false, Properties)); 
             await UpdateInitializedIndexes(false, Properties).ConfigureAwait(false);
         }
 

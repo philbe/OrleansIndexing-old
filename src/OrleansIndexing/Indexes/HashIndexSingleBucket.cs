@@ -133,14 +133,14 @@ namespace Orleans.Indexing
                         if (State.IndexMap.TryGetValue(befImg, out befEntry) && befEntry.Values.Contains(updatedGrain))
                         {
                             befEntry.Values.Remove(updatedGrain);
-                            var isAvailable = await GetIndexBuilder().AddTombstone(updatedGrain).ConfigureAwait(false);
+                            var isAvailable = await GetIndexBuilder().AddTombstone(updatedGrain); 
                             if(State.IndexStatus != IndexStatus.Available && isAvailable)
                             {
                                 State.IndexStatus = IndexStatus.Available;
                                 writeTask = base.WriteStateAsync();
                             }
                         }
-                        await writeTask.ConfigureAwait(false);
+                        await writeTask; 
                     }
                 }
             }
@@ -217,11 +217,11 @@ namespace Orleans.Indexing
         public async Task<bool> IsAvailable()
         {
             if (State.IndexStatus == IndexStatus.Available) return true;
-            var isDone = await GetIndexBuilder().IsDone().ConfigureAwait(false);
+            var isDone = await GetIndexBuilder().IsDone(); 
             if(isDone)
             {
                 State.IndexStatus = IndexStatus.Available;
-                await base.WriteStateAsync().ConfigureAwait(false);
+                await base.WriteStateAsync(); 
                 return true;
             }
             return true;
@@ -229,7 +229,7 @@ namespace Orleans.Indexing
 
         async Task<IOrleansQueryResult<IIndexableGrain>> IIndex.Lookup(object key)
         {
-            return (IOrleansQueryResult<IIndexableGrain>)await Lookup((K)key).ConfigureAwait(false);
+            return (IOrleansQueryResult<IIndexableGrain>)await Lookup((K)key); 
         }
 
         /// <summary>
