@@ -97,25 +97,25 @@ namespace Orleans.Indexing
             return Task.FromResult(_status == IndexStatus.Available);
         }
 
-        async Task<IEnumerable<IIndexableGrain>> IIndex.Lookup(object key)
+        async Task<IOrleansQueryResult<IIndexableGrain>> IIndex.Lookup(object key)
         {
             //get all silos
             Dictionary<SiloAddress, SiloStatus> hosts = await SiloUtils.GetHosts(true);
 
             IEnumerable<IIndexableGrain>[] queriesToSilos = await Task.WhenAll(GetResultQueries(hosts, key));
             
-            return queriesToSilos.SelectMany(res => res);
+            return new OrleansQueryResult<IIndexableGrain>(queriesToSilos.SelectMany(res => res));
         }
 
-        public async Task<IEnumerable<V>> Lookup(K key)
+        public async Task<IOrleansQueryResult<V>> Lookup(K key)
         {
-            return (await ((IIndex)this).Lookup(key)).Select(e => e.AsReference<V>());
+            return new OrleansQueryResult<V>((await ((IIndex)this).Lookup(key)).Select(e => e.AsReference<V>()));
         }
 
-        private ISet<Task<IEnumerable<IIndexableGrain>>> GetResultQueries(Dictionary<SiloAddress, SiloStatus> hosts, object key)
+        private ISet<Task<IOrleansQueryResult<IIndexableGrain>>> GetResultQueries(Dictionary<SiloAddress, SiloStatus> hosts, object key)
         {
             //Task[] queriesToSilos = new Task[hosts.Keys.Count];
-            ISet<Task<IEnumerable<IIndexableGrain>>> queriesToSilos = new HashSet<Task<IEnumerable<IIndexableGrain>>>();
+            ISet<Task<IOrleansQueryResult<IIndexableGrain>>> queriesToSilos = new HashSet<Task<IOrleansQueryResult<IIndexableGrain>>>();
 
             int i = 0;
             GrainId grainID = GetGrainID(IndexUtils.GetIndexNameFromIndexGrain(this));
@@ -142,20 +142,20 @@ namespace Orleans.Indexing
             //get all silos
             Dictionary<SiloAddress, SiloStatus> hosts = await SiloUtils.GetHosts(true);
 
-            ISet<Task<IEnumerable<IIndexableGrain>>> queriesToSilos = GetResultQueries(hosts, key);
+            ISet<Task<IOrleansQueryResult<IIndexableGrain>>> queriesToSilos = GetResultQueries(hosts, key);
 
             //TODO: After fixing the problem with OrleansStream, this part is not needed anymore
             while (queriesToSilos.Count > 0)
             {
                 // Identify the first task that completes.
-                Task<IEnumerable<IIndexableGrain>> firstFinishedTask = await Task.WhenAny(queriesToSilos);
+                Task<IOrleansQueryResult<IIndexableGrain>> firstFinishedTask = await Task.WhenAny(queriesToSilos);
 
                 // ***Remove the selected task from the list so that you don't
                 // process it more than once.
                 queriesToSilos.Remove(firstFinishedTask);
 
                 // Await the completed task.
-                IEnumerable<IIndexableGrain> partialResult = await firstFinishedTask;
+                IOrleansQueryResult<IIndexableGrain> partialResult = await firstFinishedTask;
 
                 await result.OnNextBatchAsync(partialResult);
             }

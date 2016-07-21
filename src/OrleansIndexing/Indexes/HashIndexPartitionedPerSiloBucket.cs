@@ -180,7 +180,7 @@ namespace Orleans.Indexing
         //    return Lookup((IOrleansQueryResultStream<V>)result, (K)key);
         //}
 
-        public Task<IEnumerable<V>> Lookup(K key)
+        public Task<IOrleansQueryResult<V>> Lookup(K key)
         {
             if (!(State.IndexStatus == IndexStatus.Available))
             {
@@ -191,11 +191,11 @@ namespace Orleans.Indexing
             HashIndexSingleBucketEntry<V> entry;
             if (State.IndexMap.TryGetValue(key, out entry))
             {
-                return Task.FromResult((IEnumerable<V>)entry.Values);
+                return Task.FromResult((IOrleansQueryResult<V>)new OrleansQueryResult<V>(entry.Values));
             }
             else
             {
-                return Task.FromResult(Enumerable.Empty<V>());
+                return Task.FromResult((IOrleansQueryResult<V>)new OrleansQueryResult<V>(Enumerable.Empty<V>()));
             }
         }
 

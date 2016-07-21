@@ -107,7 +107,7 @@ namespace Orleans.Indexing
             return Lookup(result.Cast<V>(), (K)key);
         }
 
-        public Task<IEnumerable<V>> Lookup(K key)
+        public Task<IOrleansQueryResult<V>> Lookup(K key)
         {
             IHashIndexPartitionedPerKeyBucket<K, V> targetBucket = RuntimeClient.Current.InternalGrainFactory.GetGrain<IHashIndexPartitionedPerKeyBucket<K, V>>(
                    IndexUtils.GetIndexGrainID(typeof(V), _indexName) + "_" + key.GetHashCode()
@@ -115,7 +115,7 @@ namespace Orleans.Indexing
             return targetBucket.Lookup(key);
         }
 
-        async Task<IEnumerable<IIndexableGrain>> IIndex.Lookup(object key)
+        async Task<IOrleansQueryResult<IIndexableGrain>> IIndex.Lookup(object key)
         {
             return await Lookup((K)key);
         }
