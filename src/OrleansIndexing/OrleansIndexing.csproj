@@ -86,7 +86,7 @@
     <Compile Include="Query\OrleansQueryableExtensions.cs" />
     <Compile Include="Query\QueryActiveGrainsNode.cs" />
     <Compile Include="Query\OrleansQueryProvider.cs" />
-    <Compile Include="Query\OrleansQueryResult.cs" />
+    <Compile Include="Query\QueryResult\OrleansQueryResult.cs" />
     <Compile Include="Scanners\ActiveGrainEnumeratorGrain.cs" />
     <Compile Include="Scanners\ActiveGrainScanner.cs" />
     <Compile Include="Scanners\Interfaces\IActiveGrainEnumeratorGrain.cs" />
