@@ -39,7 +39,7 @@ namespace Orleans.Indexing
                 );
                 if (befImgHash == aftImgHash)
                 {
-                    return await befImgBucket.ApplyIndexUpdate(g, iUpdate, isUniqueIndex).ConfigureAwait(false);
+                    return await befImgBucket.ApplyIndexUpdate(g, iUpdate, isUniqueIndex);
                 }
                 else
                 {
@@ -48,7 +48,7 @@ namespace Orleans.Indexing
                     );
                     var befTask = befImgBucket.ApplyIndexUpdate(g, iUpdate, isUniqueIndex, OperationType.Delete);
                     var aftTask = aftImgBucket.ApplyIndexUpdate(g, iUpdate, isUniqueIndex, OperationType.Insert);
-                    bool[] results = await Task.WhenAll(befTask, aftTask).ConfigureAwait(false);
+                    bool[] results = await Task.WhenAll(befTask, aftTask);
                     return results[0] && results[1];
                 }
             }
@@ -58,7 +58,7 @@ namespace Orleans.Indexing
                 IHashIndexPartitionedPerKeyBucket<K, V> aftImgBucket = InsideRuntimeClient.Current.InternalGrainFactory.GetGrain<IHashIndexPartitionedPerKeyBucket<K, V>>(
                     IndexUtils.GetIndexGrainID(typeof(V), _indexName) + "_" + aftImgHash
                 );
-                return await aftImgBucket.ApplyIndexUpdate(g, iUpdate, isUniqueIndex).ConfigureAwait(false);
+                return await aftImgBucket.ApplyIndexUpdate(g, iUpdate, isUniqueIndex);
             }
             else if(opType == OperationType.Delete)
             {
@@ -66,7 +66,7 @@ namespace Orleans.Indexing
                 IHashIndexPartitionedPerKeyBucket<K, V> befImgBucket = InsideRuntimeClient.Current.InternalGrainFactory.GetGrain<IHashIndexPartitionedPerKeyBucket<K, V>>(
                     IndexUtils.GetIndexGrainID(typeof(V), _indexName) + "_" + befImgHash
                 );
-                return await befImgBucket.ApplyIndexUpdate(g, iUpdate, isUniqueIndex).ConfigureAwait(false);
+                return await befImgBucket.ApplyIndexUpdate(g, iUpdate, isUniqueIndex);
             }
             return true;
         }
