@@ -18,6 +18,7 @@ namespace Orleans.Indexing
     [Reentrant]
     //[StatelessWorker]
     //TODO: because of a bug in OrleansStreams, this grain cannot be StatelessWorker. It should be fixed later.
+    //TODO: basically, this class does not even need to be a grain, but it's not possible to call a SystemTarget from a non-grain
     public class HashIndexPartitionedPerSilo<K, V> : Grain, IHashIndexPartitionedPerSilo<K, V> where V : IIndexableGrain
     {
         private IndexStatus _status;
