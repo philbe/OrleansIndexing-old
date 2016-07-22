@@ -104,12 +104,12 @@ namespace Orleans.Indexing
 
             IEnumerable<IIndexableGrain>[] queriesToSilos = await Task.WhenAll(GetResultQueries(hosts, key));
             
-            return new OrleansQueryResult<IIndexableGrain>(queriesToSilos.SelectMany(res => res).ToList());
+            return (IOrleansQueryResult<IIndexableGrain>)new OrleansQueryResult<V>(queriesToSilos.SelectMany(res => res.Select(e => e.AsReference<V>())).ToList());
         }
 
         public async Task<IOrleansQueryResult<V>> Lookup(K key)
         {
-            return new OrleansQueryResult<V>((await ((IIndex)this).Lookup(key)).Select(e => e.AsReference<V>()));
+            return (IOrleansQueryResult<V>) await ((IIndex)this).Lookup(key);
         }
 
         private ISet<Task<IOrleansQueryResult<IIndexableGrain>>> GetResultQueries(Dictionary<SiloAddress, SiloStatus> hosts, object key)
