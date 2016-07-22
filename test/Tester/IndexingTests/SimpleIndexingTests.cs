@@ -176,7 +176,7 @@ namespace UnitTests.IndexingTests
                 return TaskDone.Done;
             }));
 
-            int finalCount = await tsk.ConfigureAwait(false);
+            int finalCount = await tsk;
 
             Assert.Equal(finalCount, await CountPlayersBlockingIn(q));
 
