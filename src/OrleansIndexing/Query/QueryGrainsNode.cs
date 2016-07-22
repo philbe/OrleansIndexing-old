@@ -76,9 +76,11 @@ namespace Orleans.Indexing
         /// <returns>the query result</returns>
         public abstract Task ObserveResults(IAsyncBatchObserver<TIGrain> observer);
 
+        public abstract Task<IOrleansQueryResult<TIGrain>> GetResults();
+
         public IEnumerator<TProperties> GetEnumerator()
         {
-            throw new NotSupportedException("GetEnumerator is not supported on QueryGrainsNode. User ");
+            throw new NotSupportedException("GetEnumerator is not supported on QueryGrainsNode.");
         }
 
         IEnumerator IEnumerable.GetEnumerator()

@@ -20,6 +20,11 @@ namespace Orleans.Indexing
         {
         }
 
+        public override Task<IOrleansQueryResult<TIGrain>> GetResults()
+        {
+            throw new NotSupportedException(string.Format("Traversing over all the active grains of {0} is not supported.", typeof(TIGrain)));
+        }
+
         public override Task ObserveResults(IAsyncBatchObserver<TIGrain> observer)
         {
             throw new NotSupportedException(string.Format("Traversing over all the active grains of {0} is not supported.", typeof(TIGrain)));

@@ -21,6 +21,16 @@ namespace Orleans.Indexing
     /// </summary>
     public interface IOrleansQueryable<TGrain, TProperties> : /*IOrleansQueryable, */ IOrderedQueryable<TProperties> where TGrain : IIndexableGrain
     {
+        /// <summary>
+        /// Observes the result of the query for the current IOrleansQueryable
+        /// </summary>
+        /// <param name="observer">the observer object</param>
         Task ObserveResults(IAsyncBatchObserver<TGrain> observer);
+
+        /// <summary>
+        /// gets the result of the query for the current IOrleansQueryable
+        /// </summary>
+        /// <returns>the whole query result</returns>
+        Task<IOrleansQueryResult<TGrain>> GetResults();
     }
 }
