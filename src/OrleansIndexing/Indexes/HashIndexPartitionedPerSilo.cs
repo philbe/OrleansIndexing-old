@@ -19,7 +19,7 @@ namespace Orleans.Indexing
     //[StatelessWorker]
     //TODO: because of a bug in OrleansStreams, this grain cannot be StatelessWorker. It should be fixed later.
     //TODO: basically, this class does not even need to be a grain, but it's not possible to call a SystemTarget from a non-grain
-    public class HashIndexPartitionedPerSilo<K, V> : Grain, IHashIndexPartitionedPerSilo<K, V> where V : IIndexableGrain
+    public class HashIndexPartitionedPerSilo<K, V> : Grain, IHashIndexPartitionedPerSilo<K, V> where V : class, IIndexableGrain
     {
         private IndexStatus _status;
         public static void InitPerSilo(Silo silo, string indexName, bool isUnique)
@@ -105,7 +105,7 @@ namespace Orleans.Indexing
 
             IEnumerable<IIndexableGrain>[] queriesToSilos = await Task.WhenAll(GetResultQueries(hosts, key));
             
-            return (IOrleansQueryResult<IIndexableGrain>)new OrleansQueryResult<V>(queriesToSilos.SelectMany(res => res.Select(e => e.AsReference<V>())).ToList());
+            return new OrleansQueryResult<V>(queriesToSilos.SelectMany(res => res.Select(e => e.AsReference<V>())).ToList());
         }
 
         public async Task<IOrleansQueryResult<V>> Lookup(K key)
