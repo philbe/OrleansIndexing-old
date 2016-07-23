@@ -10,7 +10,7 @@ namespace Orleans.Indexing
 
         public IndexAttribute()
         {
-            IndexType = typeof(IHashIndexSingleBucket<,>);
+            IndexType = typeof(AHashIndexSingleBucket<,>);
         }
 
         public IndexAttribute(Type IndexType) : this(IndexType, false)

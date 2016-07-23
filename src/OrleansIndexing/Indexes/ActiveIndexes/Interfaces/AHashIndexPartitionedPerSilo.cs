@@ -9,7 +9,7 @@ using Orleans.Concurrency;
 namespace Orleans.Indexing
 {
     /// <summary>
-    /// The interface for HashIndexPartitionedPerSiloBucket<K, V> system target,
+    /// The interface for AHashIndexPartitionedPerSiloBucketImpl<K, V> system target,
     /// which is created in order to guide Orleans to find the grain instances
     /// more efficiently.
     /// 
@@ -18,8 +18,8 @@ namespace Orleans.Indexing
     /// </summary>
     /// <typeparam name="K">type of hash-index key</typeparam>
     /// <typeparam name="V">type of grain that is being indexed</typeparam>
-    //internal interface IHashIndexPartitionedPerSiloBucket<K, V> : ISystemTarget, IHashIndex<K, V> where V : IIndexableGrain
-    internal interface IHashIndexPartitionedPerSiloBucket : ISystemTarget, IHashIndex<object, IIndexableGrain>
+    //internal interface AHashIndexPartitionedPerSiloBucket<K, V> : ISystemTarget, HashIndexInterface<K, V> where V : IIndexableGrain
+    public interface AHashIndexPartitionedPerSilo<K, V> : IGrain, HashIndexInterface<K, V> where V : IIndexableGrain
     {
     }
 }

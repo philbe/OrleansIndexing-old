@@ -14,13 +14,12 @@ namespace Orleans.Indexing
     /// </summary>
     /// <typeparam name="K"></typeparam>
     /// <typeparam name="V"></typeparam>
-    [Serializable]
-    public class IHashIndexPartitionedPerKey<K, V> : IHashIndex<K, V> where V : class, IIndexableGrain
+    public abstract class HashIndexPartitionedPerKey<K, V, BucketT> : HashIndexInterface<K, V> where V : class, IIndexableGrain where BucketT : HashIndexPartitionedPerKeyBucketInterface<K, V>, IGrainWithStringKey
     {
         private string _indexName;
         //private bool _isUnique;
 
-        public IHashIndexPartitionedPerKey(string indexName, bool isUniqueIndex)
+        public HashIndexPartitionedPerKey(string indexName, bool isUniqueIndex)
         {
             _indexName = indexName;
             //_isUnique = isUniqueIndex;
@@ -34,7 +33,7 @@ namespace Orleans.Indexing
             {
                 int befImgHash = update.GetBeforeImage().GetHashCode();
                 int aftImgHash = update.GetAfterImage().GetHashCode();
-                IHashIndexPartitionedPerKeyBucket<K, V> befImgBucket = InsideRuntimeClient.Current.InternalGrainFactory.GetGrain<IHashIndexPartitionedPerKeyBucket<K, V>>(
+                BucketT befImgBucket = InsideRuntimeClient.Current.InternalGrainFactory.GetGrain<BucketT>(
                     IndexUtils.GetIndexGrainID(typeof(V), _indexName) + "_" + befImgHash
                 );
                 if (befImgHash == aftImgHash)
@@ -43,7 +42,7 @@ namespace Orleans.Indexing
                 }
                 else
                 {
-                    IHashIndexPartitionedPerKeyBucket<K, V> aftImgBucket = InsideRuntimeClient.Current.InternalGrainFactory.GetGrain<IHashIndexPartitionedPerKeyBucket<K, V>>(
+                    BucketT aftImgBucket = InsideRuntimeClient.Current.InternalGrainFactory.GetGrain<BucketT>(
                         IndexUtils.GetIndexGrainID(typeof(V), _indexName) + "_" + befImgHash
                     );
                     var befTask = befImgBucket.ApplyIndexUpdate(g, iUpdate, isUniqueIndex, OperationType.Delete);
@@ -55,7 +54,7 @@ namespace Orleans.Indexing
             else if(opType == OperationType.Insert)
             {
                 int aftImgHash = update.GetAfterImage().GetHashCode();
-                IHashIndexPartitionedPerKeyBucket<K, V> aftImgBucket = InsideRuntimeClient.Current.InternalGrainFactory.GetGrain<IHashIndexPartitionedPerKeyBucket<K, V>>(
+                BucketT aftImgBucket = InsideRuntimeClient.Current.InternalGrainFactory.GetGrain<BucketT>(
                     IndexUtils.GetIndexGrainID(typeof(V), _indexName) + "_" + aftImgHash
                 );
                 return await aftImgBucket.ApplyIndexUpdate(g, iUpdate, isUniqueIndex);
@@ -63,7 +62,7 @@ namespace Orleans.Indexing
             else if(opType == OperationType.Delete)
             {
                 int befImgHash = update.GetBeforeImage().GetHashCode();
-                IHashIndexPartitionedPerKeyBucket<K, V> befImgBucket = InsideRuntimeClient.Current.InternalGrainFactory.GetGrain<IHashIndexPartitionedPerKeyBucket<K, V>>(
+                BucketT befImgBucket = InsideRuntimeClient.Current.InternalGrainFactory.GetGrain<BucketT>(
                     IndexUtils.GetIndexGrainID(typeof(V), _indexName) + "_" + befImgHash
                 );
                 return await befImgBucket.ApplyIndexUpdate(g, iUpdate, isUniqueIndex);
@@ -73,7 +72,7 @@ namespace Orleans.Indexing
 
         public Task Lookup(IOrleansQueryResultStream<V> result, K key)
         {
-            IHashIndexPartitionedPerKeyBucket<K, V> targetBucket = RuntimeClient.Current.InternalGrainFactory.GetGrain<IHashIndexPartitionedPerKeyBucket<K, V>>(
+            BucketT targetBucket = RuntimeClient.Current.InternalGrainFactory.GetGrain<BucketT>(
                 IndexUtils.GetIndexGrainID(typeof(V), _indexName) + "_" + key.GetHashCode()
             );
             return targetBucket.Lookup(result, key);
@@ -109,7 +108,7 @@ namespace Orleans.Indexing
 
         public Task<IOrleansQueryResult<V>> Lookup(K key)
         {
-            IHashIndexPartitionedPerKeyBucket<K, V> targetBucket = RuntimeClient.Current.InternalGrainFactory.GetGrain<IHashIndexPartitionedPerKeyBucket<K, V>>(
+            BucketT targetBucket = RuntimeClient.Current.InternalGrainFactory.GetGrain<BucketT>(
                    IndexUtils.GetIndexGrainID(typeof(V), _indexName) + "_" + key.GetHashCode()
                );
             return targetBucket.Lookup(key);

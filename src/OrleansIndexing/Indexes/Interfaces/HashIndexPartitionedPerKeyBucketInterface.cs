@@ -15,7 +15,7 @@ namespace Orleans.Indexing
     /// </summary>
     /// <typeparam name="K">type of hash-index key</typeparam>
     /// <typeparam name="V">type of grain that is being indexed</typeparam>
-    internal interface IHashIndexPartitionedPerKeyBucket<K, V> : IGrainWithStringKey, IHashIndex<K, V> where V : IIndexableGrain
+    public interface HashIndexPartitionedPerKeyBucketInterface<K, V> : HashIndexInterface<K, V> where V : IIndexableGrain
     {
 
         /// <summary>

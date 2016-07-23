@@ -15,8 +15,7 @@ namespace Orleans.Indexing
     /// </summary>
     /// <typeparam name="K"></typeparam>
     /// <typeparam name="V"></typeparam>
-    [StorageProvider(ProviderName = Constants.MEMORY_STORAGE_PROVIDER_NAME)]
-    public class HashIndexSingleBucket<K, V> : Grain<HashIndexBucketState<K,V>>, IHashIndexSingleBucket<K, V> where V : class, IIndexableGrain
+    public abstract class HashIndexSingleBucket<K, V> : Grain<HashIndexBucketState<K,V>>, HashIndexSingleBucketInterface<K, V> where V : class, IIndexableGrain
     {
         //private Func<K, K, bool> _equalsLambda = ((k1,k2) => k1.Equals(k2));
         //private Func<K, long> _hashLambda = (k => k.GetHashCode());

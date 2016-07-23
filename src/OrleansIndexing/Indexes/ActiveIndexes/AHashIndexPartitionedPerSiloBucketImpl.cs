@@ -21,13 +21,13 @@ namespace Orleans.Indexing
     /// <typeparam name="K"></typeparam>
     /// <typeparam name="V"></typeparam>
     [StorageProvider(ProviderName = Constants.MEMORY_STORAGE_PROVIDER_NAME)]
-    internal class HashIndexPartitionedPerSiloBucket/*<K, V>*/ : SystemTarget, IHashIndexPartitionedPerSiloBucket/*<K, V> where V : IIndexableGrain*/
+    internal class AHashIndexPartitionedPerSiloBucketImpl/*<K, V>*/ : SystemTarget, AHashIndexPartitionedPerSiloBucket/*<K, V> where V : IIndexableGrain*/
     {
         private HashIndexBucketState<K, V> State;
         private readonly Logger logger;
         private readonly string _parentIndexName;
         
-        public HashIndexPartitionedPerSiloBucket(string parentIndexName, GrainId grainId, SiloAddress silo) : base(grainId, silo)
+        public AHashIndexPartitionedPerSiloBucketImpl(string parentIndexName, GrainId grainId, SiloAddress silo) : base(grainId, silo)
         {
             State = new HashIndexBucketState<K, V>();
             State.IndexMap = new Dictionary<K, HashIndexSingleBucketEntry<V>>();
@@ -35,7 +35,7 @@ namespace Orleans.Indexing
             //State.IsUnique = false; //a per-silo index cannot check for uniqueness
             _parentIndexName = parentIndexName;
 
-            logger = LogManager.GetLogger(string.Format("{0}.HashIndexPartitionedPerSiloBucket<{1},{2}>", parentIndexName, typeof(K), typeof(V)), LoggerType.Runtime);
+            logger = LogManager.GetLogger(string.Format("{0}.AHashIndexPartitionedPerSiloBucketImpl<{1},{2}>", parentIndexName, typeof(K), typeof(V)), LoggerType.Runtime);
         }
 
         public async Task<bool> ApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, bool isUniqueIndex, SiloAddress siloAddress)

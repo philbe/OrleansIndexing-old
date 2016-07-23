@@ -18,8 +18,7 @@ namespace Orleans.Indexing
     /// </summary>
     /// <typeparam name="K"></typeparam>
     /// <typeparam name="V"></typeparam>
-    [StorageProvider(ProviderName = Constants.MEMORY_STORAGE_PROVIDER_NAME)]
-    internal class HashIndexPartitionedPerKeyBucket<K, V> : Grain<HashIndexBucketState<K,V>>, IHashIndexPartitionedPerKeyBucket<K, V> where V : class, IIndexableGrain
+    public abstract class HashIndexPartitionedPerKeyBucket<K, V> : Grain<HashIndexBucketState<K,V>>, HashIndexPartitionedPerKeyBucketInterface<K, V> where V : class, IIndexableGrain
     {
         public override Task OnActivateAsync()
         {

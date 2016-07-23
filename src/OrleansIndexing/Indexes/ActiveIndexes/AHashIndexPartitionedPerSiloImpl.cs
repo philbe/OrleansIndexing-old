@@ -19,12 +19,12 @@ namespace Orleans.Indexing
     //[StatelessWorker]
     //TODO: because of a bug in OrleansStreams, this grain cannot be StatelessWorker. It should be fixed later.
     //TODO: basically, this class does not even need to be a grain, but it's not possible to call a SystemTarget from a non-grain
-    public class HashIndexPartitionedPerSilo<K, V> : Grain, IHashIndexPartitionedPerSilo<K, V> where V : class, IIndexableGrain
+    public class AHashIndexPartitionedPerSiloImpl<K, V> : Grain, AHashIndexPartitionedPerSilo<K, V> where V : class, IIndexableGrain
     {
         private IndexStatus _status;
         public static void InitPerSilo(Silo silo, string indexName, bool isUnique)
         {
-            silo.RegisterSystemTarget(new HashIndexPartitionedPerSiloBucket(
+            silo.RegisterSystemTarget(new AHashIndexPartitionedPerSiloBucketImpl(
                 indexName,
                 GetGrainID(indexName),
                 silo.SiloAddress
@@ -40,7 +40,7 @@ namespace Orleans.Indexing
 
         public Task<bool> ApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, bool isUniqueIndex, SiloAddress siloAddress)
         {
-            IHashIndexPartitionedPerSiloBucket bucketInCurrentSilo = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IHashIndexPartitionedPerSiloBucket>(
+            AHashIndexPartitionedPerSiloBucket bucketInCurrentSilo = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<AHashIndexPartitionedPerSiloBucket>(
                 GetGrainID(IndexUtils.GetIndexNameFromIndexGrain(this)),
                 siloAddress
             );
@@ -84,7 +84,7 @@ namespace Orleans.Indexing
             foreach (SiloAddress siloAddress in hosts.Keys)
             {
                 //dispose the index on each silo
-                disposeToSilos[i] = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IHashIndexPartitionedPerSiloBucket>(
+                disposeToSilos[i] = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<AHashIndexPartitionedPerSiloBucket>(
                     grainID,
                     siloAddress
                 ).Dispose();
@@ -123,7 +123,7 @@ namespace Orleans.Indexing
             foreach (SiloAddress siloAddress in hosts.Keys)
             {
                 //query each silo
-                queriesToSilos.Add(InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IHashIndexPartitionedPerSiloBucket>(
+                queriesToSilos.Add(InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<AHashIndexPartitionedPerSiloBucket>(
                     grainID,
                     siloAddress
                 ).Lookup(/*result, */key)); //TODO: because of a bug in OrleansStream, a SystemTarget cannot work with streams. It should be fixed later.
