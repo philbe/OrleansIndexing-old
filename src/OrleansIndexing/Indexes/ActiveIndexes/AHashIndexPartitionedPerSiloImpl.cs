@@ -13,8 +13,8 @@ namespace Orleans.Indexing
     /// <summary>
     /// A simple implementation of a single-grain in-memory hash-index
     /// </summary>
-    /// <typeparam name="K"></typeparam>
-    /// <typeparam name="V"></typeparam>
+    /// <typeparam name="K">type of hash-index key</typeparam>
+    /// <typeparam name="V">type of grain that is being indexed</typeparam>
     [Reentrant]
     //[StatelessWorker]
     //TODO: because of a bug in OrleansStreams, this grain cannot be StatelessWorker. It should be fixed later.

@@ -10,10 +10,10 @@ using Orleans.Runtime;
 namespace Orleans.Indexing
 {
     /// <summary>
-    /// A simple implementation of a single-grain in-memory hash-index
+    /// A simple implementation of a partitioned in-memory hash-index
     /// </summary>
-    /// <typeparam name="K"></typeparam>
-    /// <typeparam name="V"></typeparam>
+    /// <typeparam name="K">type of hash-index key</typeparam>
+    /// <typeparam name="V">type of grain that is being indexed</typeparam>
     public abstract class HashIndexPartitionedPerKey<K, V, BucketT> : HashIndexInterface<K, V> where V : class, IIndexableGrain where BucketT : HashIndexPartitionedPerKeyBucketInterface<K, V>, IGrainWithStringKey
     {
         private string _indexName;

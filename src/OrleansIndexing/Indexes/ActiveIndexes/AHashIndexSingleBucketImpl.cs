@@ -13,8 +13,8 @@ namespace Orleans.Indexing
     /// <summary>
     /// A simple implementation of a single-grain in-memory hash-index
     /// </summary>
-    /// <typeparam name="K"></typeparam>
-    /// <typeparam name="V"></typeparam>
+    /// <typeparam name="K">type of hash-index key</typeparam>
+    /// <typeparam name="V">type of grain that is being indexed</typeparam>
     [StorageProvider(ProviderName = Constants.MEMORY_STORAGE_PROVIDER_NAME)]
     public class AHashIndexSingleBucketImpl<K, V> : HashIndexSingleBucket<K, V>, AHashIndexSingleBucket<K, V> where V : class, IIndexableGrain
     {

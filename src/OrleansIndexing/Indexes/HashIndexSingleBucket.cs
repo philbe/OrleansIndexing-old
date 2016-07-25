@@ -13,8 +13,8 @@ namespace Orleans.Indexing
     /// <summary>
     /// A simple implementation of a single-grain in-memory hash-index
     /// </summary>
-    /// <typeparam name="K"></typeparam>
-    /// <typeparam name="V"></typeparam>
+    /// <typeparam name="K">type of hash-index key</typeparam>
+    /// <typeparam name="V">type of grain that is being indexed</typeparam>
     public abstract class HashIndexSingleBucket<K, V> : Grain<HashIndexBucketState<K,V>>, HashIndexSingleBucketInterface<K, V> where V : class, IIndexableGrain
     {
         //private Func<K, K, bool> _equalsLambda = ((k1,k2) => k1.Equals(k2));

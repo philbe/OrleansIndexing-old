@@ -11,13 +11,10 @@ using Orleans.Providers;
 namespace Orleans.Indexing
 {
     /// <summary>
-    /// A simple implementation of a single-grain in-memory hash-index
-    /// 
-    /// Generic SystemTargets are not supported yet, and that's why the
-    /// implementation is non-generic.
+    /// A simple implementation of a single-bucket in-memory hash-index
     /// </summary>
-    /// <typeparam name="K"></typeparam>
-    /// <typeparam name="V"></typeparam>
+    /// <typeparam name="K">type of hash-index key</typeparam>
+    /// <typeparam name="V">type of grain that is being indexed</typeparam>
     public abstract class HashIndexPartitionedPerKeyBucket<K, V> : Grain<HashIndexBucketState<K,V>>, HashIndexPartitionedPerKeyBucketInterface<K, V> where V : class, IIndexableGrain
     {
         public override Task OnActivateAsync()
