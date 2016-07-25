@@ -28,6 +28,7 @@ namespace Orleans.Runtime
 
         public const string TroubleshootingHelpLink = "https://aka.ms/orleans-troubleshooting";
 
+        public const string INDEXING_STORAGE_PROVIDER_NAME = "IndexingStorageProvider";
         public const string INDEXING_STREAM_PROVIDER_NAME = "IndexingStreamProvider";
 
         public static readonly GrainId DirectoryServiceId = GrainId.GetSystemTargetGrainId(10);
