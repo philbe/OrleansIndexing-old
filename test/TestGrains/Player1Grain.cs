@@ -18,7 +18,7 @@ namespace UnitTests.Grains
     /// A simple grain that represent a player in a game
     /// </summary>
     [StorageProvider(ProviderName = "MemoryStore")]
-    public class Player1Grain : IndexableGrain<Player1GrainState, Player1Properties>, IPlayer1Grain
+    public class Player1Grain : IndexableGrainNonFaultTolerant<Player1GrainState, Player1Properties>, IPlayer1Grain
     {
         private Logger logger;
         

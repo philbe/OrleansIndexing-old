@@ -8,7 +8,7 @@ namespace Orleans.Indexing
     public enum IndexBuilderStatus { Created, InProgress, Done };
 
     /// <summary>
-    /// The grain interface for the IndexableGrain grain.
+    /// The grain interface for the IndexBuilder grain.
     /// </summary>
     public interface IIndexBuilder : IGrainWithStringKey
     {

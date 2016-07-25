@@ -10,15 +10,15 @@ using System.Linq;
 namespace Orleans.Indexing
 {
     /// <summary>
-    /// IndexableGrain class is the super-class of all grains that
+    /// IndexableGrainNonFaultTolerant class is the super-class of all grains that
     /// need to have indexing capability.
     /// 
     /// To make a grain indexable, two steps should be taken:
-    ///     1- the grain class should extend IndexableGrain
+    ///     1- the grain class should extend IndexableGrainNonFaultTolerant
     ///     2- the grain class is responsible for calling UpdateIndexes
     ///        whenever one or more indexes need to be updated
     /// </summary>
-    public abstract class IndexableGrain<TState, TProperties> : Grain<TState>, IIndexableGrain<TProperties> where TProperties: new()
+    public abstract class IndexableGrainNonFaultTolerant<TState, TProperties> : Grain<TState>, IIndexableGrain<TProperties> where TProperties: new()
     {
         /// <summary>
         /// an immutable cached version of IIndexUpdateGenerator instances
@@ -281,12 +281,12 @@ namespace Orleans.Indexing
     }
 
     /// <summary>
-    /// This stateless IndexableGrain is the super class of all stateless 
+    /// This stateless IndexableGrainNonFaultTolerant is the super class of all stateless 
     /// indexable-grains. But as multiple-inheritance (from both Grain and 
-    /// IndexableGrain<T>) is not allowed, this class extends IndexableGrain<object>
+    /// IndexableGrainNonFaultTolerant<T>) is not allowed, this class extends IndexableGrainNonFaultTolerant<object>
     /// and disables the storage functionality of Grain<T>
     /// </summary>
-    public abstract class IndexableGrain<TProperties> : IndexableGrain<object, TProperties>, IIndexableGrain<TProperties> where TProperties : new()
+    public abstract class IndexableGrainNonFaultTolerant<TProperties> : IndexableGrainNonFaultTolerant<object, TProperties>, IIndexableGrain<TProperties> where TProperties : new()
     {
         protected override Task ClearStateAsync()
         {

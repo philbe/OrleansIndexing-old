@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Orleans.Indexing
 {
     /// <summary>
-    /// The grain interface for the IndexableGrain grain.
+    /// The grain interface for the IndexableGrain and IndexableGrainNonFaultTolerant grains.
     /// </summary>
     public interface IIndexableGrain : IGrain
     {
