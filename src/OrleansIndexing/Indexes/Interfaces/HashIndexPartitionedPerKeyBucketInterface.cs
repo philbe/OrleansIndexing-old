@@ -26,6 +26,6 @@ namespace Orleans.Indexing
         /// <param name="isUnique">whether this is a unique index that we are updating</param>
         /// <param name="op">the actual type of the operation, which override the operation-type in iUpdate</param>
         /// <returns>true, if the index update was successful, otherwise false</returns>
-        Task<bool> ApplyIndexUpdate(IIndexableGrain updatedGrain, Immutable<IMemberUpdate> iUpdate, bool isUnique, OperationType op);
+        Task<bool> ApplyIndexUpdate(IIndexableGrain updatedGrain, Immutable<IMemberUpdate> iUpdate, bool isUnique, IndexOperationType op);
     }
 }

@@ -28,8 +28,8 @@ namespace Orleans.Indexing
         public async Task<bool> ApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, bool isUniqueIndex, SiloAddress siloAddress)
         {
             IMemberUpdate update = iUpdate.Value;
-            OperationType opType = update.GetOperationType();
-            if (opType == OperationType.Update)
+            IndexOperationType opType = update.GetOperationType();
+            if (opType == IndexOperationType.Update)
             {
                 int befImgHash = update.GetBeforeImage().GetHashCode();
                 int aftImgHash = update.GetAfterImage().GetHashCode();
@@ -45,13 +45,13 @@ namespace Orleans.Indexing
                     BucketT aftImgBucket = InsideRuntimeClient.Current.InternalGrainFactory.GetGrain<BucketT>(
                         IndexUtils.GetIndexGrainID(typeof(V), _indexName) + "_" + befImgHash
                     );
-                    var befTask = befImgBucket.ApplyIndexUpdate(g, iUpdate, isUniqueIndex, OperationType.Delete);
-                    var aftTask = aftImgBucket.ApplyIndexUpdate(g, iUpdate, isUniqueIndex, OperationType.Insert);
+                    var befTask = befImgBucket.ApplyIndexUpdate(g, iUpdate, isUniqueIndex, IndexOperationType.Delete);
+                    var aftTask = aftImgBucket.ApplyIndexUpdate(g, iUpdate, isUniqueIndex, IndexOperationType.Insert);
                     bool[] results = await Task.WhenAll(befTask, aftTask);
                     return results[0] && results[1];
                 }
             }
-            else if(opType == OperationType.Insert)
+            else if(opType == IndexOperationType.Insert)
             {
                 int aftImgHash = update.GetAfterImage().GetHashCode();
                 BucketT aftImgBucket = InsideRuntimeClient.Current.InternalGrainFactory.GetGrain<BucketT>(
@@ -59,7 +59,7 @@ namespace Orleans.Indexing
                 );
                 return await aftImgBucket.ApplyIndexUpdate(g, iUpdate, isUniqueIndex);
             }
-            else if(opType == OperationType.Delete)
+            else if(opType == IndexOperationType.Delete)
             {
                 int befImgHash = update.GetBeforeImage().GetHashCode();
                 BucketT befImgBucket = InsideRuntimeClient.Current.InternalGrainFactory.GetGrain<BucketT>(

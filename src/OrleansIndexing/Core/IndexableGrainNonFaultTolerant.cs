@@ -249,11 +249,11 @@ namespace Orleans.Indexing
             {
                 var indexID = updt.Key;
                 var opType = updt.Value.GetOperationType();
-                if (opType == OperationType.Update || opType == OperationType.Insert)
+                if (opType == IndexOperationType.Update || opType == IndexOperationType.Insert)
                 {
                     befImgs[indexID] = ((IIndexUpdateGenerator)iUpdateGens[indexID].Item3).ExtractIndexImage(Properties);
                 }
-                else if(opType == OperationType.Delete)
+                else if(opType == IndexOperationType.Delete)
                 {
                     befImgs[indexID] = null;
                 }

@@ -45,7 +45,7 @@ namespace Orleans.Indexing
             var opType = updt.GetOperationType();
             HashIndexSingleBucketEntry<V> befEntry;
             HashIndexSingleBucketEntry<V> aftEntry;
-            if (opType == OperationType.Update)
+            if (opType == IndexOperationType.Update)
             {
                 K befImg = (K)updt.GetBeforeImage();
                 K aftImg = (K)updt.GetAfterImage();
@@ -96,7 +96,7 @@ namespace Orleans.Indexing
                     }
                 }
             }
-            else if (opType == OperationType.Insert)
+            else if (opType == IndexOperationType.Insert)
             { // Insert
                 K aftImg = (K)updt.GetAfterImage();
                 if (State.IndexMap.TryGetValue(aftImg, out aftEntry))
@@ -117,7 +117,7 @@ namespace Orleans.Indexing
                     State.IndexMap.Add(aftImg, aftEntry);
                 }
             }
-            else if (opType == OperationType.Delete)
+            else if (opType == IndexOperationType.Delete)
             { // Delete
                 K befImg = (K)updt.GetBeforeImage();
 

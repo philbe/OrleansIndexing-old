@@ -32,7 +32,7 @@ namespace Orleans.Indexing
                 foreach (KeyValuePair<string, IMemberUpdate> updt in updates)
                 {
                     var idxInfo = idxs[updt.Key];
-                    if (updt.Value.GetOperationType() != OperationType.None)
+                    if (updt.Value.GetOperationType() != IndexOperationType.None)
                     {
                         updateIndexTasks.Add(((IIndex)idxInfo.Item1).ApplyIndexUpdate(updatedGrain, updt.Value.AsImmutable(), ((IndexMetaData)idxInfo.Item2).IsUniqueIndex(), siloAddress));
                     }

@@ -20,16 +20,16 @@ namespace Orleans.Indexing
     {
         private Immutable<object> _befImg;
         private Immutable<object> _aftImg;
-        private Immutable<OperationType> _opType;
+        private Immutable<IndexOperationType> _opType;
 
-        public MemberUpdate(object befImg, object aftImg, OperationType opType)
+        public MemberUpdate(object befImg, object aftImg, IndexOperationType opType)
         {
             _opType = opType.AsImmutable();
-            if (opType == OperationType.Update || opType == OperationType.Delete)
+            if (opType == IndexOperationType.Update || opType == IndexOperationType.Delete)
             {
                 _befImg = befImg.AsImmutable();
             }
-            if (opType == OperationType.Update || opType == OperationType.Insert)
+            if (opType == IndexOperationType.Update || opType == IndexOperationType.Insert)
             {
                 _aftImg = aftImg.AsImmutable();
             }
@@ -39,18 +39,18 @@ namespace Orleans.Indexing
         {
         }
 
-        private static OperationType GetOperationType(object befImg, object aftImg)
+        private static IndexOperationType GetOperationType(object befImg, object aftImg)
         {
             if(befImg == null)
             {
-                if (aftImg == null) return OperationType.None;
-                else return OperationType.Insert;
+                if (aftImg == null) return IndexOperationType.None;
+                else return IndexOperationType.Insert;
             }
             else
             {
-                if (aftImg == null) return OperationType.Delete;
-                else if(befImg.Equals(aftImg)) return OperationType.None;
-                else return OperationType.Update;
+                if (aftImg == null) return IndexOperationType.Delete;
+                else if(befImg.Equals(aftImg)) return IndexOperationType.None;
+                else return IndexOperationType.Update;
             }
         }
 
@@ -62,16 +62,16 @@ namespace Orleans.Indexing
         public object GetBeforeImage()
         {
             var opType = _opType.Value;
-            return (opType == OperationType.Update || opType == OperationType.Delete) ? _befImg.Value : null;
+            return (opType == IndexOperationType.Update || opType == IndexOperationType.Delete) ? _befImg.Value : null;
         }
 
         public object GetAfterImage()
         {
             var opType = _opType.Value;
-            return (opType == OperationType.Update || opType == OperationType.Insert) ? _aftImg.Value : null;
+            return (opType == IndexOperationType.Update || opType == IndexOperationType.Insert) ? _aftImg.Value : null;
         }
 
-        public OperationType GetOperationType()
+        public IndexOperationType GetOperationType()
         {
             return _opType.Value;
         }
@@ -80,7 +80,7 @@ namespace Orleans.Indexing
         {
             var len = updates.Length;
             if (len == 0) return null;
-            //OperationType combinedOperationType = updates[0].GetOperationType();
+            //IndexOperationType combinedOperationType = updates[0].GetOperationType();
             //for(int i = 1; i < len; ++i)
             //{
             //    combinedOperationType = combinedOperationType.CombineWith(updates[i].GetOperationType());
