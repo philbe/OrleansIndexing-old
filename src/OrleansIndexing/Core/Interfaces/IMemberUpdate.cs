@@ -14,10 +14,23 @@ namespace Orleans.Indexing
     public interface IMemberUpdate
     {
         /// <summary>
+        /// Returns the before-image of the grain, before applying this update
+        /// </summary>
+        /// <returns>the before-image of the grain, before applying this update</returns>
+        object GetBeforeImage();
+
+        /// <summary>
         /// Produces the after-image of the grain, after applying this update
         /// </summary>
         /// <returns>the after-image of the grain, after applying this update</returns>
         object GetAfterImage();
+
+        /// <summary>
+        /// Combines a list of updates into a single update
+        /// </summary>
+        /// <param name="updates">the list of updates</param>
+        /// <returns>a single update containing all the updates in the list</returns>
+        IMemberUpdate Combine(params IMemberUpdate[] updates);
 
         /// <summary>
         /// Determines the type of operation done, which can be:

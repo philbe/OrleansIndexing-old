@@ -27,7 +27,7 @@ namespace Orleans.Indexing
 
         public async Task<bool> ApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, bool isUniqueIndex, SiloAddress siloAddress)
         {
-            MemberUpdate update = (MemberUpdate)iUpdate.Value;
+            IMemberUpdate update = iUpdate.Value;
             OperationType opType = update.GetOperationType();
             if (opType == OperationType.Update)
             {

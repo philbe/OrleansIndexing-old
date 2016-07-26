@@ -41,7 +41,7 @@ namespace Orleans.Indexing
             //if (State.IndexStatus == IndexStatus.Created) return true;
 
             var updatedGrain = g.AsReference<V>(GrainFactory);
-            var updt = (MemberUpdate)iUpdate.Value;
+            var updt = iUpdate.Value;
             var opType = updt.GetOperationType();
             HashIndexSingleBucketEntry<V> befEntry;
             HashIndexSingleBucketEntry<V> aftEntry;
