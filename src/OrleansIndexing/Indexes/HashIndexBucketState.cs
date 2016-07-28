@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace Orleans.Indexing
@@ -21,7 +22,7 @@ namespace Orleans.Indexing
         /// <summary>
         /// The actual storage of the indexed values
         /// </summary>
-        public IDictionary<K, HashIndexSingleBucketEntry<V>> IndexMap { set; get; }
+        public ConcurrentDictionary<K, HashIndexSingleBucketEntry<V>> IndexMap { set; get; }
 
         /// <summary>
         /// Contains the status of the index regarding
@@ -46,6 +47,6 @@ namespace Orleans.Indexing
         /// than one value if there is no uniqueness constraint
         /// on the hash-index
         /// </summary>
-        public ISet<T> Values = new HashSet<T>();
+        public HashSet<T> Values = new HashSet<T>();
     }
 }

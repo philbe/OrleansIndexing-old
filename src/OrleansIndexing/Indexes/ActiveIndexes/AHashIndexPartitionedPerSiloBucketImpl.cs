@@ -9,6 +9,7 @@ using Orleans.Runtime;
 using K = System.Object;
 using V = Orleans.Indexing.IIndexableGrain;
 using Orleans.Providers;
+using System.Collections.Concurrent;
 
 namespace Orleans.Indexing
 {
@@ -21,6 +22,7 @@ namespace Orleans.Indexing
     /// <typeparam name="K">type of hash-index key</typeparam>
     /// <typeparam name="V">type of grain that is being indexed</typeparam>
     [StorageProvider(ProviderName = Constants.MEMORY_STORAGE_PROVIDER_NAME)]
+    [Reentrant]
     internal class AHashIndexPartitionedPerSiloBucketImpl/*<K, V>*/ : SystemTarget, AHashIndexPartitionedPerSiloBucket/*<K, V> where V : IIndexableGrain*/
     {
         private HashIndexBucketState<K, V> State;
@@ -30,7 +32,7 @@ namespace Orleans.Indexing
         public AHashIndexPartitionedPerSiloBucketImpl(string parentIndexName, GrainId grainId, SiloAddress silo) : base(grainId, silo)
         {
             State = new HashIndexBucketState<K, V>();
-            State.IndexMap = new Dictionary<K, HashIndexSingleBucketEntry<V>>();
+            State.IndexMap = new ConcurrentDictionary<K, HashIndexSingleBucketEntry<V>>();
             State.IndexStatus = IndexStatus.Available;
             //State.IsUnique = false; //a per-silo index cannot check for uniqueness
             _parentIndexName = parentIndexName;
@@ -38,7 +40,7 @@ namespace Orleans.Indexing
             logger = LogManager.GetLogger(string.Format("{0}.AHashIndexPartitionedPerSiloBucketImpl<{1},{2}>", parentIndexName, typeof(K), typeof(V)), LoggerType.Runtime);
         }
 
-        public async Task<bool> ApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, bool isUniqueIndex, SiloAddress siloAddress)
+        public Task<bool> ApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, bool isUniqueIndex, SiloAddress siloAddress)
         {
             //the index can start processing update as soon as it becomes
             //visible to index handler and does not have to wait for any
@@ -48,106 +50,10 @@ namespace Orleans.Indexing
 
             GrainFactory gFactory = InsideRuntimeClient.Current.InternalGrainFactory;
 
-            var updatedGrain = g;//.AsReference<V>(gFactory);
-            var updt = iUpdate.Value;
-            var opType = updt.GetOperationType();
-            HashIndexSingleBucketEntry<V> befEntry;
-            HashIndexSingleBucketEntry<V> aftEntry;
-            if (opType == IndexOperationType.Update)
-            {
-                K befImg = (K)updt.GetBeforeImage();
-                K aftImg = (K)updt.GetAfterImage();
-                if (State.IndexMap.TryGetValue(befImg, out befEntry) && befEntry.Values.Contains(updatedGrain))
-                {   //Delete and Insert
-                    if (State.IndexMap.TryGetValue(aftImg, out aftEntry))
-                    {
-                        if (aftEntry.Values.Contains(updatedGrain))
-                        {
-                            befEntry.Values.Remove(updatedGrain);
-                        }
-                        else
-                        {
-                            if (isUniqueIndex && aftEntry.Values.Count > 0)
-                            {
-                                throw new Exception(string.Format("The uniqueness property of index is violated after an update operation for before-image = {0}, after-image = {1} and grain = {2}", befImg, aftImg, updatedGrain.GetPrimaryKey()));
-                            }
-                            befEntry.Values.Remove(updatedGrain);
-                            aftEntry.Values.Add(updatedGrain);
-                        }
-                    }
-                    else
-                    {
-                        aftEntry = new HashIndexSingleBucketEntry<V>();
-                        befEntry.Values.Remove(updatedGrain);
-                        aftEntry.Values.Add(updatedGrain);
-                        State.IndexMap.Add(aftImg, aftEntry);
-                    }
-                }
-                else
-                { // Insert
-                    if (State.IndexMap.TryGetValue(aftImg, out aftEntry))
-                    {
-                        if (!aftEntry.Values.Contains(updatedGrain))
-                        {
-                            if (isUniqueIndex && aftEntry.Values.Count > 0)
-                            {
-                                throw new Exception(string.Format("The uniqueness property of index is violated after an update operation for (not found before-image = {0}), after-image = {1} and grain = {2}", befImg, aftImg, updatedGrain.GetPrimaryKey()));
-                            }
-                            aftEntry.Values.Add(updatedGrain);
-                        }
-                    }
-                    else
-                    {
-                        aftEntry = new HashIndexSingleBucketEntry<V>();
-                        aftEntry.Values.Add(updatedGrain);
-                        State.IndexMap.Add(aftImg, aftEntry);
-                    }
-                }
-            }
-            else if (opType == IndexOperationType.Insert)
-            { // Insert
-                K aftImg = (K)updt.GetAfterImage();
-                if (State.IndexMap.TryGetValue(aftImg, out aftEntry))
-                {
-                    if (!aftEntry.Values.Contains(updatedGrain))
-                    {
-                        if (isUniqueIndex && aftEntry.Values.Count > 0)
-                        {
-                            throw new Exception(string.Format("The uniqueness property of index is violated after an insert operation for after-image = {1} and grain = {2}", aftImg, updatedGrain.GetPrimaryKey()));
-                        }
-                        aftEntry.Values.Add(updatedGrain);
-                    }
-                }
-                else
-                {
-                    aftEntry = new HashIndexSingleBucketEntry<V>();
-                    aftEntry.Values.Add(updatedGrain);
-                    State.IndexMap.Add(aftImg, aftEntry);
-                }
-            }
-            else if (opType == IndexOperationType.Delete)
-            { // Delete
-                K befImg = (K)updt.GetBeforeImage();
-
-                if (State.IndexMap.TryGetValue(befImg, out befEntry) && befEntry.Values.Contains(updatedGrain))
-                {
-                    befEntry.Values.Remove(updatedGrain);
-                    if (State.IndexStatus != IndexStatus.Available)
-                    {
-                        State.IndexStatus = await GetIndexBuilder(gFactory).AddTombstone(updatedGrain) ? IndexStatus.Available : State.IndexStatus;
-                        if (State.IndexMap.TryGetValue(befImg, out befEntry) && befEntry.Values.Contains(updatedGrain))
-                        {
-                            befEntry.Values.Remove(updatedGrain);
-                            var isAvailable = await GetIndexBuilder(gFactory).AddTombstone(updatedGrain);
-                            if(State.IndexStatus != IndexStatus.Available && isAvailable)
-                            {
-                                State.IndexStatus = IndexStatus.Available;
-                            }
-                        }
-                    }
-                }
-            }
-            return true;
+            V updatedGrain = g;//.AsReference<V>(gFactory);
+            IMemberUpdate updt = iUpdate.Value;
+            HashIndexBucketUtils.UpdateBucket(updatedGrain, updt, updt.GetOperationType(), State, isUniqueIndex);
+            return Task.FromResult(true);
         }
 
         //public Task<bool> IsUnique()

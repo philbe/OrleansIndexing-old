@@ -17,6 +17,7 @@ namespace Orleans.Indexing
     /// <typeparam name="K">type of hash-index key</typeparam>
     /// <typeparam name="V">type of grain that is being indexed</typeparam>
     [StorageProvider(ProviderName = Constants.INDEXING_STORAGE_PROVIDER_NAME)]
+    [Reentrant]
     public class IHashIndexPartitionedPerKeyBucketImplNonIncremental<K, V> : HashIndexPartitionedPerKeyBucket<K, V>, IHashIndexPartitionedPerKeyBucketNonIncremental<K, V> where V : class, IIndexableGrain
     {
     }
