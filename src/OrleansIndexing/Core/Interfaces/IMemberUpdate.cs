@@ -29,7 +29,7 @@ namespace Orleans.Indexing
         /// </summary>
         /// <param name="updates">the list of updates</param>
         /// <returns>a single update containing all the updates in the list</returns>
-        IMemberUpdate Combine(params IMemberUpdate[] updates);
+        IMemberUpdate Merge(params IMemberUpdate[] updates);
 
         /// <summary>
         /// Determines the type of operation done, which can be:

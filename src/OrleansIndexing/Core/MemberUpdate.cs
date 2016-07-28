@@ -76,7 +76,7 @@ namespace Orleans.Indexing
             return _opType.Value;
         }
 
-        public IMemberUpdate Combine(params IMemberUpdate[] updates)
+        public IMemberUpdate Merge(params IMemberUpdate[] updates)
         {
             var len = updates.Length;
             if (len == 0) return null;
