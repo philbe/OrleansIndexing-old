@@ -51,6 +51,7 @@
     <Compile Include="CollectionFixtures.cs" />
     <Compile Include="IndexingTests\NoIndexingTests.cs" />
     <Compile Include="IndexingTests\ActiveGrainEnumerationTests.cs" />
+    <Compile Include="IndexingTests\IndexingTestUtils.cs" />
     <Compile Include="IndexingTests\SimpleIndexingTests.cs" />
     <Compile Include="MethodInterceptionTests.cs" />
     <Compile Include="BaseClusterFixture.cs" />
