@@ -22,7 +22,7 @@ namespace Orleans.Indexing
         /// <summary>
         /// The actual storage of the indexed values
         /// </summary>
-        public ConcurrentDictionary<K, HashIndexSingleBucketEntry<V>> IndexMap { set; get; }
+        public Dictionary<K, HashIndexSingleBucketEntry<V>> IndexMap { set; get; }
 
         /// <summary>
         /// Contains the status of the index regarding

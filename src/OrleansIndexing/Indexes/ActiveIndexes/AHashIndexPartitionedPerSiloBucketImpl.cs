@@ -32,7 +32,7 @@ namespace Orleans.Indexing
         public AHashIndexPartitionedPerSiloBucketImpl(string parentIndexName, GrainId grainId, SiloAddress silo) : base(grainId, silo)
         {
             State = new HashIndexBucketState<K, V>();
-            State.IndexMap = new ConcurrentDictionary<K, HashIndexSingleBucketEntry<V>>();
+            State.IndexMap = new Dictionary<K, HashIndexSingleBucketEntry<V>>();
             State.IndexStatus = IndexStatus.Available;
             //State.IsUnique = false; //a per-silo index cannot check for uniqueness
             _parentIndexName = parentIndexName;

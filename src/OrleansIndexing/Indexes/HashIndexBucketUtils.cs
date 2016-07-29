@@ -86,7 +86,7 @@ namespace Orleans.Indexing
                         aftEntry = new HashIndexSingleBucketEntry<V>();
                         befEntry.Values.Remove(updatedGrain);
                         aftEntry.Values.Add(updatedGrain);
-                        var _ = State.IndexMap.TryAdd(aftImg, aftEntry);
+                        State.IndexMap.Add(aftImg, aftEntry);
                     }
                 }
                 else
@@ -106,7 +106,7 @@ namespace Orleans.Indexing
                     {
                         aftEntry = new HashIndexSingleBucketEntry<V>();
                         aftEntry.Values.Add(updatedGrain);
-                        var _ = State.IndexMap.TryAdd(aftImg, aftEntry);
+                        State.IndexMap.Add(aftImg, aftEntry);
                     }
                 }
             }
@@ -128,7 +128,7 @@ namespace Orleans.Indexing
                 {
                     aftEntry = new HashIndexSingleBucketEntry<V>();
                     aftEntry.Values.Add(updatedGrain);
-                    var _ = State.IndexMap.TryAdd(aftImg, aftEntry);
+                    State.IndexMap.Add(aftImg, aftEntry);
                 }
             }
             else if (opType == IndexOperationType.Delete)
