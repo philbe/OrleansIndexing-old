@@ -33,11 +33,6 @@ namespace Orleans.Indexing
 
         #region Multi-threaded Index Update
         #region Multi-threaded Index Update Variables
-        /// <summary>
-        /// This lock is used to synchronize the access
-        /// to the shared map that stores the index information
-        /// </summary>
-        private object modify_lock = new object();
 
         /// <summary>
         /// This lock is used to queue all the writes to the storage
@@ -85,11 +80,13 @@ namespace Orleans.Indexing
 
             K befImg;
             HashIndexSingleBucketEntry<V> befEntry;
-            lock (modify_lock)
-            {
-                //Updates the index bucket
-                HashIndexBucketUtils.UpdateBucket(updatedGrain, iUpdate, opType, State, isUniqueIndex, out befImg, out befEntry, out fixIndexUnavailableOnDelete);
-            }
+
+            //Updates the index bucket synchronously
+            //(note that no other thread can run concurrently
+            //before we reach an await operation, so no concurrency
+            //control mechanism (e.g., locking) is required)
+            HashIndexBucketUtils.UpdateBucket(updatedGrain, iUpdate, opType, State, isUniqueIndex, out befImg, out befEntry, out fixIndexUnavailableOnDelete);
+
             //if the index was still unavailable
             //when we received a delete operation
             if (fixIndexUnavailableOnDelete)
