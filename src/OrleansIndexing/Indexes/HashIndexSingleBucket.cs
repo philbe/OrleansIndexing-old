@@ -59,7 +59,7 @@ namespace Orleans.Indexing
         /// All the write requests that are waiting behind write_lock are accumulated
         /// in this data structure, and all of them will be done at once.
         /// </summary>
-        private Dictionary<int, byte> pendingWriteRequests;
+        private HashSet<int> pendingWriteRequests;
 
         #endregion Multi-threaded Index Update Variables
 
@@ -115,14 +115,14 @@ namespace Orleans.Indexing
             int writeRequestId = Interlocked.Increment(ref writeRequestIdGen);
 
             //add the write-request ID to the pending write requests
-            pendingWriteRequests.Add(writeRequestId, default(byte));
+            pendingWriteRequests.Add(writeRequestId);
 
             //wait before any previous write is done
             using (await write_lock.LockAsync())
             {
                 //if the write request was not already handled
                 //by a previous group write attempt
-                if (pendingWriteRequests.ContainsKey(writeRequestId))
+                if (pendingWriteRequests.Contains(writeRequestId))
                 {
                     //clear all pending write requests, as this attempt will do them all.
                     pendingWriteRequests.Clear();
