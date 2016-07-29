@@ -27,7 +27,7 @@ namespace Orleans.Indexing
             State.IndexStatus = IndexStatus.Available;
 
             writeRequestIdGen = 0;
-            pendingWriteRequests = new Dictionary<int, byte>();
+            pendingWriteRequests = new HashSet<int>();
             return base.OnActivateAsync();
         }
 

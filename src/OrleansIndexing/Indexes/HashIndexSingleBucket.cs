@@ -33,7 +33,7 @@ namespace Orleans.Indexing
             //    var _ = GetIndexBuilder().BuildIndex(indexName, this, IndexUtils.GetIndexUpdateGenerator<V>(GrainFactory, IndexUtils.GetIndexNameFromIndexGrain(this)));
             //}
             writeRequestIdGen = 0;
-            pendingWriteRequests = new Dictionary<int, byte>();
+            pendingWriteRequests = new HashSet<int>();
             return base.OnActivateAsync();
         }
 
