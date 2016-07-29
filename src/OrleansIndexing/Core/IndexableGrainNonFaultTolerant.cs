@@ -11,7 +11,7 @@ namespace Orleans.Indexing
 {
     /// <summary>
     /// IndexableGrainNonFaultTolerant class is the super-class of all grains that
-    /// need to have indexing capability.
+    /// need to have indexing capability but without fault-tolerance requirements.
     /// 
     /// To make a grain indexable, two steps should be taken:
     ///     1- the grain class should extend IndexableGrainNonFaultTolerant
@@ -25,20 +25,20 @@ namespace Orleans.Indexing
         /// for the current indexes on the grain.
         /// The tuple contains Index, IndexMetaData, IndexUpdateGenerator
         /// </summary>
-        private IDictionary<string, Tuple<object, object, object>> _iUpdateGens;
+        protected IDictionary<string, Tuple<object, object, object>> _iUpdateGens;
 
         /// <summary>
         /// an immutable copy of before-images of the indexed fields
         /// </summary>
-        private Immutable<IDictionary<string, object>> _beforeImages;
+        protected Immutable<IDictionary<string, object>> _beforeImages;
 
         /// <summary>
         /// a cached grain interface type, which
         /// is cached on the first call to getIGrainType()
         /// </summary>
-        private IList<Type> _iGrainTypes = null;
+        protected IList<Type> _iGrainTypes = null;
 
-        private TProperties _props;
+        protected TProperties _props;
 
         protected virtual TProperties Properties { get { return defaultCreatePropertiesFromState(); } }
 
