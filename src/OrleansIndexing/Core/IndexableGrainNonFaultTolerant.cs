@@ -44,16 +44,13 @@ namespace Orleans.Indexing
 
         private TProperties defaultCreatePropertiesFromState()
         {
-            Type propsType = typeof(TProperties);
-            Type stateType = typeof(TState);
-
-            if (propsType.IsAssignableFrom(stateType)) return (TProperties)(object)State;
+            if (typeof(TProperties).IsAssignableFrom(typeof(TState))) return (TProperties)(object)State;
 
             if (_props == null) _props = new TProperties();
 
-            foreach (PropertyInfo p in propsType.GetProperties())
+            foreach (PropertyInfo p in typeof(TProperties).GetProperties())
             {
-                p.SetValue(_props, stateType.GetProperty(p.Name).GetValue(State));
+                p.SetValue(_props, typeof(TState).GetProperty(p.Name).GetValue(State));
             }
             return _props;
         }

@@ -31,8 +31,8 @@ namespace Orleans.Indexing
             return base.OnActivateAsync();
         }
 
-        #region Multi-threaded Index Update
-        #region Multi-threaded Index Update Variables
+        #region Reentrant Index Update
+        #region Reentrant Index Update Variables
 
         /// <summary>
         /// This lock is used to queue all the writes to the storage
@@ -55,7 +55,7 @@ namespace Orleans.Indexing
         /// </summary>
         private HashSet<int> pendingWriteRequests;
 
-        #endregion Multi-threaded Index Update Variables
+        #endregion Reentrant Index Update Variables
 
         public Task<bool> ApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, bool isUniqueIndex, SiloAddress siloAddress)
         {
@@ -133,7 +133,7 @@ namespace Orleans.Indexing
         {
             return GrainFactory.GetGrain<IIndexBuilder<V>>(this.GetPrimaryKeyString());
         }
-        #endregion Multi-threaded Index Update
+        #endregion Reentrant Index Update
 
         //public Task<bool> IsUnique()
         //{

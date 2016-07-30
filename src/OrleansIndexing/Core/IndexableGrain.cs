@@ -10,8 +10,8 @@ using System.Linq;
 namespace Orleans.Indexing
 {
     /// <summary>
-    /// IndexableGrain class is the super-class of all grains that
-    /// need to have indexing capability.
+    /// IndexableGrain class is the super-class of all fault-tolerant
+    /// grains that need to have indexing capability.
     /// 
     /// To make a grain indexable, two steps should be taken:
     ///     1- the grain class should extend IndexableGrain
@@ -24,16 +24,13 @@ namespace Orleans.Indexing
 
         private TProperties defaultCreatePropertiesFromState()
         {
-            Type propsType = typeof(TProperties);
-            Type stateType = typeof(TState);
-
-            if (propsType.IsAssignableFrom(stateType)) return (TProperties)(object)(State.State);
+            if (typeof(TProperties).IsAssignableFrom(typeof(TState))) return (TProperties)(object)(State.State);
 
             if (_props == null) _props = new TProperties();
 
-            foreach (PropertyInfo p in propsType.GetProperties())
+            foreach (PropertyInfo p in typeof(TProperties).GetProperties())
             {
-                p.SetValue(_props, stateType.GetProperty(p.Name).GetValue(State.State));
+                p.SetValue(_props, typeof(TState).GetProperty(p.Name).GetValue(State.State));
             }
             return _props;
         }
