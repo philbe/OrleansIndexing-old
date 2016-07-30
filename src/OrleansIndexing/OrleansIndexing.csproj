@@ -71,7 +71,6 @@
     <Compile Include="Core\IndexFactory.cs" />
     <Compile Include="Core\IndexHandler.cs" />
     <Compile Include="Core\IndexRegistry.cs" />
-    <Compile Include="Core\IndexRegistryState.cs" />
     <Compile Include="Core\IndexUpdateGenerator.cs" />
     <Compile Include="Core\Interfaces\IIndexBuilder.cs" />
     <Compile Include="Core\Interfaces\IIndexableGrain.cs" />
