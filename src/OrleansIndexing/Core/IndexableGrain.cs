@@ -24,7 +24,7 @@ namespace Orleans.Indexing
     /// 
     /// IndexableGrain creates a wrapper around the State class provided by
     /// the actual user-grain that extends it. It adds the following information to it:
-    ///  - a list called ActiveWorkflowsList to the State,
+    ///  - a list called activeWorkflowsList to the State,
     ///    which points to the in-flight indexing workflowsIds.
     ///  - There's a fixed mapping (e.g., a hash function) from grain id to IndexWorkflowQueue
     ///    instance. Each IndexableGrain G has a property workflowQueue whose value,
@@ -56,9 +56,9 @@ namespace Orleans.Indexing
         private int GetWorkflowQueueId()
         {
             //does it have a designated IndexWorkflowQueue?
-            if (State.WorkflowQueueSeqNum > 0)
+            if (State.workflowQueueSeqNum > 0)
             {
-                return State.WorkflowQueueSeqNum;
+                return State.workflowQueueSeqNum;
             }
             else
             {
@@ -70,9 +70,9 @@ namespace Orleans.Indexing
         private SiloAddress GetWorkflowQueueSilo()
         {
             //does it have a designated IndexWorkflowQueue?
-            if (State.WorkflowQueueSeqNum > 0)
+            if (State.workflowQueueSeqNum > 0)
             {
-                return State.WorkflowQueueSilo;
+                return State.workflowQueueSilo;
             }
             else
             {
@@ -95,9 +95,10 @@ namespace Orleans.Indexing
     [Serializable]
     public class IndexableExtendedState<TState>
     {
-        internal List<int> ActiveWorkflowsList;
-        internal int WorkflowQueueSeqNum;
-        internal SiloAddress WorkflowQueueSilo;
+        internal List<int> activeWorkflowsList;
+        internal int workflowQueueSeqNum;
+        internal SiloAddress workflowQueueSilo;
+
         public TState State;
     }
 
