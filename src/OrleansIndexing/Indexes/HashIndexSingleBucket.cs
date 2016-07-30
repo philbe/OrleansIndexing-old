@@ -112,7 +112,7 @@ namespace Orleans.Indexing
             }
 
             //create a write-request ID, which is used for group commit
-            int writeRequestId = Interlocked.Increment(ref writeRequestIdGen);
+            int writeRequestId = ++writeRequestIdGen;
 
             //add the write-request ID to the pending write requests
             pendingWriteRequests.Add(writeRequestId);
