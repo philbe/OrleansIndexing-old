@@ -5,7 +5,7 @@ using UnitTests.GrainInterfaces;
 namespace UnitTests.Grains
 {
     [Serializable]
-    public class Player3GrainStateNonFaultTolerant : Player3PropertiesNonFaultTolerant, PlayerGrainState
+    public class Player3GrainStateNonFaultTolerant : Player3PropertiesNonFaultTolerant, PlayerState
     {
         public string Email { get; set; }
     }

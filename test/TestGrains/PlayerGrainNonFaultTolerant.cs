@@ -12,7 +12,7 @@ namespace UnitTests.Grains
     /// A simple grain that represent a player in a game
     /// </summary>
     [StorageProvider(ProviderName = "MemoryStore")]
-    public abstract class PlayerGrainNonFaultTolerant<TState, TProps> : IndexableGrainNonFaultTolerant<TState, TProps>, IPlayerGrain where TState : PlayerGrainState where TProps : new()
+    public abstract class PlayerGrainNonFaultTolerant<TState, TProps> : IndexableGrainNonFaultTolerant<TState, TProps>, IPlayerGrain where TState : PlayerState where TProps : new()
     {
         private Logger logger;
         

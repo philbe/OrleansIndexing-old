@@ -5,11 +5,17 @@ using Orleans.Indexing;
 
 namespace UnitTests.GrainInterfaces
 {
+
     public interface PlayerProperties
     {
         int Score { get; set; }
         
         string Location { get; set; }
+    }
+
+    public interface PlayerState : PlayerProperties
+    {
+        string Email { get; set; }
     }
 
     public interface IPlayerGrain : IGrainWithIntegerKey
