@@ -6,7 +6,7 @@ using Orleans.Indexing;
 namespace UnitTests.GrainInterfaces
 {
     [Serializable]
-    public class Player3Properties : PlayerProperties
+    public class Player3PropertiesNonFaultTolerant : PlayerProperties
     {
         public int Score { get; set; }
 
@@ -14,7 +14,7 @@ namespace UnitTests.GrainInterfaces
         public string Location { get; set; }
     }
 
-    public interface IPlayer3Grain : IPlayerGrain, IIndexableGrain<Player3Properties>
+    public interface IPlayer3Grain : IPlayerGrain, IIndexableGrain<Player3PropertiesNonFaultTolerant>
     {
     }
 }

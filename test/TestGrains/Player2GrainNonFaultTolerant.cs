@@ -5,7 +5,7 @@ using UnitTests.GrainInterfaces;
 namespace UnitTests.Grains
 {
     [Serializable]
-    public class Player2GrainState : Player2Properties, PlayerGrainState
+    public class Player2GrainStateNonFaultTolerant : Player2PropertiesNonFaultTolerant, PlayerGrainState
     {
         public string Email { get; set; }
     }
@@ -14,7 +14,7 @@ namespace UnitTests.Grains
     /// A simple grain that represent a player in a game
     /// </summary>
     [StorageProvider(ProviderName = "MemoryStore")]
-    public class Player2Grain : PlayerGrainNonFaultTolerant<Player2GrainState, Player2Properties>, IPlayer2Grain
+    public class Player2GrainNonFaultTolerant : PlayerGrainNonFaultTolerant<Player2GrainStateNonFaultTolerant, Player2PropertiesNonFaultTolerant>, IPlayer2Grain
     {
     }
 }
