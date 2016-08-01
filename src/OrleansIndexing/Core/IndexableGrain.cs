@@ -33,17 +33,23 @@ namespace Orleans.Indexing
     /// </summary>
     public abstract class IndexableGrain<TState, TProperties> : IndexableGrainNonFaultTolerant<IndexableExtendedState<TState>, TProperties> where TProperties: new()
     {
+        protected new TState State
+        {
+            get { return base.State.UserState; }
+            set { base.State.UserState = value; }
+        }
+
         protected override TProperties Properties { get { return defaultCreatePropertiesFromState(); } }
 
         private TProperties defaultCreatePropertiesFromState()
         {
-            if (typeof(TProperties).IsAssignableFrom(typeof(TState))) return (TProperties)(object)(State.State);
+            if (typeof(TProperties).IsAssignableFrom(typeof(TState))) return (TProperties)(object)(base.State.UserState);
 
             if (_props == null) _props = new TProperties();
 
             foreach (PropertyInfo p in typeof(TProperties).GetProperties())
             {
-                p.SetValue(_props, typeof(TState).GetProperty(p.Name).GetValue(State.State));
+                p.SetValue(_props, typeof(TState).GetProperty(p.Name).GetValue(base.State.UserState));
             }
             return _props;
         }
@@ -56,9 +62,9 @@ namespace Orleans.Indexing
         private int GetWorkflowQueueId()
         {
             //does it have a designated IndexWorkflowQueue?
-            if (State.workflowQueueSeqNum > 0)
+            if (base.State.workflowQueueSeqNum > 0)
             {
-                return State.workflowQueueSeqNum;
+                return base.State.workflowQueueSeqNum;
             }
             else
             {
@@ -70,9 +76,9 @@ namespace Orleans.Indexing
         private SiloAddress GetWorkflowQueueSilo()
         {
             //does it have a designated IndexWorkflowQueue?
-            if (State.workflowQueueSeqNum > 0)
+            if (base.State.workflowQueueSeqNum > 0)
             {
-                return State.workflowQueueSilo;
+                return base.State.workflowQueueSilo;
             }
             else
             {
@@ -99,7 +105,7 @@ namespace Orleans.Indexing
         internal int workflowQueueSeqNum;
         internal SiloAddress workflowQueueSilo;
 
-        public TState State;
+        public TState UserState;
     }
 
     /// <summary>

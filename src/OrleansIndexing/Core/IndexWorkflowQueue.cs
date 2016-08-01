@@ -40,7 +40,9 @@ namespace Orleans.Indexing
     }
 
     /// <summary>
-    /// A node in the linked list of workflowRecords
+    /// A node in the linked list of workflowRecords.
+    /// 
+    /// This linked list makes the traversal more efficient.
     /// </summary>
     internal class IndexWorkflowRecordNode
     {
