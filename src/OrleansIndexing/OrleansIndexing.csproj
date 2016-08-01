@@ -62,8 +62,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Annotations\IndexAttribute.cs" />
+    <Compile Include="Core\Interfaces\IIndexWorkflowQueue.cs" />
     <Compile Include="Core\IndexableGrain.cs" />
     <Compile Include="Core\IndexableGrainNonFaultTolerant.cs" />
+    <Compile Include="Core\IndexWorkflowQueue.cs" />
     <Compile Include="Core\IndexOperationType.cs" />
     <Compile Include="Core\IndexBuilder.cs" />
     <Compile Include="Core\SiloUtils.cs" />
@@ -77,6 +79,7 @@
     <Compile Include="Core\Interfaces\IIndexUpdateGenerator.cs" />
     <Compile Include="Core\Interfaces\IMemberUpdate.cs" />
     <Compile Include="Core\MemberUpdate.cs" />
+    <Compile Include="Core\IndexWorkflowRecord.cs" />
     <Compile Include="Extensions\GrainExtensions.cs" />
     <Compile Include="Extensions\GrainFactoryExtensions.cs" />
     <Compile Include="Extensions\TypeExtensions.cs" />
