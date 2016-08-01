@@ -10,11 +10,11 @@ namespace UnitTests.GrainInterfaces
     {
         public int Score { get; set; }
 
-        [Index(typeof(AHashIndexPartitionedPerKey<string, IPlayer3Grain>))]
+        [Index(typeof(AHashIndexPartitionedPerKey<string, IPlayer3GrainNonFaultTolerant>))]
         public string Location { get; set; }
     }
 
-    public interface IPlayer3Grain : IPlayerGrain, IIndexableGrain<Player3PropertiesNonFaultTolerant>
+    public interface IPlayer3GrainNonFaultTolerant : IPlayerGrain, IIndexableGrain<Player3PropertiesNonFaultTolerant>
     {
     }
 }

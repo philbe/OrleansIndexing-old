@@ -14,7 +14,7 @@ namespace UnitTests.GrainInterfaces
         public string Location { get; set; }
     }
 
-    public interface IPlayer1Grain : IPlayerGrain, IIndexableGrain<Player1PropertiesNonFaultTolerant>
+    public interface IPlayer1GrainNonFaultTolerant : IPlayerGrain, IIndexableGrain<Player1PropertiesNonFaultTolerant>
     {
     }
 }
