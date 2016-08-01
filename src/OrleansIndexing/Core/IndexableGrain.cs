@@ -101,11 +101,11 @@ namespace Orleans.Indexing
     [Serializable]
     public class IndexableExtendedState<TState>
     {
-        internal List<int> activeWorkflowsList;
-        internal int workflowQueueSeqNum;
-        internal SiloAddress workflowQueueSilo;
+        internal List<int> activeWorkflowsList = null;
+        internal int workflowQueueSeqNum = 0;
+        internal SiloAddress workflowQueueSilo = null;
 
-        public TState UserState;
+        public TState UserState = (TState)Activator.CreateInstance(typeof(TState));
     }
 
     /// <summary>
