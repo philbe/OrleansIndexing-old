@@ -52,6 +52,7 @@
     </Compile>
     <Compile Include="AsyncSimpleGrain.cs" />
     <Compile Include="CatalogTestGrain.cs" />
+    <Compile Include="PlayerGrainNonFaultTolerant.cs" />
     <Compile Include="Player3Grain.cs" />
     <Compile Include="Player2Grain.cs" />
     <Compile Include="Player1Grain.cs" />
