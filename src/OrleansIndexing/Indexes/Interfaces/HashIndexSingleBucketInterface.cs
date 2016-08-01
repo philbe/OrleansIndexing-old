@@ -15,6 +15,7 @@ namespace Orleans.Indexing
     /// </summary>
     /// <typeparam name="K">type of hash-index key</typeparam>
     /// <typeparam name="V">type of grain that is being indexed</typeparam>
+    [Unordered]
     public interface HashIndexSingleBucketInterface<K, V> : HashIndexInterface<K, V> where V : IIndexableGrain
     {
     }

@@ -1,10 +1,4 @@
-﻿using Orleans;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Orleans.Concurrency;
+﻿using Orleans.Concurrency;
 
 namespace Orleans.Indexing
 {
@@ -19,6 +13,7 @@ namespace Orleans.Indexing
     /// <typeparam name="K">type of hash-index key</typeparam>
     /// <typeparam name="V">type of grain that is being indexed</typeparam>
     //internal interface AHashIndexPartitionedPerSiloBucket<K, V> : ISystemTarget, HashIndexInterface<K, V> where V : IIndexableGrain
+    [Unordered]
     public interface AHashIndexPartitionedPerSilo<K, V> : IGrain, HashIndexInterface<K, V> where V : IIndexableGrain
     {
     }

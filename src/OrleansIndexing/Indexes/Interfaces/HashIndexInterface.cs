@@ -14,6 +14,7 @@ namespace Orleans.Indexing
     /// <typeparam name="K">the type of key for the hash index</typeparam>
     /// <typeparam name="V">the type of grain interface that is
     /// being indexed</typeparam>
+    [Unordered]
     public interface HashIndexInterface<K,V> : IIndex<K,V> where V : IIndexableGrain
     {
         /// <summary>
@@ -32,6 +33,8 @@ namespace Orleans.Indexing
         /// </summary>
         /// <param name="key">the lookup key</param>
         /// <returns>the result of lookup into the hash-index</returns>
+        [ReadOnly]
+        [AlwaysInterleave]
         Task<V> LookupUnique(K key);
     }
 }

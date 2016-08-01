@@ -12,6 +12,7 @@ namespace Orleans.Indexing
     /// This interface defines the functionality
     /// that is required for an index implementation.
     /// </summary>
+    [Unordered]
     public interface IIndex
     {
 
@@ -23,18 +24,22 @@ namespace Orleans.Indexing
         /// <param name="isUnique">whether this is a unique index that we are updating</param>
         /// <param name="siloAddress">The address of the silo where the grain resides.</param>
         /// <returns>true, if the index update was successful, otherwise false</returns>
+        [AlwaysInterleave]
         Task<bool> ApplyIndexUpdate(IIndexableGrain updatedGrain, Immutable<IMemberUpdate> iUpdate, bool isUnique, SiloAddress siloAddress = null);
-        
+
         /// <summary>
         /// Disposes of the index and removes all the data stored
         /// for the index. This method is called before removing
         /// the index from index registry
         /// </summary>
+        [AlwaysInterleave]
         Task Dispose();
 
         /// <summary>
         /// Determines whether the index is available for lookup
         /// </summary>
+        [ReadOnly]
+        [AlwaysInterleave]
         Task<bool> IsAvailable();
 
         /// <summary>
@@ -42,6 +47,8 @@ namespace Orleans.Indexing
         /// </summary>
         /// <param name="key">the lookup key</param>
         /// <returns>the result of lookup into the hash-index</returns>
+        [ReadOnly]
+        [AlwaysInterleave]
         Task Lookup(IOrleansQueryResultStream<IIndexableGrain> result, object key);
 
         /// <summary>
@@ -53,6 +60,8 @@ namespace Orleans.Indexing
         /// </summary>
         /// <param name="key">the lookup key</param>
         /// <returns>the result of the lookup</returns>
+        [ReadOnly]
+        [AlwaysInterleave]
         Task<IOrleansQueryResult<IIndexableGrain>> Lookup(object key);
     }
 
@@ -60,6 +69,7 @@ namespace Orleans.Indexing
     /// This is the typed variant of IIndex, which is assumed to be 
     /// the root interface for the index implementations.
     /// </summary>
+    [Unordered]
     public interface IIndex<K,V> : IIndex where V : IIndexableGrain
     {
         /// <summary>
@@ -67,6 +77,8 @@ namespace Orleans.Indexing
         /// </summary>
         /// <param name="key">the lookup key</param>
         /// <returns>the result of lookup into the hash-index</returns>
+        [ReadOnly]
+        [AlwaysInterleave]
         Task Lookup(IOrleansQueryResultStream<V> result, K key);
 
         /// <summary>
@@ -78,6 +90,8 @@ namespace Orleans.Indexing
         /// </summary>
         /// <param name="key">the lookup key</param>
         /// <returns>the result of the lookup</returns>
+        [ReadOnly]
+        [AlwaysInterleave]
         Task<IOrleansQueryResult<V>> Lookup(K key);
     }
 }

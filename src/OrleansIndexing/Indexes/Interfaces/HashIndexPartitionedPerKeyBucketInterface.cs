@@ -15,6 +15,7 @@ namespace Orleans.Indexing
     /// </summary>
     /// <typeparam name="K">type of hash-index key</typeparam>
     /// <typeparam name="V">type of grain that is being indexed</typeparam>
+    [Unordered]
     public interface HashIndexPartitionedPerKeyBucketInterface<K, V> : HashIndexInterface<K, V> where V : IIndexableGrain
     {
 
@@ -26,6 +27,7 @@ namespace Orleans.Indexing
         /// <param name="isUnique">whether this is a unique index that we are updating</param>
         /// <param name="op">the actual type of the operation, which override the operation-type in iUpdate</param>
         /// <returns>true, if the index update was successful, otherwise false</returns>
+        [AlwaysInterleave]
         Task<bool> ApplyIndexUpdate(IIndexableGrain updatedGrain, IMemberUpdate iUpdate, bool isUnique, IndexOperationType op);
     }
 }

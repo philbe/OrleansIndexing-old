@@ -1,4 +1,5 @@
 ﻿using Orleans;
+using Orleans.Concurrency;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,7 @@ namespace Orleans.Indexing
     /// the range index</typeparam>
     /// <typeparam name="V">the type of grain interface that is
     /// being indexed</typeparam>
+    [Unordered]
     public interface IRangeIndex<K,V> : IIndex<K,V> where V : IIndexableGrain
     {
         /// <summary>
@@ -23,6 +25,8 @@ namespace Orleans.Indexing
         /// <param name="from">the lower bound of the range</param>
         /// <param name="to">the upper bound of the range</param>
         /// <returns>the result of lookup</returns>
+        [ReadOnly]
+        [AlwaysInterleave]
         Task<IOrleansQueryResultStream<V>> LookupRange(K from, K to);
 
         /// <summary>
@@ -31,6 +35,8 @@ namespace Orleans.Indexing
         /// </summary>
         /// <param name="from">the lower bound of the range</param>
         /// <returns>the result of lookup</returns>
+        [ReadOnly]
+        [AlwaysInterleave]
         Task<IOrleansQueryResultStream<V>> LookupFromRange(K from);
 
         /// <summary>
@@ -39,6 +45,8 @@ namespace Orleans.Indexing
         /// </summary>
         /// <param name="to">the upper bound of the range</param>
         /// <returns>the result of lookup</returns>
+        [ReadOnly]
+        [AlwaysInterleave]
         Task<IOrleansQueryResultStream<V>> LookupToRange(K to);
 
         /// <summary>
