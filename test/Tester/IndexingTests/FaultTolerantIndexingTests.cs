@@ -70,34 +70,34 @@ namespace UnitTests.IndexingTests
         {
             //await GrainClient.GrainFactory.DropAllIndexes<IPlayerGrain>();
 
-            IPlayer1GrainNonFaultTolerant p1 = GrainClient.GrainFactory.GetGrain<IPlayer1GrainNonFaultTolerant>(1);
+            IPlayer1Grain p1 = GrainClient.GrainFactory.GetGrain<IPlayer1Grain>(1);
             await p1.SetLocation("Seattle");
 
             //bool isLocIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<HashIndexSingleBucketInterface<string, IPlayerGrain>, PlayerLocIndexGen>("__GetLocation");
             //Assert.IsTrue(isLocIndexCreated);
 
-            IPlayer1GrainNonFaultTolerant p2 = GrainClient.GrainFactory.GetGrain<IPlayer1GrainNonFaultTolerant>(2);
-            IPlayer1GrainNonFaultTolerant p3 = GrainClient.GrainFactory.GetGrain<IPlayer1GrainNonFaultTolerant>(3);
+            IPlayer1Grain p2 = GrainClient.GrainFactory.GetGrain<IPlayer1Grain>(2);
+            IPlayer1Grain p3 = GrainClient.GrainFactory.GetGrain<IPlayer1Grain>(3);
 
             await p2.SetLocation("Seattle");
             await p3.SetLocation("San Fransisco");
 
-            IIndex<string, IPlayer1GrainNonFaultTolerant> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer1GrainNonFaultTolerant>("__Location");
+            IIndex<string, IPlayer1Grain> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer1Grain>("__Location");
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
-            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer1GrainNonFaultTolerant, Player1PropertiesNonFaultTolerant>("Seattle", output));
+            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer1Grain, Player1Properties>("Seattle", output));
 
             await p2.Deactivate();
 
             Thread.Sleep(1000);
 
-            Assert.Equal(1, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer1GrainNonFaultTolerant, Player1PropertiesNonFaultTolerant>("Seattle", output));
+            Assert.Equal(1, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer1Grain, Player1Properties>("Seattle", output));
 
-            p2 = GrainClient.GrainFactory.GetGrain<IPlayer1GrainNonFaultTolerant>(2);
+            p2 = GrainClient.GrainFactory.GetGrain<IPlayer1Grain>(2);
             Assert.Equal("Seattle", await p2.GetLocation());
 
-            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer1GrainNonFaultTolerant, Player1PropertiesNonFaultTolerant>("Seattle", output));
+            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer1Grain, Player1Properties>("Seattle", output));
         }
 
         /// <summary>
@@ -113,34 +113,34 @@ namespace UnitTests.IndexingTests
             }
             //await GrainClient.GrainFactory.DropAllIndexes<IPlayerGrain>();
 
-            IPlayer2GrainNonFaultTolerant p1 = GrainClient.GrainFactory.GetGrain<IPlayer2GrainNonFaultTolerant>(1);
+            IPlayer2Grain p1 = GrainClient.GrainFactory.GetGrain<IPlayer2Grain>(1);
             await p1.SetLocation("Tehran");
 
             //bool isLocIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<HashIndexSingleBucketInterface<string, IPlayerGrain>, PlayerLocIndexGen>("__GetLocation");
             //Assert.IsTrue(isLocIndexCreated);
 
-            IPlayer2GrainNonFaultTolerant p2 = GrainClient.GrainFactory.GetGrain<IPlayer2GrainNonFaultTolerant>(2);
-            IPlayer2GrainNonFaultTolerant p3 = GrainClient.GrainFactory.GetGrain<IPlayer2GrainNonFaultTolerant>(3);
+            IPlayer2Grain p2 = GrainClient.GrainFactory.GetGrain<IPlayer2Grain>(2);
+            IPlayer2Grain p3 = GrainClient.GrainFactory.GetGrain<IPlayer2Grain>(3);
 
             await p2.SetLocation("Tehran");
             await p3.SetLocation("Yazd");
 
-            IIndex<string, IPlayer2GrainNonFaultTolerant> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer2GrainNonFaultTolerant>("__Location");
+            IIndex<string, IPlayer2Grain> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer2Grain>("__Location");
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
-            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2GrainNonFaultTolerant, Player2PropertiesNonFaultTolerant>("Tehran", output));
+            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2Grain, Player2Properties>("Tehran", output));
 
             await p2.Deactivate();
 
             Thread.Sleep(1000);
 
-            Assert.Equal(1, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2GrainNonFaultTolerant, Player2PropertiesNonFaultTolerant>("Tehran", output));
+            Assert.Equal(1, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2Grain, Player2Properties>("Tehran", output));
 
-            p2 = GrainClient.GrainFactory.GetGrain<IPlayer2GrainNonFaultTolerant>(2);
+            p2 = GrainClient.GrainFactory.GetGrain<IPlayer2Grain>(2);
             Assert.Equal("Tehran", await p2.GetLocation());
 
-            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2GrainNonFaultTolerant, Player2PropertiesNonFaultTolerant>("Tehran", output));
+            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2Grain, Player2Properties>("Tehran", output));
         }
 
         /// <summary>
@@ -157,34 +157,34 @@ namespace UnitTests.IndexingTests
                 await HostedCluster.WaitForLivenessToStabilizeAsync();
             }
 
-            IPlayer2GrainNonFaultTolerant p1 = GrainClient.GrainFactory.GetGrain<IPlayer2GrainNonFaultTolerant>(1);
+            IPlayer2Grain p1 = GrainClient.GrainFactory.GetGrain<IPlayer2Grain>(1);
             await p1.SetLocation("Seattle");
 
             //bool isLocIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<HashIndexSingleBucketInterface<string, IPlayerGrain>, PlayerLocIndexGen>("__GetLocation");
             //Assert.IsTrue(isLocIndexCreated);
 
-            IPlayer2GrainNonFaultTolerant p2 = GrainClient.GrainFactory.GetGrain<IPlayer2GrainNonFaultTolerant>(2);
-            IPlayer2GrainNonFaultTolerant p3 = GrainClient.GrainFactory.GetGrain<IPlayer2GrainNonFaultTolerant>(3);
+            IPlayer2Grain p2 = GrainClient.GrainFactory.GetGrain<IPlayer2Grain>(2);
+            IPlayer2Grain p3 = GrainClient.GrainFactory.GetGrain<IPlayer2Grain>(3);
 
             await p2.SetLocation("Seattle");
             await p3.SetLocation("San Fransisco");
 
-            IIndex<string, IPlayer2GrainNonFaultTolerant> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer2GrainNonFaultTolerant>("__Location");
+            IIndex<string, IPlayer2Grain> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer2Grain>("__Location");
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
-            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2GrainNonFaultTolerant, Player2PropertiesNonFaultTolerant>("Seattle", output));
+            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2Grain, Player2Properties>("Seattle", output));
 
             await p2.Deactivate();
 
             Thread.Sleep(1000);
 
-            Assert.Equal(1, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2GrainNonFaultTolerant, Player2PropertiesNonFaultTolerant>("Seattle", output));
+            Assert.Equal(1, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2Grain, Player2Properties>("Seattle", output));
 
-            p2 = GrainClient.GrainFactory.GetGrain<IPlayer2GrainNonFaultTolerant>(2);
+            p2 = GrainClient.GrainFactory.GetGrain<IPlayer2Grain>(2);
             Assert.Equal("Seattle", await p2.GetLocation());
 
-            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2GrainNonFaultTolerant, Player2PropertiesNonFaultTolerant>("Seattle", output));
+            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2Grain, Player2Properties>("Seattle", output));
         }
 
         /// <summary>
@@ -195,34 +195,34 @@ namespace UnitTests.IndexingTests
         {
             //await GrainClient.GrainFactory.DropAllIndexes<IPlayerGrain>();
 
-            IPlayer3GrainNonFaultTolerant p1 = GrainClient.GrainFactory.GetGrain<IPlayer3GrainNonFaultTolerant>(1);
+            IPlayer3Grain p1 = GrainClient.GrainFactory.GetGrain<IPlayer3Grain>(1);
             await p1.SetLocation("Seattle");
 
             //bool isLocIndexCreated = await GrainClient.GrainFactory.CreateAndRegisterIndex<HashIndexSingleBucketInterface<string, IPlayerGrain>, PlayerLocIndexGen>("__Location");
             //Assert.IsTrue(isLocIndexCreated);
 
-            IPlayer3GrainNonFaultTolerant p2 = GrainClient.GrainFactory.GetGrain<IPlayer3GrainNonFaultTolerant>(2);
-            IPlayer3GrainNonFaultTolerant p3 = GrainClient.GrainFactory.GetGrain<IPlayer3GrainNonFaultTolerant>(3);
+            IPlayer3Grain p2 = GrainClient.GrainFactory.GetGrain<IPlayer3Grain>(2);
+            IPlayer3Grain p3 = GrainClient.GrainFactory.GetGrain<IPlayer3Grain>(3);
 
             await p2.SetLocation("Seattle");
             await p3.SetLocation("San Fransisco");
 
-            IIndex<string, IPlayer3GrainNonFaultTolerant> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer3GrainNonFaultTolerant>("__Location");
+            IIndex<string, IPlayer3Grain> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer3Grain>("__Location");
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
-            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer3GrainNonFaultTolerant, Player3PropertiesNonFaultTolerant>("Seattle", output));
+            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer3Grain, Player3Properties>("Seattle", output));
 
             await p2.Deactivate();
 
             Thread.Sleep(1000);
 
-            Assert.Equal(1, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer3GrainNonFaultTolerant, Player3PropertiesNonFaultTolerant>("Seattle", output));
+            Assert.Equal(1, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer3Grain, Player3Properties>("Seattle", output));
 
-            p2 = GrainClient.GrainFactory.GetGrain<IPlayer3GrainNonFaultTolerant>(2);
+            p2 = GrainClient.GrainFactory.GetGrain<IPlayer3Grain>(2);
             Assert.Equal("Seattle", await p2.GetLocation());
 
-            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer3GrainNonFaultTolerant, Player3PropertiesNonFaultTolerant>("Seattle", output));
+            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer3Grain, Player3Properties>("Seattle", output));
         }
     }
 }
