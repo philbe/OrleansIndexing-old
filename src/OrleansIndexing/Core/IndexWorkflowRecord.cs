@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Orleans.Indexing
 {
@@ -9,6 +10,8 @@ namespace Orleans.Indexing
     /// </summary>
     internal class IndexWorkflowRecord
     {
+        internal Type IGrainType;
+
         /// <summary>
         /// The grain being indexes,
         /// which its ID is the first part of the workflowID
