@@ -4,6 +4,7 @@ using Orleans.Runtime;
 using Orleans.Storage;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace Orleans.Indexing
@@ -61,8 +62,9 @@ namespace Orleans.Indexing
             IndexWorkflowRecordNode appendToRecord;
             if (updatesOnWait.TryGetValue(newWorkflow.Grain, out appendToRecord))
             {
+                IIndexableGrain appendToRecordGrain = appendToRecord.WorkflowRecord.Grain;
                 IndexWorkflowRecordNode tmp = appendToRecord.Next;
-                while (tmp != null && tmp.WorkflowRecord.Grain == appendToRecord.WorkflowRecord.Grain)
+                while (tmp != null && tmp.WorkflowRecord.Grain == appendToRecordGrain)
                 {
                     appendToRecord = tmp;
                     tmp = tmp.Next;
@@ -81,16 +83,26 @@ namespace Orleans.Indexing
             return storageProvider.WriteStateAsync("Orleans.Indexing.IndexWorkflowQueue-" + TypeUtils.GetFullName(newWorkflow.IGrainType), this.AsWeaklyTypedReference(), State);
         }
 
-        public Task RemoveFromQueue(IList<IndexWorkflowRecordNode> workflows)
+        public Task RemoveFromQueue(IndexWorkflowRecordNode workflowsHead, int numWorkflows)
         {
-            if (workflows.Count == 0) return TaskDone.Done;
+            if (numWorkflows == 0) return TaskDone.Done;
 
-            Type iGrainType = workflows[0].WorkflowRecord.IGrainType;
-
-            foreach (IndexWorkflowRecordNode workflow in workflows)
+            Type iGrainType = workflowsHead.WorkflowRecord.IGrainType;
+            IndexWorkflowRecordNode tmpNext;
+            int i = 0;
+            do
             {
-                workflow.Remove(ref workflowRecordsTail, ref State.State.WorkflowRecordsHead);
-            }
+                tmpNext = workflowsHead.Next;
+                if (i == 0 || i == (numWorkflows - 1))
+                {
+                    workflowsHead.Remove(ref workflowRecordsTail, ref State.State.WorkflowRecordsHead);
+                }
+                else
+                {
+                    workflowsHead.Clean();
+                }
+                workflowsHead = tmpNext;
+            } while (++i < numWorkflows);
             return storageProvider.WriteStateAsync("Orleans.Indexing.IndexWorkflowQueue-" + TypeUtils.GetFullName(iGrainType), this.AsWeaklyTypedReference(), State);
         }
     }
@@ -137,6 +149,34 @@ namespace Orleans.Indexing
             if (Next == null) tail = Prev;
             else Next.Prev = Prev;
 
+            Clean();
+        }
+
+        /// <summary>
+        /// This method gathers all the IndexWorkflowRecords that belong to the
+        /// same grain and are continuously one after the other
+        /// </summary>
+        /// <returns>the continuous list of IndexWorkflowRecords for the same grain</returns>
+        public IList<IndexWorkflowRecord> GetContinousListForTheSameGrain()
+        {
+            IList<IndexWorkflowRecord> res = new List<IndexWorkflowRecord>();
+            res.Add(WorkflowRecord);
+
+            IIndexableGrain thisGrain = WorkflowRecord.Grain;
+            IndexWorkflowRecordNode tmp = Next;
+            while (tmp != null && tmp.WorkflowRecord.Grain == thisGrain)
+            {
+                res.Add(tmp.WorkflowRecord);
+                tmp = tmp.Next;
+            }
+
+            return res;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void Clean()
+        {
+            WorkflowRecord = null;
             Next = null;
             Prev = null;
         }
@@ -150,14 +190,14 @@ namespace Orleans.Indexing
         //updates that must be propagated to indexes.
         internal IndexWorkflowRecordNode WorkflowRecordsHead;
 
-        internal GrainId Id;
+        internal GrainId QueueId;
 
         internal SiloAddress Silo;
 
-        public IndexWorkflowQueueEntry(GrainId id, SiloAddress silo)
+        public IndexWorkflowQueueEntry(GrainId queueId, SiloAddress silo)
         {
             WorkflowRecordsHead = null;
-            Id = id;
+            QueueId = queueId;
             Silo = silo;
         }
     }
