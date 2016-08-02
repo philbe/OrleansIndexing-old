@@ -28,7 +28,7 @@ namespace Orleans.Indexing
 
         private const string WRONG_GRAIN_ERROR_MSG = "Passing a half baked grain as an argument. It is possible that you instantiated a grain class explicitly, as a regular object and not via Orleans runtime or via proper test mocking";
 
-        private static GrainReference AsWeaklyTypedReference(this IAddressable grain)
+        internal static GrainReference AsWeaklyTypedReference(this IAddressable grain)
         {
             var reference = grain as GrainReference;
             // When called against an instance of a grain reference class, do nothing
