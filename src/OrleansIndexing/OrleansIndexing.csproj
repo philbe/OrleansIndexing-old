@@ -68,6 +68,7 @@
     <Compile Include="Core\IndexWorkflowQueue.cs" />
     <Compile Include="Core\IndexOperationType.cs" />
     <Compile Include="Core\IndexBuilder.cs" />
+    <Compile Include="Core\MemberUpdateOverridenOperation.cs" />
     <Compile Include="Core\SiloUtils.cs" />
     <Compile Include="Core\IndexUtils.cs" />
     <Compile Include="Core\IndexFactory.cs" />

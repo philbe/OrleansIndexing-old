@@ -9,6 +9,7 @@ using Orleans.Runtime;
 using Orleans.Providers;
 using System.Collections.Concurrent;
 using System.Threading;
+using System.Runtime.CompilerServices;
 
 namespace Orleans.Indexing
 {
@@ -57,14 +58,11 @@ namespace Orleans.Indexing
 
         #endregion Reentrant Index Update Variables
 
-        public Task<bool> ApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, bool isUniqueIndex, SiloAddress siloAddress)
+        public async Task<bool> ApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, bool isUniqueIndex, SiloAddress siloAddress)
         {
             IMemberUpdate updt = iUpdate.Value;
-            return ApplyIndexUpdate(g, updt, isUniqueIndex, updt.GetOperationType());
-        }
+            IndexOperationType opType = updt.GetOperationType();
 
-        public async Task<bool> ApplyIndexUpdate(IIndexableGrain g, IMemberUpdate iUpdate, bool isUniqueIndex, IndexOperationType opType)
-        {
             //the index can start processing update as soon as it becomes
             //visible to index handler and does not have to wait for any
             //further event regarding index builder, so it is not necessary
@@ -85,7 +83,7 @@ namespace Orleans.Indexing
             //(note that no other thread can run concurrently
             //before we reach an await operation, so no concurrency
             //control mechanism (e.g., locking) is required)
-            HashIndexBucketUtils.UpdateBucket(updatedGrain, iUpdate, opType, State, isUniqueIndex, out befImg, out befEntry, out fixIndexUnavailableOnDelete);
+            HashIndexBucketUtils.UpdateBucket(updatedGrain, updt, State, isUniqueIndex, out befImg, out befEntry, out fixIndexUnavailableOnDelete);
 
             //if the index was still unavailable
             //when we received a delete operation
@@ -102,7 +100,13 @@ namespace Orleans.Indexing
                     }
                 }
             }
+            await PersistIndex();
+            return true;
+        }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private async Task PersistIndex()
+        {
             //create a write-request ID, which is used for group commit
             int writeRequestId = ++writeRequestIdGen;
 
@@ -126,7 +130,6 @@ namespace Orleans.Indexing
                 //    Nothing! It's already been done by a previous worker.
                 //}
             }
-            return true;
         }
 
         private IIndexBuilder<V> GetIndexBuilder()

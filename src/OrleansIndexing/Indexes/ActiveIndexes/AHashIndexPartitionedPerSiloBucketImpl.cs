@@ -52,7 +52,7 @@ namespace Orleans.Indexing
 
             V updatedGrain = g;//.AsReference<V>(gFactory);
             IMemberUpdate updt = iUpdate.Value;
-            HashIndexBucketUtils.UpdateBucket(updatedGrain, updt, updt.GetOperationType(), State, isUniqueIndex);
+            HashIndexBucketUtils.UpdateBucket(updatedGrain, updt, State, isUniqueIndex);
             return Task.FromResult(true);
         }
 

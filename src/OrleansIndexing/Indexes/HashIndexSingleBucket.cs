@@ -93,7 +93,7 @@ namespace Orleans.Indexing
             //(note that no other thread can run concurrently
             //before we reach an await operation, so no concurrency
             //control mechanism (e.g., locking) is required)
-            HashIndexBucketUtils.UpdateBucket(updatedGrain, updt, updt.GetOperationType(), State, isUniqueIndex, out befImg, out befEntry, out fixIndexUnavailableOnDelete);
+            HashIndexBucketUtils.UpdateBucket(updatedGrain, updt, State, isUniqueIndex, out befImg, out befEntry, out fixIndexUnavailableOnDelete);
             
             //if the index was still unavailable
             //when we received a delete operation

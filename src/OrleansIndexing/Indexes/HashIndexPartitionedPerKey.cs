@@ -45,8 +45,8 @@ namespace Orleans.Indexing
                     BucketT aftImgBucket = InsideRuntimeClient.Current.InternalGrainFactory.GetGrain<BucketT>(
                         IndexUtils.GetIndexGrainID(typeof(V), _indexName) + "_" + befImgHash
                     );
-                    var befTask = befImgBucket.ApplyIndexUpdate(g, iUpdate.Value, isUniqueIndex, IndexOperationType.Delete);
-                    var aftTask = aftImgBucket.ApplyIndexUpdate(g, iUpdate.Value, isUniqueIndex, IndexOperationType.Insert);
+                    var befTask = befImgBucket.ApplyIndexUpdate(g, new MemberUpdateOverridenOperation(iUpdate.Value, IndexOperationType.Delete).AsImmutable<IMemberUpdate>(), isUniqueIndex);
+                    var aftTask = aftImgBucket.ApplyIndexUpdate(g, new MemberUpdateOverridenOperation(iUpdate.Value, IndexOperationType.Insert).AsImmutable<IMemberUpdate>(), isUniqueIndex);
                     bool[] results = await Task.WhenAll(befTask, aftTask);
                     return results[0] && results[1];
                 }

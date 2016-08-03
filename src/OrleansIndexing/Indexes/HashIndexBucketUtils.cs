@@ -27,12 +27,12 @@ namespace Orleans.Indexing
         /// <param name="State">the index bucket to be updated</param>
         /// <param name="isUniqueIndex">a flag to indicate whether the
         /// hash-index has a uniqueness constraint</param>
-        internal static void UpdateBucket<K, V>(V updatedGrain, IMemberUpdate iUpdate, IndexOperationType opType, HashIndexBucketState<K, V> State, bool isUniqueIndex) where V : IIndexableGrain
+        internal static void UpdateBucket<K, V>(V updatedGrain, IMemberUpdate iUpdate, HashIndexBucketState<K, V> State, bool isUniqueIndex) where V : IIndexableGrain
         {
             K befImg;
             HashIndexSingleBucketEntry<V> befEntry;
             bool fixIndexUnavailableOnDelete;
-            UpdateBucket(updatedGrain, iUpdate, opType, State, isUniqueIndex, out befImg, out befEntry, out fixIndexUnavailableOnDelete);
+            UpdateBucket(updatedGrain, iUpdate, State, isUniqueIndex, out befImg, out befEntry, out fixIndexUnavailableOnDelete);
         }
 
         /// <summary>
@@ -52,12 +52,13 @@ namespace Orleans.Indexing
         /// <param name="befEntry">output parameter: the index entry containing the before-image</param>
         /// <param name="fixIndexUnavailableOnDelete">output parameter: this variable determines whether
         /// index was still unavailable when we received a delete operation</param>
-        internal static void UpdateBucket<K, V>(V updatedGrain, IMemberUpdate update, IndexOperationType opType, HashIndexBucketState<K, V> State, bool isUniqueIndex, out K befImg, out HashIndexSingleBucketEntry<V> befEntry, out bool fixIndexUnavailableOnDelete) where V : IIndexableGrain
+        internal static void UpdateBucket<K, V>(V updatedGrain, IMemberUpdate update, HashIndexBucketState<K, V> State, bool isUniqueIndex, out K befImg, out HashIndexSingleBucketEntry<V> befEntry, out bool fixIndexUnavailableOnDelete) where V : IIndexableGrain
         {
             fixIndexUnavailableOnDelete = false;
             befImg = default(K);
             befEntry = null;
-            
+
+            IndexOperationType opType = update.GetOperationType();
             HashIndexSingleBucketEntry<V> aftEntry;
             if (opType == IndexOperationType.Update)
             {
