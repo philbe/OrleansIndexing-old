@@ -11,6 +11,28 @@ namespace Orleans.Indexing
 {
     public static class IndexExtensions
     {
+        /// <summary>
+        /// An extension method to intercept the calls to DirectApplyIndexUpdateBatch
+        /// on an Index
+        /// </summary>
+        public static Task<bool> ApplyIndexUpdateBatch(this IndexInterface index, Immutable<IDictionary<IIndexableGrain, IList<IMemberUpdate>>> iUpdates, bool isUniqueIndex, SiloAddress siloAddress = null)
+        {
+            Type indexType = index.GetType();
+            if (indexType.Name.Contains("AHashIndexPartitionedPerSiloReference"))
+            {
+                AHashIndexPartitionedPerSiloBucket bucketInCurrentSilo = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<AHashIndexPartitionedPerSiloBucket>(
+                    GetGrainID(IndexUtils.GetIndexNameFromIndexGrain((IAddressable)index), indexType.GetGenericArguments()[1]),
+                    siloAddress
+                );
+                return bucketInCurrentSilo.DirectApplyIndexUpdateBatch(iUpdates, isUniqueIndex/*, siloAddress*/);
+            }
+            return index.DirectApplyIndexUpdateBatch(iUpdates, isUniqueIndex, siloAddress);
+        }
+
+        /// <summary>
+        /// An extension method to intercept the calls to DirectApplyIndexUpdate
+        /// on an Index
+        /// </summary>
         internal static Task<bool> ApplyIndexUpdate(this IndexInterface index, IIndexableGrain updatedGrain, Immutable<IMemberUpdate> update, bool isUniqueIndex, SiloAddress siloAddress = null)
         {
             Type indexType = index.GetType();
