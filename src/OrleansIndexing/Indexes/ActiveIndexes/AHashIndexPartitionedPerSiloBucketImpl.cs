@@ -10,6 +10,7 @@ using K = System.Object;
 using V = Orleans.Indexing.IIndexableGrain;
 using Orleans.Providers;
 using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 
 namespace Orleans.Indexing
 {
@@ -40,7 +41,36 @@ namespace Orleans.Indexing
             logger = LogManager.GetLogger(string.Format("{0}.AHashIndexPartitionedPerSiloBucketImpl<{1},{2}>", parentIndexName, typeof(K), typeof(V)), LoggerType.Runtime);
         }
 
+        public async Task<bool> DirectApplyIndexUpdateBatch(Immutable<IDictionary<IIndexableGrain, IList<IMemberUpdate>>> iUpdates, bool isUnique, SiloAddress siloAddress = null)
+        {
+            IDictionary<IIndexableGrain, IList<IMemberUpdate>> updates = iUpdates.Value;
+            Task[] updateTasks = new Task[updates.Count()];
+            int i = 0;
+            foreach (var kv in updates)
+            {
+                updateTasks[i] = DirectApplyIndexUpdates(kv.Key, kv.Value, isUnique, siloAddress);
+                ++i;
+            }
+            await Task.WhenAll(updateTasks);
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private async Task DirectApplyIndexUpdates(IIndexableGrain g, IList<IMemberUpdate> updates, bool isUniqueIndex, SiloAddress siloAddress)
+        {
+            foreach (IMemberUpdate updt in updates)
+            {
+                await DirectApplyIndexUpdate(g, updt, isUniqueIndex, siloAddress);
+            }
+        }
+
         public Task<bool> DirectApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, bool isUniqueIndex, SiloAddress siloAddress)
+        {
+            return DirectApplyIndexUpdate(g, iUpdate.Value, isUniqueIndex, siloAddress);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private Task<bool> DirectApplyIndexUpdate(IIndexableGrain g, IMemberUpdate updt, bool isUniqueIndex, SiloAddress siloAddress)
         {
             //the index can start processing update as soon as it becomes
             //visible to index handler and does not have to wait for any
@@ -51,7 +81,6 @@ namespace Orleans.Indexing
             GrainFactory gFactory = InsideRuntimeClient.Current.InternalGrainFactory;
 
             V updatedGrain = g;//.AsReference<V>(gFactory);
-            IMemberUpdate updt = iUpdate.Value;
             HashIndexBucketUtils.UpdateBucket(updatedGrain, updt, State, isUniqueIndex);
             return Task.FromResult(true);
         }

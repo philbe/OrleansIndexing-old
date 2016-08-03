@@ -9,6 +9,7 @@ using Orleans.Runtime;
 using Orleans.Providers;
 using System.Collections.Concurrent;
 using System.Threading;
+using System.Runtime.CompilerServices;
 
 namespace Orleans.Indexing
 {
@@ -63,6 +64,28 @@ namespace Orleans.Indexing
 
         #endregion Multi-threaded Index Update Variables
 
+        public async Task<bool> DirectApplyIndexUpdateBatch(Immutable<IDictionary<IIndexableGrain, IList<IMemberUpdate>>> iUpdates, bool isUnique, SiloAddress siloAddress = null)
+        {
+            IDictionary<IIndexableGrain, IList<IMemberUpdate>> updates = iUpdates.Value;
+            Task[] updateTasks = new Task[updates.Count()];
+            int i = 0;
+            foreach (var kv in updates)
+            {
+                updateTasks[i] = DirectApplyIndexUpdates(kv.Key, kv.Value, isUnique, siloAddress);
+                ++i;
+            }
+            await Task.WhenAll(updateTasks);
+            return true;
+        }
+        
+        private async Task DirectApplyIndexUpdates(IIndexableGrain g, IList<IMemberUpdate> updates, bool isUniqueIndex, SiloAddress siloAddress)
+        {
+            foreach (IMemberUpdate updt in updates)
+            {
+                await DirectApplyIndexUpdateNonPersistent(g, updt, isUniqueIndex, siloAddress);
+            }
+        }
+
         /// <summary>
         /// This method applies a given update to the current index.
         /// </summary>
@@ -72,6 +95,21 @@ namespace Orleans.Indexing
         /// <param name="op">the actual type of the operation, which override the operation-type in iUpdate</param>
         /// <returns>true, if the index update was successful, otherwise false</returns>
         public async Task<bool> DirectApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, bool isUniqueIndex, SiloAddress siloAddress)
+        {
+            await DirectApplyIndexUpdateNonPersistent(g, iUpdate.Value, isUniqueIndex, siloAddress);
+            await PersistIndex();
+            return true;
+        }
+
+        private async Task DirectApplyIndexUpdatesNonPersistent(IIndexableGrain g, IList<IMemberUpdate> updates, bool isUniqueIndex, SiloAddress siloAddress)
+        {
+            foreach(IMemberUpdate updt in updates)
+            {
+                await DirectApplyIndexUpdateNonPersistent(g, updt, isUniqueIndex, siloAddress);
+            }
+        }
+
+        private async Task DirectApplyIndexUpdateNonPersistent(IIndexableGrain g, IMemberUpdate updt, bool isUniqueIndex, SiloAddress siloAddress)
         {
             //the index can start processing update as soon as it becomes
             //visible to index handler and does not have to wait for any
@@ -88,7 +126,7 @@ namespace Orleans.Indexing
 
             K befImg;
             HashIndexSingleBucketEntry<V> befEntry;
-            IMemberUpdate updt = iUpdate.Value;
+
             //Updates the index bucket synchronously
             //(note that no other thread can run concurrently
             //before we reach an await operation, so no concurrency
@@ -110,7 +148,14 @@ namespace Orleans.Indexing
                     }
                 }
             }
+        }
 
+        /// <summary>
+        /// Persists the state of the index
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private async Task PersistIndex()
+        {
             //create a write-request ID, which is used for group commit
             int writeRequestId = ++writeRequestIdGen;
 
@@ -134,7 +179,6 @@ namespace Orleans.Indexing
                 //    Nothing! It's already been done by a previous worker.
                 //}
             }
-            return true;
         }
 
         private IIndexBuilder<V> GetIndexBuilder()

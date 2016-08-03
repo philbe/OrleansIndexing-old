@@ -39,6 +39,20 @@ namespace Orleans.Indexing
         }
 
         /// <summary>
+        /// DirectApplyIndexUpdateBatch is not supported on AHashIndexPartitionedPerSiloImpl,
+        /// because it will be skipped via IndexExtensions.DirectApplyIndexUpdateBatch
+        /// </summary>
+        public Task<bool> DirectApplyIndexUpdateBatch(Immutable<IDictionary<IIndexableGrain, IList<IMemberUpdate>>> iUpdates, bool isUnique, SiloAddress siloAddress = null)
+        {
+            //AHashIndexPartitionedPerSiloBucket bucketInCurrentSilo = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<AHashIndexPartitionedPerSiloBucket>(
+            //    GetGrainID(IndexUtils.GetIndexNameFromIndexGrain(this)),
+            //    siloAddress
+            //);
+            //return bucketInCurrentSilo.DirectApplyIndexUpdateBatch(iUpdates, isUnique/*, siloAddress*/);
+            throw new NotSupportedException();
+        }
+
+        /// <summary>
         /// DirectApplyIndexUpdate is not supported on AHashIndexPartitionedPerSiloImpl,
         /// because it will be skipped via IndexExtensions.ApplyIndexUpdate
         /// </summary>

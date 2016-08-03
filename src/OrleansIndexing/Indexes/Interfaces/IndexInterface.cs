@@ -15,7 +15,6 @@ namespace Orleans.Indexing
     [Unordered]
     public interface IndexInterface
     {
-
         /// <summary>
         /// This method applies a given update to the current index.
         /// </summary>
@@ -26,6 +25,18 @@ namespace Orleans.Indexing
         /// <returns>true, if the index update was successful, otherwise false</returns>
         [AlwaysInterleave]
         Task<bool> DirectApplyIndexUpdate(IIndexableGrain updatedGrain, Immutable<IMemberUpdate> iUpdate, bool isUnique, SiloAddress siloAddress = null);
+
+
+        /// <summary>
+        /// This method applies a batch of given updates to the current index.
+        /// </summary>
+        /// <param name="iUpdates">a mapping from the grains that issued the
+        /// updates to the list of actual update information</param>
+        /// <param name="isUnique">whether this is a unique index that we are updating</param>
+        /// <param name="siloAddress">The address of the silo where the grain resides.</param>
+        /// <returns>true, if the index update was successful, otherwise false</returns>
+        [AlwaysInterleave]
+        Task<bool> DirectApplyIndexUpdateBatch(Immutable<IDictionary<IIndexableGrain, IList<IMemberUpdate>>> iUpdates, bool isUnique, SiloAddress siloAddress = null);
 
         /// <summary>
         /// Disposes of the index and removes all the data stored

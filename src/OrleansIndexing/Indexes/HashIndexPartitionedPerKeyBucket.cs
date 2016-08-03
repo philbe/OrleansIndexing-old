@@ -58,9 +58,46 @@ namespace Orleans.Indexing
 
         #endregion Reentrant Index Update Variables
 
+        public async Task<bool> DirectApplyIndexUpdateBatch(Immutable<IDictionary<IIndexableGrain, IList<IMemberUpdate>>> iUpdates, bool isUnique, SiloAddress siloAddress = null)
+        {
+            IDictionary<IIndexableGrain, IList<IMemberUpdate>> updates = iUpdates.Value;
+            Task[] updateTasks = new Task[updates.Count()];
+            int i = 0;
+            foreach (var kv in updates)
+            {
+                updateTasks[i] = DirectApplyIndexUpdatesNonPersistent(kv.Key, kv.Value, isUnique, siloAddress);
+                ++i;
+            }
+            await Task.WhenAll(updateTasks);
+            return true;
+        }
+
+
+        /// <summary>
+        /// This method applies a given update to the current index.
+        /// </summary>
+        /// <param name="updatedGrain">the grain that issued the update</param>
+        /// <param name="iUpdate">contains the data for the update</param>
+        /// <param name="isUnique">whether this is a unique index that we are updating</param>
+        /// <param name="op">the actual type of the operation, which override the operation-type in iUpdate</param>
+        /// <returns>true, if the index update was successful, otherwise false</returns>
         public async Task<bool> DirectApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, bool isUniqueIndex, SiloAddress siloAddress)
         {
-            IMemberUpdate updt = iUpdate.Value;
+            await DirectApplyIndexUpdateNonPersistent(g, iUpdate.Value, isUniqueIndex, siloAddress);
+            await PersistIndex();
+            return true;
+        }
+
+        private async Task DirectApplyIndexUpdatesNonPersistent(IIndexableGrain g, IList<IMemberUpdate> updates, bool isUniqueIndex, SiloAddress siloAddress)
+        {
+            foreach (IMemberUpdate updt in updates)
+            {
+                await DirectApplyIndexUpdateNonPersistent(g, updt, isUniqueIndex, siloAddress);
+            }
+        }
+
+        private async Task<bool> DirectApplyIndexUpdateNonPersistent(IIndexableGrain g, IMemberUpdate updt, bool isUniqueIndex, SiloAddress siloAddress)
+        {
             IndexOperationType opType = updt.GetOperationType();
 
             //the index can start processing update as soon as it becomes
@@ -100,10 +137,13 @@ namespace Orleans.Indexing
                     }
                 }
             }
-            await PersistIndex();
             return true;
         }
 
+        /// <summary>
+        /// Persists the state of the index
+        /// </summary>
+        /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private async Task PersistIndex()
         {

@@ -25,6 +25,91 @@ namespace Orleans.Indexing
             //_isUnique = isUniqueIndex;
         }
 
+        public async Task<bool> DirectApplyIndexUpdateBatch(Immutable<IDictionary<IIndexableGrain, IList<IMemberUpdate>>> iUpdates, bool isUnique, SiloAddress siloAddress = null)
+        {
+            IDictionary<IIndexableGrain, IList<IMemberUpdate>> updates = iUpdates.Value;
+            IDictionary<int, IDictionary<IIndexableGrain, IList<IMemberUpdate>>> bucketUpdates = new Dictionary<int, IDictionary<IIndexableGrain, IList<IMemberUpdate>>>();
+            foreach (var kv in updates)
+            {
+                IIndexableGrain g = kv.Key;
+                IList<IMemberUpdate> gUpdates = kv.Value;
+                foreach(IMemberUpdate update in gUpdates)
+                {
+                    IndexOperationType opType = update.GetOperationType();
+                    if (opType == IndexOperationType.Update)
+                    {
+                        int befImgHash = update.GetBeforeImage().GetHashCode();
+                        int aftImgHash = update.GetAfterImage().GetHashCode();
+
+                        if (befImgHash == aftImgHash)
+                        {
+                            AddUpdateToBucket(bucketUpdates, g, befImgHash, update);
+                        }
+                        else
+                        {
+                            AddUpdateToBucket(bucketUpdates, g, befImgHash, new MemberUpdateOverridenOperation(update, IndexOperationType.Delete));
+                            AddUpdateToBucket(bucketUpdates, g, aftImgHash, new MemberUpdateOverridenOperation(update, IndexOperationType.Insert));
+                        }
+                    }
+                    else if (opType == IndexOperationType.Insert)
+                    {
+                        int aftImgHash = update.GetAfterImage().GetHashCode();
+                        AddUpdateToBucket(bucketUpdates, g, aftImgHash, update);
+                    }
+                    else if (opType == IndexOperationType.Delete)
+                    {
+                        int befImgHash = update.GetBeforeImage().GetHashCode();
+                        AddUpdateToBucket(bucketUpdates, g, befImgHash, update);
+                    }
+                }
+            }
+
+            Task[] updateTasks = new Task[updates.Count()];
+            int i = 0;
+            foreach (var kv in bucketUpdates)
+            {
+                BucketT bucket = InsideRuntimeClient.Current.InternalGrainFactory.GetGrain<BucketT>(
+                    IndexUtils.GetIndexGrainID(typeof(V), _indexName) + "_" + kv.Key
+                );
+                updateTasks[i] = bucket.DirectApplyIndexUpdateBatch(kv.Value.AsImmutable(), isUnique, siloAddress);
+                ++i;
+            }
+            await Task.WhenAll(updateTasks);
+            return true;
+        }
+
+        /// <summary>
+        /// Adds an grain update to the bucketUpdates dictionary
+        /// </summary>
+        /// <param name="bucketUpdates">the bucketUpdates dictionary</param>
+        /// <param name="g">target grain</param>
+        /// <param name="bucket">the bucket index</param>
+        /// <param name="update">the update to be added</param>
+        private void AddUpdateToBucket(IDictionary<int, IDictionary<IIndexableGrain, IList<IMemberUpdate>>> bucketUpdates, IIndexableGrain g, int bucket, IMemberUpdate update)
+        {
+            IDictionary<IIndexableGrain, IList<IMemberUpdate>> tmpBucketUpdatesMap;
+            IList<IMemberUpdate> tmpUpdateList;
+
+            if (bucketUpdates.TryGetValue(bucket, out tmpBucketUpdatesMap))
+            {
+                if (!tmpBucketUpdatesMap.TryGetValue(g, out tmpUpdateList))
+                {
+                    tmpUpdateList = new List<IMemberUpdate>(new[] { update });
+                    tmpBucketUpdatesMap.Add(g, tmpUpdateList);
+                }
+                else
+                {
+                    tmpUpdateList.Add(update);
+                }
+            }
+            else
+            {
+                tmpBucketUpdatesMap = new Dictionary<IIndexableGrain, IList<IMemberUpdate>>();
+                tmpBucketUpdatesMap.Add(g, new List<IMemberUpdate>(new[] { update }));
+                bucketUpdates.Add(bucket, tmpBucketUpdatesMap);
+            }
+        }
+
         public async Task<bool> DirectApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, bool isUniqueIndex, SiloAddress siloAddress)
         {
             IMemberUpdate update = iUpdate.Value;
