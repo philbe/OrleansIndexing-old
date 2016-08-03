@@ -38,13 +38,18 @@ namespace Orleans.Indexing
             return base.OnActivateAsync();
         }
 
-        public Task<bool> ApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, bool isUniqueIndex, SiloAddress siloAddress)
+        /// <summary>
+        /// DirectApplyIndexUpdate is not supported on AHashIndexPartitionedPerSiloImpl,
+        /// because it will be skipped via IndexExtensions.ApplyIndexUpdate
+        /// </summary>
+        public Task<bool> DirectApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, bool isUniqueIndex, SiloAddress siloAddress)
         {
-            AHashIndexPartitionedPerSiloBucket bucketInCurrentSilo = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<AHashIndexPartitionedPerSiloBucket>(
-                GetGrainID(IndexUtils.GetIndexNameFromIndexGrain(this)),
-                siloAddress
-            );
-            return bucketInCurrentSilo.ApplyIndexUpdate(g, iUpdate, isUniqueIndex/*, siloAddress*/);
+            //AHashIndexPartitionedPerSiloBucket bucketInCurrentSilo = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<AHashIndexPartitionedPerSiloBucket>(
+            //    GetGrainID(IndexUtils.GetIndexNameFromIndexGrain(this)),
+            //    siloAddress
+            //);
+            //return bucketInCurrentSilo.DirectApplyIndexUpdate(g, iUpdate, isUniqueIndex/*, siloAddress*/);
+            throw new NotSupportedException();
         }
 
         private static GrainId GetGrainID(string indexName)

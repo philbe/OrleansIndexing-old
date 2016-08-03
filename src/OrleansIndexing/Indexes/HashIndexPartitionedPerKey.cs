@@ -25,7 +25,7 @@ namespace Orleans.Indexing
             //_isUnique = isUniqueIndex;
         }
 
-        public async Task<bool> ApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, bool isUniqueIndex, SiloAddress siloAddress)
+        public async Task<bool> DirectApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, bool isUniqueIndex, SiloAddress siloAddress)
         {
             IMemberUpdate update = iUpdate.Value;
             IndexOperationType opType = update.GetOperationType();
@@ -38,15 +38,15 @@ namespace Orleans.Indexing
                 );
                 if (befImgHash == aftImgHash)
                 {
-                    return await befImgBucket.ApplyIndexUpdate(g, iUpdate, isUniqueIndex);
+                    return await befImgBucket.DirectApplyIndexUpdate(g, iUpdate, isUniqueIndex);
                 }
                 else
                 {
                     BucketT aftImgBucket = InsideRuntimeClient.Current.InternalGrainFactory.GetGrain<BucketT>(
                         IndexUtils.GetIndexGrainID(typeof(V), _indexName) + "_" + befImgHash
                     );
-                    var befTask = befImgBucket.ApplyIndexUpdate(g, new MemberUpdateOverridenOperation(iUpdate.Value, IndexOperationType.Delete).AsImmutable<IMemberUpdate>(), isUniqueIndex);
-                    var aftTask = aftImgBucket.ApplyIndexUpdate(g, new MemberUpdateOverridenOperation(iUpdate.Value, IndexOperationType.Insert).AsImmutable<IMemberUpdate>(), isUniqueIndex);
+                    var befTask = befImgBucket.DirectApplyIndexUpdate(g, new MemberUpdateOverridenOperation(iUpdate.Value, IndexOperationType.Delete).AsImmutable<IMemberUpdate>(), isUniqueIndex);
+                    var aftTask = aftImgBucket.DirectApplyIndexUpdate(g, new MemberUpdateOverridenOperation(iUpdate.Value, IndexOperationType.Insert).AsImmutable<IMemberUpdate>(), isUniqueIndex);
                     bool[] results = await Task.WhenAll(befTask, aftTask);
                     return results[0] && results[1];
                 }
@@ -57,7 +57,7 @@ namespace Orleans.Indexing
                 BucketT aftImgBucket = InsideRuntimeClient.Current.InternalGrainFactory.GetGrain<BucketT>(
                     IndexUtils.GetIndexGrainID(typeof(V), _indexName) + "_" + aftImgHash
                 );
-                return await aftImgBucket.ApplyIndexUpdate(g, iUpdate, isUniqueIndex);
+                return await aftImgBucket.DirectApplyIndexUpdate(g, iUpdate, isUniqueIndex);
             }
             else if(opType == IndexOperationType.Delete)
             {
@@ -65,7 +65,7 @@ namespace Orleans.Indexing
                 BucketT befImgBucket = InsideRuntimeClient.Current.InternalGrainFactory.GetGrain<BucketT>(
                     IndexUtils.GetIndexGrainID(typeof(V), _indexName) + "_" + befImgHash
                 );
-                return await befImgBucket.ApplyIndexUpdate(g, iUpdate, isUniqueIndex);
+                return await befImgBucket.DirectApplyIndexUpdate(g, iUpdate, isUniqueIndex);
             }
             return true;
         }

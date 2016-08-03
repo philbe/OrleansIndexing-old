@@ -58,7 +58,7 @@ namespace Orleans.Indexing
 
         #endregion Reentrant Index Update Variables
 
-        public async Task<bool> ApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, bool isUniqueIndex, SiloAddress siloAddress)
+        public async Task<bool> DirectApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, bool isUniqueIndex, SiloAddress siloAddress)
         {
             IMemberUpdate updt = iUpdate.Value;
             IndexOperationType opType = updt.GetOperationType();

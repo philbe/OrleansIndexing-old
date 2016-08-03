@@ -40,7 +40,7 @@ namespace Orleans.Indexing
             logger = LogManager.GetLogger(string.Format("{0}.AHashIndexPartitionedPerSiloBucketImpl<{1},{2}>", parentIndexName, typeof(K), typeof(V)), LoggerType.Runtime);
         }
 
-        public Task<bool> ApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, bool isUniqueIndex, SiloAddress siloAddress)
+        public Task<bool> DirectApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, bool isUniqueIndex, SiloAddress siloAddress)
         {
             //the index can start processing update as soon as it becomes
             //visible to index handler and does not have to wait for any

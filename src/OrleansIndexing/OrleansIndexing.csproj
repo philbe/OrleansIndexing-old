@@ -81,6 +81,7 @@
     <Compile Include="Core\Interfaces\IMemberUpdate.cs" />
     <Compile Include="Core\MemberUpdate.cs" />
     <Compile Include="Core\IndexWorkflowRecord.cs" />
+    <Compile Include="Extensions\IndexExtensions.cs" />
     <Compile Include="Extensions\GrainExtensions.cs" />
     <Compile Include="Extensions\GrainFactoryExtensions.cs" />
     <Compile Include="Extensions\TypeExtensions.cs" />

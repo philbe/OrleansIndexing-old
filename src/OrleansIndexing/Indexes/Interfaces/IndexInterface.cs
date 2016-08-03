@@ -25,7 +25,7 @@ namespace Orleans.Indexing
         /// <param name="siloAddress">The address of the silo where the grain resides.</param>
         /// <returns>true, if the index update was successful, otherwise false</returns>
         [AlwaysInterleave]
-        Task<bool> ApplyIndexUpdate(IIndexableGrain updatedGrain, Immutable<IMemberUpdate> iUpdate, bool isUnique, SiloAddress siloAddress = null);
+        Task<bool> DirectApplyIndexUpdate(IIndexableGrain updatedGrain, Immutable<IMemberUpdate> iUpdate, bool isUnique, SiloAddress siloAddress = null);
 
         /// <summary>
         /// Disposes of the index and removes all the data stored

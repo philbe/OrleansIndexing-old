@@ -34,7 +34,7 @@ namespace Orleans.Indexing
         /// </summary>
         /// <param name="index">the given index grain</param>
         /// <returns>the name of the index</returns>
-        internal static string GetIndexNameFromIndexGrain<T>(T index) where T: IAddressable, IndexInterface
+        internal static string GetIndexNameFromIndexGrain(IAddressable index)
         {
             string key = index.GetPrimaryKeyString();
             return key.Substring(key.LastIndexOf("-") + 1);

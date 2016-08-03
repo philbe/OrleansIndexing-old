@@ -71,7 +71,7 @@ namespace Orleans.Indexing
         /// <param name="isUnique">whether this is a unique index that we are updating</param>
         /// <param name="op">the actual type of the operation, which override the operation-type in iUpdate</param>
         /// <returns>true, if the index update was successful, otherwise false</returns>
-        public async Task<bool> ApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, bool isUniqueIndex, SiloAddress siloAddress)
+        public async Task<bool> DirectApplyIndexUpdate(IIndexableGrain g, Immutable<IMemberUpdate> iUpdate, bool isUniqueIndex, SiloAddress siloAddress)
         {
             //the index can start processing update as soon as it becomes
             //visible to index handler and does not have to wait for any
