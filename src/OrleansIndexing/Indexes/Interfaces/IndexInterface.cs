@@ -70,7 +70,7 @@ namespace Orleans.Indexing
     /// the root interface for the index implementations.
     /// </summary>
     [Unordered]
-    public interface IIndex<K,V> : IndexInterface where V : IIndexableGrain
+    public interface IndexInterface<K,V> : IndexInterface where V : IIndexableGrain
     {
         /// <summary>
         /// This method retrieves the result of a lookup into the hash-index

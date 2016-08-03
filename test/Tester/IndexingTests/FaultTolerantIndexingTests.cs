@@ -82,7 +82,7 @@ namespace UnitTests.IndexingTests
             await p2.SetLocation("Seattle");
             await p3.SetLocation("San Fransisco");
 
-            IIndex<string, IPlayer1Grain> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer1Grain>("__Location");
+            IndexInterface<string, IPlayer1Grain> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer1Grain>("__Location");
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
@@ -125,7 +125,7 @@ namespace UnitTests.IndexingTests
             await p2.SetLocation("Tehran");
             await p3.SetLocation("Yazd");
 
-            IIndex<string, IPlayer2Grain> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer2Grain>("__Location");
+            IndexInterface<string, IPlayer2Grain> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer2Grain>("__Location");
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
@@ -169,7 +169,7 @@ namespace UnitTests.IndexingTests
             await p2.SetLocation("Seattle");
             await p3.SetLocation("San Fransisco");
 
-            IIndex<string, IPlayer2Grain> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer2Grain>("__Location");
+            IndexInterface<string, IPlayer2Grain> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer2Grain>("__Location");
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
@@ -207,7 +207,7 @@ namespace UnitTests.IndexingTests
             await p2.SetLocation("Seattle");
             await p3.SetLocation("San Fransisco");
 
-            IIndex<string, IPlayer3Grain> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer3Grain>("__Location");
+            IndexInterface<string, IPlayer3Grain> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer3Grain>("__Location");
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 

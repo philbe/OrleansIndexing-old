@@ -83,7 +83,7 @@ namespace UnitTests.IndexingTests
             await p2.SetLocation("Seattle");
             await p3.SetLocation("San Fransisco");
 
-            IIndex<string, IPlayer1GrainNonFaultTolerant> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer1GrainNonFaultTolerant>("__Location");
+            IndexInterface<string, IPlayer1GrainNonFaultTolerant> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer1GrainNonFaultTolerant>("__Location");
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
@@ -126,7 +126,7 @@ namespace UnitTests.IndexingTests
             await p2.SetLocation("Tehran");
             await p3.SetLocation("Yazd");
 
-            IIndex<string, IPlayer2GrainNonFaultTolerant> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer2GrainNonFaultTolerant>("__Location");
+            IndexInterface<string, IPlayer2GrainNonFaultTolerant> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer2GrainNonFaultTolerant>("__Location");
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
@@ -170,7 +170,7 @@ namespace UnitTests.IndexingTests
             await p2.SetLocation("Seattle");
             await p3.SetLocation("San Fransisco");
 
-            IIndex<string, IPlayer2GrainNonFaultTolerant> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer2GrainNonFaultTolerant>("__Location");
+            IndexInterface<string, IPlayer2GrainNonFaultTolerant> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer2GrainNonFaultTolerant>("__Location");
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
@@ -208,7 +208,7 @@ namespace UnitTests.IndexingTests
             await p2.SetLocation("Seattle");
             await p3.SetLocation("San Fransisco");
 
-            IIndex<string, IPlayer3GrainNonFaultTolerant> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer3GrainNonFaultTolerant>("__Location");
+            IndexInterface<string, IPlayer3GrainNonFaultTolerant> locIdx = GrainClient.GrainFactory.GetIndex<string, IPlayer3GrainNonFaultTolerant>("__Location");
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 

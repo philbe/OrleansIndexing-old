@@ -16,7 +16,7 @@ namespace Orleans.Indexing
     /// <typeparam name="V">the type of grain interface that is
     /// being indexed</typeparam>
     [Unordered]
-    public interface IRangeIndex<K,V> : IIndex<K,V> where V : IIndexableGrain
+    public interface IRangeIndex<K,V> : IndexInterface<K,V> where V : IIndexableGrain
     {
         /// <summary>
         /// Given the bounds, this method retrieves the result of

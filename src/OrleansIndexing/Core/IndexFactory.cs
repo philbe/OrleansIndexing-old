@@ -90,7 +90,7 @@ namespace Orleans.Indexing
         /// <param name="indexName">the name of the index, which
         /// is the identifier of the index</param>
         /// <returns>the IndexInterface<K,V> with the specified name</returns>
-        public static IIndex<K, V> GetIndex<K, V>(this IGrainFactory gf, string indexName) where V : IIndexableGrain
+        public static IndexInterface<K, V> GetIndex<K, V>(this IGrainFactory gf, string indexName) where V : IIndexableGrain
         {
             return IndexHandler.GetIndex<K,V>(indexName);
         }
@@ -151,7 +151,7 @@ namespace Orleans.Indexing
         /// <returns></returns>
         internal static Tuple<object, object, object> CreateIndex(this IGrainFactory gf, Type idxType, string indexName, bool isUniqueIndex, PropertyInfo indexedProperty)
         {
-            Type iIndexType = idxType.GetGenericType(typeof(IIndex<,>));
+            Type iIndexType = idxType.GetGenericType(typeof(IndexInterface<,>));
             if (iIndexType != null)
             {
                 Type[] indexTypeArgs = iIndexType.GetGenericArguments();
