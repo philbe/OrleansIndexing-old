@@ -11,7 +11,7 @@ namespace Orleans.Indexing
     public static class IndexRegistry
     {
 
-        //internal static Task<bool> RegisterIndex(Type iGrainType, string indexName, IIndex index, IndexMetaData indexMetaData)
+        //internal static Task<bool> RegisterIndex(Type iGrainType, string indexName, IndexInterface index, IndexMetaData indexMetaData)
         //{
         //    if (GetIndexes(iGrainType).ContainsKey(indexName))
         //    {
@@ -21,7 +21,7 @@ namespace Orleans.Indexing
         //    return Task.FromResult(true);
         //}
 
-        //internal static Task<bool> RegisterIndex<T>(string indexName, IIndex index, IndexMetaData indexMetaData) where T : IIndexableGrain
+        //internal static Task<bool> RegisterIndex<T>(string indexName, IndexInterface index, IndexMetaData indexMetaData) where T : IIndexableGrain
         //{
         //    var iGrainType = typeof(T);
         //    return RegisterIndex(iGrainType, indexName, index, indexMetaData);
@@ -34,7 +34,7 @@ namespace Orleans.Indexing
         //    GetIndexes(iGrainType).TryGetValue(indexName, out index);
         //    if (index != null)
         //    {
-        //        await ((IIndex)index.Item1).Dispose();
+        //        await ((IndexInterface)index.Item1).Dispose();
         //        return GetIndexes(iGrainType).Remove(indexName);
         //    }
         //    else
@@ -49,7 +49,7 @@ namespace Orleans.Indexing
         //    IList<Task> disposeTasks = new List<Task>();
         //    foreach (KeyValuePair<string, Tuple<object, object, object>> index in GetIndexes(iGrainType))
         //    {
-        //        disposeTasks.Add(((IIndex)index.Value.Item1).Dispose());
+        //        disposeTasks.Add(((IndexInterface)index.Value.Item1).Dispose());
         //    }
         //    await Task.WhenAll(disposeTasks);
         //    GetIndexes(iGrainType).Clear();

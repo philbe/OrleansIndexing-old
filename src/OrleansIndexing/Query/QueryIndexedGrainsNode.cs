@@ -28,7 +28,7 @@ namespace Orleans.Indexing
 
         public override async Task<IOrleansQueryResult<TIGrain>> GetResults()
         {
-            IIndex index = GetGrainFactory().GetIndex(_indexName, typeof(TIGrain));
+            IndexInterface index = GetGrainFactory().GetIndex(_indexName, typeof(TIGrain));
             //Type indexType = index.GetType();
             //if(indexType.GetGenericTypeDefinition() == typeof(AHashIndexPartitionedPerSiloImpl<,>))
             //{
@@ -41,7 +41,7 @@ namespace Orleans.Indexing
 
         public override async Task ObserveResults(IAsyncBatchObserver<TIGrain> observer)
         {
-            IIndex index = GetGrainFactory().GetIndex(_indexName, typeof(TIGrain));
+            IndexInterface index = GetGrainFactory().GetIndex(_indexName, typeof(TIGrain));
             //Type indexType = index.GetType();
             //if(indexType.GetGenericTypeDefinition() == typeof(AHashIndexPartitionedPerSiloImpl<,>))
             //{

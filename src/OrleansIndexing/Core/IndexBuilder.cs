@@ -26,7 +26,7 @@ namespace Orleans.Indexing
             return base.OnActivateAsync();
         }
 
-        public async Task BuildIndex(string indexName, IIndex index, IndexMetaData indexMetaData, IIndexUpdateGenerator iUpdateGen)
+        public async Task BuildIndex(string indexName, IndexInterface index, IndexMetaData indexMetaData, IIndexUpdateGenerator iUpdateGen)
         {
             if (_status != IndexBuilderStatus.InProgress)
             {
@@ -88,7 +88,7 @@ namespace Orleans.Indexing
             }
         }
 
-        private async Task AddGrainToIndex(T iGrain, IIndex index, IndexMetaData indexMetaData, IIndexUpdateGenerator iUpdateGen)
+        private async Task AddGrainToIndex(T iGrain, IndexInterface index, IndexMetaData indexMetaData, IIndexUpdateGenerator iUpdateGen)
         {
             if (!_tombstones.Contains(iGrain))
             {

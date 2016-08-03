@@ -206,7 +206,7 @@ namespace Orleans.Indexing
             return Task.FromResult(State.IndexStatus == IndexStatus.Available);
         }
 
-        Task IIndex.Lookup(IOrleansQueryResultStream<IIndexableGrain> result, object key)
+        Task IndexInterface.Lookup(IOrleansQueryResultStream<IIndexableGrain> result, object key)
         {
             return Lookup(result.Cast<V>(), (K)key);
         }
@@ -230,7 +230,7 @@ namespace Orleans.Indexing
             }
         }
 
-        async Task<IOrleansQueryResult<IIndexableGrain>> IIndex.Lookup(object key)
+        async Task<IOrleansQueryResult<IIndexableGrain>> IndexInterface.Lookup(object key)
         {
             return await Lookup((K)key);
         }

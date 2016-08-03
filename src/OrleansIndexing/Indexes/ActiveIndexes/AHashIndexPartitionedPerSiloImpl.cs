@@ -98,7 +98,7 @@ namespace Orleans.Indexing
             return Task.FromResult(_status == IndexStatus.Available);
         }
 
-        async Task<IOrleansQueryResult<IIndexableGrain>> IIndex.Lookup(object key)
+        async Task<IOrleansQueryResult<IIndexableGrain>> IndexInterface.Lookup(object key)
         {
             //get all silos
             Dictionary<SiloAddress, SiloStatus> hosts = await SiloUtils.GetHosts(true);
@@ -110,7 +110,7 @@ namespace Orleans.Indexing
 
         public async Task<IOrleansQueryResult<V>> Lookup(K key)
         {
-            return (IOrleansQueryResult<V>) await ((IIndex)this).Lookup(key);
+            return (IOrleansQueryResult<V>) await ((IndexInterface)this).Lookup(key);
         }
 
         private ISet<Task<IOrleansQueryResult<IIndexableGrain>>> GetResultQueries(Dictionary<SiloAddress, SiloStatus> hosts, object key)
@@ -135,10 +135,10 @@ namespace Orleans.Indexing
 
         public Task Lookup(IOrleansQueryResultStream<V> result, K key)
         {
-            return ((IIndex)this).Lookup(result.Cast<IIndexableGrain>(), key);
+            return ((IndexInterface)this).Lookup(result.Cast<IIndexableGrain>(), key);
         }
 
-        async Task IIndex.Lookup(IOrleansQueryResultStream<IIndexableGrain> result, object key)
+        async Task IndexInterface.Lookup(IOrleansQueryResultStream<IIndexableGrain> result, object key)
         {
             //get all silos
             Dictionary<SiloAddress, SiloStatus> hosts = await SiloUtils.GetHosts(true);

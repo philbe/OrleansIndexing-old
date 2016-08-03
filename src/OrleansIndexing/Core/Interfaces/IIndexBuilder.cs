@@ -12,7 +12,7 @@ namespace Orleans.Indexing
     /// </summary>
     public interface IIndexBuilder : IGrainWithStringKey
     {
-        Task BuildIndex(string indexName, IIndex index, IndexMetaData indexMetaData, IIndexUpdateGenerator iUpdateGen);
+        Task BuildIndex(string indexName, IndexInterface index, IndexMetaData indexMetaData, IIndexUpdateGenerator iUpdateGen);
         Task<bool> AddTombstone(IIndexableGrain removedGrain);
         Task<IndexBuilderStatus> GetStatus();
         Task<bool> IsDone();

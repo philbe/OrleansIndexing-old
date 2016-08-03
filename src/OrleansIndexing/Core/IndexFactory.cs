@@ -82,29 +82,29 @@ namespace Orleans.Indexing
         }
 
         /// <summary>
-        /// Gets an IIndex<K,V> given its name
+        /// Gets an IndexInterface<K,V> given its name
         /// </summary>
         /// <typeparam name="K">key type of the index</typeparam>
         /// <typeparam name="V">value type of the index, which is
         /// the grain being indexed</typeparam>
         /// <param name="indexName">the name of the index, which
         /// is the identifier of the index</param>
-        /// <returns>the IIndex<K,V> with the specified name</returns>
+        /// <returns>the IndexInterface<K,V> with the specified name</returns>
         public static IIndex<K, V> GetIndex<K, V>(this IGrainFactory gf, string indexName) where V : IIndexableGrain
         {
             return IndexHandler.GetIndex<K,V>(indexName);
         }
 
         /// <summary>
-        /// Gets an IIndex given its name and grain interface type
+        /// Gets an IndexInterface given its name and grain interface type
         /// </summary>
         /// <param name="indexName">the name of the index, which
         /// is the identifier of the index<</param>
         /// <param name="iGrainType">the grain interface type
         /// that is being indexed</param>
-        /// <returns>the IIndex with the specified name on the
+        /// <returns>the IndexInterface with the specified name on the
         /// given grain interface type</returns>
-        internal static IIndex GetIndex(this IGrainFactory gf, string indexName, Type iGrainType)
+        internal static IndexInterface GetIndex(this IGrainFactory gf, string indexName, Type iGrainType)
         {
             return IndexHandler.GetIndex(iGrainType, indexName);
         }
@@ -123,10 +123,10 @@ namespace Orleans.Indexing
         /// <param name="indexName">the name of the index, which
         /// is the identifier of the index</param>
         /// <returns>the created index grain</returns>
-        //internal static IIdxType CreateIndexGrain<IIdxType>(this IGrainFactory gf, string indexName) where IIdxType : IIndex
+        //internal static IIdxType CreateIndexGrain<IIdxType>(this IGrainFactory gf, string indexName) where IIdxType : IndexInterface
         //{
         //    Type idxType = typeof(IIdxType);
-        //    Type iIndexType = idxType.GetGenericType(typeof(IIndex<,>));
+        //    Type iIndexType = idxType.GetGenericType(typeof(IndexInterface<,>));
         //    if (iIndexType != null)
         //    {
         //        Type[] indexTypeArgs = iIndexType.GetGenericArguments();
@@ -138,7 +138,7 @@ namespace Orleans.Indexing
         //    }
         //    else
         //    {
-        //        throw new NotSupportedException(string.Format("Adding an index that does not implement IIndex<K,V> is not supported yet. Your requested index ({0}) is invalid.", idxType.ToString()));
+        //        throw new NotSupportedException(string.Format("Adding an index that does not implement IndexInterface<K,V> is not supported yet. Your requested index ({0}) is invalid.", idxType.ToString()));
         //    }
         //}
 
@@ -158,10 +158,10 @@ namespace Orleans.Indexing
                 Type keyType = indexTypeArgs[0];
                 Type grainType = indexTypeArgs[1];
 
-                IIndex index;
+                IndexInterface index;
                 if (typeof(IGrain).IsAssignableFrom(idxType))
                 {
-                    index = (IIndex)gf.GetGrain(IndexUtils.GetIndexGrainID(grainType, indexName), idxType, idxType);
+                    index = (IndexInterface)gf.GetGrain(IndexUtils.GetIndexGrainID(grainType, indexName), idxType, idxType);
 
                     Type idxImplType = TypeUtils.ResolveType(TypeCodeMapper.GetImplementation(idxType).GrainClass);
 
@@ -179,7 +179,7 @@ namespace Orleans.Indexing
                 }
                 else if (idxType.IsClass)
                 {
-                    index = (IIndex)Activator.CreateInstance(idxType, indexName, isUniqueIndex);
+                    index = (IndexInterface)Activator.CreateInstance(idxType, indexName, isUniqueIndex);
                 }
                 else
                 {
@@ -190,7 +190,7 @@ namespace Orleans.Indexing
             }
             else
             {
-                throw new NotSupportedException(string.Format("Adding an index that does not implement IIndex<K,V> is not supported yet. Your requested index ({0}) is invalid.", idxType.ToString()));
+                throw new NotSupportedException(string.Format("Adding an index that does not implement IndexInterface<K,V> is not supported yet. Your requested index ({0}) is invalid.", idxType.ToString()));
             }
         }
 
@@ -210,10 +210,10 @@ namespace Orleans.Indexing
         /// <param name="index">the index grain to be registered</param>
         /// <returns>whether the registration of the index was
         /// successful or not.</returns>
-        //public static async Task<bool> RegisterIndex<IIdxType, IndexUpdateGenType>(this IGrainFactory gf, string indexName, IIdxType index) where IIdxType : IIndex where IndexUpdateGenType : IIndexUpdateGenerator, new()
+        //public static async Task<bool> RegisterIndex<IIdxType, IndexUpdateGenType>(this IGrainFactory gf, string indexName, IIdxType index) where IIdxType : IndexInterface where IndexUpdateGenType : IIndexUpdateGenerator, new()
         //{
         //    Type idxType = index.GetType();
-        //    Type iIndexType = idxType.GetGenericType(typeof(IIndex<,>));
+        //    Type iIndexType = idxType.GetGenericType(typeof(IndexInterface<,>));
         //    if (iIndexType != null)
         //    {
         //        Type[] indexTypeArgs = iIndexType.GetGenericArguments();
@@ -232,7 +232,7 @@ namespace Orleans.Indexing
         //    }
         //    else
         //    {
-        //        throw new NotSupportedException(string.Format("Registering indexes that do not implement IIndex<K,V> is not supported yet. Your requested index ({0}) is invalid.", idxType.ToString()));
+        //        throw new NotSupportedException(string.Format("Registering indexes that do not implement IndexInterface<K,V> is not supported yet. Your requested index ({0}) is invalid.", idxType.ToString()));
         //    }
         //}
 
@@ -247,7 +247,7 @@ namespace Orleans.Indexing
         /// is the identifier of the index</param>
         /// <returns>whether the creation and registration of the
         /// index was successful or not.</returns>
-        //public static Task<bool> CreateAndRegisterIndex<IIdxType, IndexUpdateGenType>(this IGrainFactory gf, string indexName) where IIdxType : IIndex where IndexUpdateGenType : IIndexUpdateGenerator, new()
+        //public static Task<bool> CreateAndRegisterIndex<IIdxType, IndexUpdateGenType>(this IGrainFactory gf, string indexName) where IIdxType : IndexInterface where IndexUpdateGenType : IIndexUpdateGenerator, new()
         //{
         //    IIdxType index = CreateIndexGrain<IIdxType>(gf, indexName);
         //    return RegisterIndex<IIdxType, IndexUpdateGenType>(gf, indexName, index);

@@ -13,7 +13,7 @@ namespace Orleans.Indexing
     /// that is required for an index implementation.
     /// </summary>
     [Unordered]
-    public interface IIndex
+    public interface IndexInterface
     {
 
         /// <summary>
@@ -66,11 +66,11 @@ namespace Orleans.Indexing
     }
 
     /// <summary>
-    /// This is the typed variant of IIndex, which is assumed to be 
+    /// This is the typed variant of IndexInterface, which is assumed to be 
     /// the root interface for the index implementations.
     /// </summary>
     [Unordered]
-    public interface IIndex<K,V> : IIndex where V : IIndexableGrain
+    public interface IIndex<K,V> : IndexInterface where V : IIndexableGrain
     {
         /// <summary>
         /// This method retrieves the result of a lookup into the hash-index

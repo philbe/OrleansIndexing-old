@@ -81,7 +81,7 @@ namespace Orleans.Indexing
             }
         }
 
-        //Task IIndex.Lookup(IOrleansQueryResultStream<IIndexableGrain> result, object key)
+        //Task IndexInterface.Lookup(IOrleansQueryResultStream<IIndexableGrain> result, object key)
         //{
         //    return Lookup((IOrleansQueryResultStream<V>)result, (K)key);
         //}

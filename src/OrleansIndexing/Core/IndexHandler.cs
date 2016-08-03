@@ -33,7 +33,7 @@ namespace Orleans.Indexing
                     var idxInfo = idxs[updt.Key];
                     if (updt.Value.GetOperationType() != IndexOperationType.None)
                     {
-                        updateIndexTasks.Add(((IIndex)idxInfo.Item1).ApplyIndexUpdate(updatedGrain, updt.Value.AsImmutable(), ((IndexMetaData)idxInfo.Item2).IsUniqueIndex(), siloAddress));
+                        updateIndexTasks.Add(((IndexInterface)idxInfo.Item1).ApplyIndexUpdate(updatedGrain, updt.Value.AsImmutable(), ((IndexMetaData)idxInfo.Item2).IsUniqueIndex(), siloAddress));
                     }
                 }
 
@@ -69,12 +69,12 @@ namespace Orleans.Indexing
             return IndexRegistry.GetIndexes<T>();
         }
 
-        internal static IIndex GetIndex(Type iGrainType, string indexName)
+        internal static IndexInterface GetIndex(Type iGrainType, string indexName)
         {
             Tuple<object, object, object> index;
             if (GetIndexes(iGrainType).TryGetValue(indexName, out index))
             {
-                return (IIndex)index.Item1;
+                return (IndexInterface)index.Item1;
             }
             else
             {
@@ -93,7 +93,7 @@ namespace Orleans.Indexing
             }
         }
 
-        internal static IIndex GetIndex<T>(string indexName) where T : IIndexableGrain
+        internal static IndexInterface GetIndex<T>(string indexName) where T : IIndexableGrain
         {
             return GetIndex(typeof(T), indexName);
         }
