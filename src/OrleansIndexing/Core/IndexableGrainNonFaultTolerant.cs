@@ -145,7 +145,7 @@ namespace Orleans.Indexing
                     }
                 }
 
-                success = await IndexHandler.ApplyIndexUpdates(iGrainTypes, this.AsReference<IIndexableGrain>(GrainFactory), updates.AsImmutable(), RuntimeAddress);
+                success = await IndexHandler.ApplyIndexUpdates(iGrainTypes, this.AsReference<IIndexableGrain>(GrainFactory), updates, RuntimeAddress);
                 if (success)
                 {
                     UpdateBeforeImages(updates);

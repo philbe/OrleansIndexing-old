@@ -21,9 +21,8 @@ namespace Orleans.Indexing
     /// </summary>
     public static class IndexHandler
     {
-        internal static async Task<bool> ApplyIndexUpdates(IList<Type> iGrainTypes, IIndexableGrain updatedGrain, Immutable<IDictionary<string, IMemberUpdate>> iUpdates, SiloAddress siloAddress)
+        internal static async Task<bool> ApplyIndexUpdates(IList<Type> iGrainTypes, IIndexableGrain updatedGrain, IDictionary<string, IMemberUpdate> updates, SiloAddress siloAddress)
         {
-            var updates = iUpdates.Value;
             foreach (Type iGrainType in iGrainTypes)
             {
                 var idxs = GetIndexes(iGrainType);
