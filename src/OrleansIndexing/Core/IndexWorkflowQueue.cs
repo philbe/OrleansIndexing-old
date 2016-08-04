@@ -114,10 +114,10 @@ namespace Orleans.Indexing
             return TypeUtils.GetFullName(grainInterfaceType) + "-" + queueSeqNum;
         }
 
-        public static GrainId GetIndexWorkflowQueueGrainIdFromGrainHashCode<TGrain>(int grainHashCode) where TGrain : IIndexableGrain
+        public static GrainId GetIndexWorkflowQueueGrainIdFromGrainHashCode(Type grainInterfaceType, int grainHashCode)
         {
             return GrainId.GetSystemTargetGrainId(Constants.INDEX_WORKFLOW_QUEUE_SYSTEM_TARGET_TYPE_CODE,
-                                                  CreateIndexWorkflowQueuePrimaryKey(typeof(TGrain), StorageProviderUtils.PositiveHash(grainHashCode, NUM_AVAILABLE_INDEX_WORKFLOW_QUEUES)));
+                                                  CreateIndexWorkflowQueuePrimaryKey(grainInterfaceType, StorageProviderUtils.PositiveHash(grainHashCode, NUM_AVAILABLE_INDEX_WORKFLOW_QUEUES)));
         }
 
         private IIndexWorkflowQueueHandler InitWorkflowQueueHandler()
