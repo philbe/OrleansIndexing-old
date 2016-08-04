@@ -15,6 +15,7 @@ namespace Orleans.Indexing
         /// </summary>
         /// <typeparam name="TGrainInterface">The type of the grain interface.</typeparam>
         /// <param name="grain">The grain to convert.</param>
+        /// <param name="gf">the grain factory object</param>
         /// <returns>A strongly typed <c>GrainReference</c> of grain interface type TGrainInterface.</returns>
         public static TGrainInterface AsReference<TGrainInterface>(this IAddressable grain, IGrainFactory gf)
         {
@@ -24,6 +25,28 @@ namespace Orleans.Indexing
             }
 
             return ((GrainFactory)gf).Cast<TGrainInterface>(grain.AsWeaklyTypedReference());
+        }
+        /// <summary>
+        /// Converts this grain to the grain interface identified by iGrainType.
+        /// 
+        /// Finally, it casts it to the type provided as TGrainInterface.
+        /// The caller should make sure that iGrainType extends TGrainInterface.
+        /// </summary>
+        /// <typeparam name="TGrainInterface">output grain interface type, which
+        /// iGrainType extends it</typeparam>
+        /// <param name="grain">the target grain to be casted</param>
+        /// <param name="gf">the grain factory object</param>
+        /// <returns>A strongly typed <c>GrainReference</c> of grain interface
+        /// type iGrainType casted to TGrainInterface.</returns>
+        /// <returns></returns>
+        public static TGrainInterface AsReference<TGrainInterface>(this IAddressable grain, IGrainFactory gf, Type iGrainType)
+        {
+            if (grain == null)
+            {
+                throw new ArgumentNullException("grain", "Cannot pass null as an argument to AsReference");
+            }
+
+            return (TGrainInterface)((GrainFactory)gf).Cast(grain.AsWeaklyTypedReference(), iGrainType);
         }
 
         private const string WRONG_GRAIN_ERROR_MSG = "Passing a half baked grain as an argument. It is possible that you instantiated a grain class explicitly, as a regular object and not via Orleans runtime or via proper test mocking";
