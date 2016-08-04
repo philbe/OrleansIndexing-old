@@ -6,6 +6,7 @@ using System;
 using Orleans.Runtime;
 using System.Reflection;
 using System.Linq;
+using Orleans.Storage;
 
 namespace Orleans.Indexing
 {
@@ -54,9 +55,9 @@ namespace Orleans.Indexing
             return _props;
         }
 
-        private string GetWorkflowQueue()
+        private string GetWorkflowQueue(Type iGrainType)
         {
-            return TypeUtils.GetFullName(typeof(TState)) + "-" + GetWorkflowQueueId();
+            return IndexWorkflowQueue.CreateIndexWorkflowQueuePrimaryKey(iGrainType, StorageProviderUtils.PositiveHash(this.AsReference<IIndexableGrain>(GrainFactory, iGrainType).GetHashCode(), IndexWorkflowQueue.NUM_AVAILABLE_INDEX_WORKFLOW_QUEUES));
         }
 
         private int GetWorkflowQueueId()
@@ -86,9 +87,9 @@ namespace Orleans.Indexing
             }
         }
 
-        private string GetReincarnatedWorkflowQueueId()
+        private string GetReincarnatedWorkflowQueueId(Type iGrainType)
         {
-            return GetWorkflowQueue() + "/" + GetWorkflowQueueSilo().ToLongString();
+            return GetWorkflowQueue(iGrainType) + "/" + GetWorkflowQueueSilo().ToLongString();
         }
 
         public override Task<Immutable<List<int>>> GetActiveWorkflowIdsList()
