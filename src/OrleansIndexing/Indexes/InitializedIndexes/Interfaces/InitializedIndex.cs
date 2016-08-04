@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Orleans.Indexing
 {
     /// <summary>
-    /// This interface is a flag interface for flagging
+    /// This interface is a marker interface for marking
     /// all I-Index classes and grain interfaces
     /// </summary>
     public interface InitializedIndex

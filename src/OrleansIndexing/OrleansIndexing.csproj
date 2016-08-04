@@ -97,6 +97,12 @@
     <Compile Include="Indexes\HashIndexSingleBucket.cs" />
     <Compile Include="Indexes\HashIndexBucketUtils.cs" />
     <Compile Include="Indexes\HashIndexBucketState.cs" />
+    <Compile Include="Indexes\InitializedIndexes\IHashIndexPartitionedPerKeyBucketImpl.cs" />
+    <Compile Include="Indexes\InitializedIndexes\IHashIndexPartitionedPerKey.cs" />
+    <Compile Include="Indexes\InitializedIndexes\IHashIndexSingleBucketImpl.cs" />
+    <Compile Include="Indexes\InitializedIndexes\Interfaces\IHashIndexPartitionedPerKeyBucket.cs" />
+    <Compile Include="Indexes\InitializedIndexes\Interfaces\IHashIndexSingleBucket.cs" />
+    <Compile Include="Indexes\InitializedIndexes\Interfaces\InitializedIndex.cs" />
     <Compile Include="Indexes\InitializedIndexesNonIncremental\IHashIndexPartitionedPerKeyNonIncremental.cs" />
     <Compile Include="Indexes\InitializedIndexesNonIncremental\IHashIndexPartitionedPerKeyBucketNonIncrementalImpl.cs" />
     <Compile Include="Indexes\InitializedIndexesNonIncremental\IHashIndexSingleBucketNonIncrementalImpl.cs" />
