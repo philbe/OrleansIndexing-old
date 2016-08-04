@@ -63,6 +63,7 @@
   <ItemGroup>
     <Compile Include="Core\Annotations\IndexAttribute.cs" />
     <Compile Include="Core\IndexWorkflowQueueHandler.cs" />
+    <Compile Include="Core\Interfaces\IIndexableGrainFaultTolerant.cs" />
     <Compile Include="Core\Interfaces\IIndexWorkflowQueue.cs" />
     <Compile Include="Core\IndexableGrain.cs" />
     <Compile Include="Core\IndexableGrainNonFaultTolerant.cs" />

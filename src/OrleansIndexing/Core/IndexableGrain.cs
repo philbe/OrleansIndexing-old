@@ -31,7 +31,7 @@ namespace Orleans.Indexing
     ///    [grain-type-name + sequence number], identifies the IndexWorkflowQueue grain
     ///    that processes index updates on G's behalf.
     /// </summary>
-    public abstract class IndexableGrain<TState, TProperties> : IndexableGrainNonFaultTolerant<IndexableExtendedState<TState>, TProperties> where TProperties: new()
+    public abstract class IndexableGrain<TState, TProperties> : IndexableGrainNonFaultTolerant<IndexableExtendedState<TState>, TProperties>, IIndexableGrainFaultTolerant where TProperties: new()
     {
         protected new TState State
         {
