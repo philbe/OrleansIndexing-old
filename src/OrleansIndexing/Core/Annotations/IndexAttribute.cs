@@ -7,6 +7,7 @@ namespace Orleans.Indexing
     {
         public Type IndexType { get; private set; }
         public bool IsUnique { get; private set; }
+        public bool IsEager { get; private set; }
 
         public IndexAttribute()
         {
@@ -17,10 +18,15 @@ namespace Orleans.Indexing
         {
         }
 
-        public IndexAttribute(Type IndexType, bool IsUnique)
+        public IndexAttribute(Type IndexType, bool IsUnique) : this(IndexType, false, false)
+        {
+        }
+
+        public IndexAttribute(Type IndexType, bool IsUnique, bool IsEager)
         {
             this.IndexType = IndexType;
             this.IsUnique = IsUnique;
+            this.IsEager = IsEager;
         }
     }
 }
