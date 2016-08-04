@@ -191,7 +191,7 @@ namespace Orleans.Runtime
             {
                 //check whether all indexes are defined as lazy and none of them
                 //are I-Index, because I-Indexes cannot be lazy
-                CheckAllIndexesAreEitherLazyOrEager(propertiesArg, userDefinedIGrain, indexAttributeType);
+                CheckAllIndexesAreEitherLazyOrEager(propertiesArg, userDefinedIGrain);
 
                 IDictionary<string, Tuple<object, object, object>> indexesOnGrain = new Dictionary<string, Tuple<object, object, object>>();
                 //all the properties in TProperties are scanned for Index
@@ -218,7 +218,7 @@ namespace Orleans.Runtime
         private static PropertyInfo isEagerProperty = indexAttributeType.GetProperty("IsEager");
         private static Type initializedIndexType = Type.GetType("Orleans.Indexing.InitializedIndex" + AssemblySeparator + OrleansIndexingAssembly);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void CheckAllIndexesAreEitherLazyOrEager(Type propertiesArg, Type userDefinedIGrain, Type indexAttributeType)
+        private static void CheckAllIndexesAreEitherLazyOrEager(Type propertiesArg, Type userDefinedIGrain)
         {
             foreach (PropertyInfo p in propertiesArg.GetProperties())
             {
