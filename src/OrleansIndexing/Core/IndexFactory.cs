@@ -186,7 +186,7 @@ namespace Orleans.Indexing
                     throw new Exception(string.Format("{0} is neither a grain nor a class. Index \"{1}\" cannot be created.", idxType, indexName));
                 }
 
-                return Tuple.Create((object)index, (object)new IndexMetaData(idxType, isUniqueIndex), (object)createIndexUpdateGenFromProperty(indexedProperty));
+                return Tuple.Create((object)index, (object)new IndexMetaData(idxType, isUniqueIndex), (object)CreateIndexUpdateGenFromProperty(indexedProperty));
             }
             else
             {
@@ -194,9 +194,30 @@ namespace Orleans.Indexing
             }
         }
 
-        private static IIndexUpdateGenerator createIndexUpdateGenFromProperty(PropertyInfo indexedProperty)
+        private static IIndexUpdateGenerator CreateIndexUpdateGenFromProperty(PropertyInfo indexedProperty)
         {
             return new IndexUpdateGenerator(indexedProperty);
+        }
+
+        internal static void RegisterIndexWorkflowQueues(Type iGrainType, Type grainImplType)
+        {
+            Silo silo = Silo.CurrentSilo;
+            for (int i = 0; i < IndexWorkflowQueue.NUM_AVAILABLE_INDEX_WORKFLOW_QUEUES; ++i)
+            {
+                silo.RegisterSystemTarget(new IndexWorkflowQueue(
+                    iGrainType,
+                    i,
+                    silo.SiloAddress,
+                    typeof(IIndexableGrainFaultTolerant).IsAssignableFrom(grainImplType)
+                ));
+
+                silo.RegisterSystemTarget(new IndexWorkflowQueueHandler(
+                    iGrainType,
+                    i,
+                    silo.SiloAddress,
+                    typeof(IIndexableGrainFaultTolerant).IsAssignableFrom(grainImplType)
+                ));
+            }
         }
 
         /// <summary>

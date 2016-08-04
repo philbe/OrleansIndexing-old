@@ -120,6 +120,9 @@ namespace Orleans.Runtime
         private static Func<IGrainFactory, Type, string, bool, PropertyInfo, Tuple<object, object, object>> createIndexMethod = (Func<IGrainFactory, Type, string, bool, PropertyInfo, Tuple<object, object, object>>)Delegate.CreateDelegate(
                                 typeof(Func<IGrainFactory, Type, string, bool, PropertyInfo, Tuple<object, object, object>>),
                                 indexFactoryType.GetMethod("CreateIndex", BindingFlags.Static | BindingFlags.NonPublic));
+        private static Action<Type, Type> registerIndexWorkflowQueuesMethod = (Action<Type, Type>)Delegate.CreateDelegate(
+                                typeof(Action<Type, Type>),
+                                indexFactoryType.GetMethod("RegisterIndexWorkflowQueues", BindingFlags.Static | BindingFlags.NonPublic));
         private static PropertyInfo isEagerProperty = indexAttributeType.GetProperty("IsEager");
         private static Type initializedIndexType = Type.GetType("Orleans.Indexing.InitializedIndex" + AssemblySeparator + OrleansIndexingAssembly);
 
@@ -177,7 +180,7 @@ namespace Orleans.Runtime
                         for (int j = 0; j < numInterfaces; ++j)
                         {
                             Type userDefinedIGrain = interfaces[j];
-                            CreateIndexesForASingleInterfaceOfAGrainType(gfactory, result, iIndexableGrain, propertiesArg, userDefinedIGrain);
+                            CreateIndexesForASingleInterfaceOfAGrainType(gfactory, result, iIndexableGrain, propertiesArg, userDefinedIGrain, grainType);
                         }
                     }
                     break;
@@ -186,7 +189,7 @@ namespace Orleans.Runtime
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void CreateIndexesForASingleInterfaceOfAGrainType(IGrainFactory gfactory, Dictionary<Type, IDictionary<string, Tuple<object, object, object>>> result, Type iIndexableGrain, Type propertiesArg, Type userDefinedIGrain)
+        private static void CreateIndexesForASingleInterfaceOfAGrainType(IGrainFactory gfactory, Dictionary<Type, IDictionary<string, Tuple<object, object, object>>> result, Type iIndexableGrain, Type propertiesArg, Type userDefinedIGrain, Type userDefinedGrainImpl)
         {
             //checks whether the given interface is a user-defined
             //interface extending IIndexable<TProperties>
@@ -200,6 +203,7 @@ namespace Orleans.Runtime
                 //all the properties in TProperties are scanned for Index
                 //annotation and the index is created using the information
                 //provided in the annotation
+                bool isLazilyUpdated = false;
                 foreach (PropertyInfo p in propertiesArg.GetProperties())
                 {
                     var indexAttrs = p.GetCustomAttributes(indexAttributeType, false);
@@ -212,9 +216,16 @@ namespace Orleans.Runtime
                             indexType = indexType.MakeGenericType(p.PropertyType, userDefinedIGrain);
                         }
                         indexesOnGrain.Add(indexName, createIndexMethod(gfactory, indexType, indexName, false, p));
+
+                        //if it's not eager, then it's configured to be lazily updated
+                        isLazilyUpdated = !(bool)isEagerProperty.GetValue(indexAttr);
                     }
                 }
                 result.Add(userDefinedIGrain, indexesOnGrain);
+                if (isLazilyUpdated)
+                {
+                    registerIndexWorkflowQueuesMethod(userDefinedIGrain, userDefinedGrainImpl);
+                }
             }
         }
 
