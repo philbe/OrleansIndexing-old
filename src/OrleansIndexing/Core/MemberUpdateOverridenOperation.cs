@@ -34,10 +34,5 @@ namespace Orleans.Indexing
         {
             return _opType;
         }
-
-        public IMemberUpdate Merge(params IMemberUpdate[] updates)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

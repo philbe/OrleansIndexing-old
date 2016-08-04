@@ -38,10 +38,5 @@ namespace Orleans.Indexing
                 default: return op;
             }
         }
-
-        public IMemberUpdate Merge(params IMemberUpdate[] updates)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

@@ -73,17 +73,5 @@ namespace Orleans.Indexing
         {
             return _opType;
         }
-
-        public IMemberUpdate Merge(params IMemberUpdate[] updates)
-        {
-            var len = updates.Length;
-            if (len == 0) return null;
-            //IndexOperationType combinedOperationType = updates[0].GetOperationType();
-            //for(int i = 1; i < len; ++i)
-            //{
-            //    combinedOperationType = combinedOperationType.CombineWith(updates[i].GetOperationType());
-            //}
-            return new MemberUpdate(updates[0].GetBeforeImage(), updates[len-1].GetAfterImage()/*, combinedOperationType*/);
-        }
     }
 }

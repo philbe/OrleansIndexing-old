@@ -25,13 +25,6 @@ namespace Orleans.Indexing
         object GetAfterImage();
 
         /// <summary>
-        /// Combines a list of updates into a single update
-        /// </summary>
-        /// <param name="updates">the list of updates</param>
-        /// <returns>a single update containing all the updates in the list</returns>
-        IMemberUpdate Merge(params IMemberUpdate[] updates);
-
-        /// <summary>
         /// Determines the type of operation done, which can be:
         ///  - Insert
         ///  - Update
