@@ -27,6 +27,7 @@ namespace Orleans.Indexing
             if (State.IndexMap == null) State.IndexMap = new Dictionary<K, HashIndexSingleBucketEntry<V>>();
             State.IndexStatus = IndexStatus.Available;
 
+            write_lock = new AsyncLock();
             writeRequestIdGen = 0;
             pendingWriteRequests = new HashSet<int>();
             return base.OnActivateAsync();
@@ -41,7 +42,7 @@ namespace Orleans.Indexing
         /// 
         /// Works hand-in-hand with pendingWriteRequests and writeRequestIdGen.
         /// </summary>
-        private AsyncLock write_lock = new AsyncLock();
+        private AsyncLock write_lock;
 
         /// <summary>
         /// Creates a unique ID for each write request to the storage.
