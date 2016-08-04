@@ -274,6 +274,11 @@ namespace Orleans.Indexing
         {
             return Task.FromResult(iUpdateGen.ExtractIndexImage(Properties));
         }
+
+        public virtual Task<Immutable<List<int>>> GetActiveWorkflowIdsList()
+        {
+            throw new NotSupportedException();
+        }
     }
 
     /// <summary>

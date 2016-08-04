@@ -21,6 +21,11 @@ namespace Orleans.Indexing
         /// <param name="iUpdateGen">IIndexUpdateGenerator for a particular index</param>
         /// <returns>the corresponding image of grain for a particular index</returns>
         Task<object> ExtractIndexImage(IIndexUpdateGenerator iUpdateGen);
+
+        /// <summary>
+        /// This method returns the list of active work-flow IDs for an I-Index
+        /// </summary>
+        Task<Immutable<List<int>>> GetActiveWorkflowIdsList();
     }
     public interface IIndexableGrain<TProperties> : IIndexableGrain
     {

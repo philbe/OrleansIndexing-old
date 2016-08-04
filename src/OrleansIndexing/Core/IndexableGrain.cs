@@ -90,6 +90,11 @@ namespace Orleans.Indexing
         {
             return GetWorkflowQueue() + "/" + GetWorkflowQueueSilo().ToLongString();
         }
+
+        public override Task<Immutable<List<int>>> GetActiveWorkflowIdsList()
+        {
+            return Task.FromResult(base.State.activeWorkflowsList.AsImmutable());
+        }
     }
 
     /// <summary>
