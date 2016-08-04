@@ -85,7 +85,7 @@ namespace Orleans.Indexing
             //check if it contains anything to be indexed
             if (_beforeImages.Value.Values.Any(e => e != null))
             {
-                return UpdateActiveIndexes(true, Properties);
+                return UpdateIndexes(true, Properties, true);
             }
             return TaskDone.Done;
         }
@@ -98,7 +98,7 @@ namespace Orleans.Indexing
             //check if it has anything indexed
             if (_beforeImages.Value.Values.Any(e => e != null))
             {
-                return UpdateActiveIndexes(false, default(TProperties));
+                return UpdateIndexes(false, default(TProperties), true);
             }
             return TaskDone.Done;
         }
@@ -117,20 +117,12 @@ namespace Orleans.Indexing
         /// again. In the case of a positive result from ApplyIndexUpdates,
         /// the list of before-images is replaced by the list of after-images.
         /// </summary>
-        protected Task UpdateIndexes(bool isOnActivate, TProperties props)
-        {
-            return Task.WhenAll(UpdateActiveIndexes(isOnActivate, props), UpdateInitializedIndexes(isOnActivate, props));
-        }
-
-        /// <summary>
-        /// Updates A-indexes.
-        /// </summary>
-        protected async Task UpdateActiveIndexes(bool isOnActivate, TProperties props)
+        protected async Task UpdateIndexes(bool isOnActivate, TProperties props, bool onlyUpdateActiveIndexes = false)
         {
             IList<Type> iGrainTypes = getIIndexableGrainTypes();
-            bool success = false;
-            do
-            {
+            //bool success = false;
+            //do
+            //{
                 IDictionary<string, IMemberUpdate> updates = new Dictionary<string, IMemberUpdate>();
                 IDictionary<string, Tuple<object, object, object>> iUpdateGens = _iUpdateGens;
                 {
@@ -139,34 +131,30 @@ namespace Orleans.Indexing
                     IDictionary<string, object> befImgs = _beforeImages.Value;
                     foreach (KeyValuePair<string, Tuple<object, object, object>> kvp in iUpdateGens)
                     {
-                        IMemberUpdate mu = isOnActivate ? ((IIndexUpdateGenerator)kvp.Value.Item3).CreateMemberUpdate(befImgs[kvp.Key])
-                                                        : ((IIndexUpdateGenerator)kvp.Value.Item3).CreateMemberUpdate(props, befImgs[kvp.Key]);
-                        updates.Add(kvp.Key, mu);
+                        if (!onlyUpdateActiveIndexes || !(kvp.Value.Item1 is InitializedIndex))
+                        {
+                            IMemberUpdate mu = isOnActivate ? ((IIndexUpdateGenerator)kvp.Value.Item3).CreateMemberUpdate(befImgs[kvp.Key])
+                                                            : ((IIndexUpdateGenerator)kvp.Value.Item3).CreateMemberUpdate(props, befImgs[kvp.Key]);
+                            updates.Add(kvp.Key, mu);
+                        }
                     }
                 }
 
-                success = await IndexHandler.ApplyIndexUpdates(iGrainTypes, this.AsReference<IIndexableGrain>(GrainFactory), updates, RuntimeAddress);
-                if (success)
-                {
-                    UpdateBeforeImages(updates);
-                }
-                else
-                {
-                    // assume that IndexHandler returned false because our list of indexes is invalid
-                    _iUpdateGens = IndexHandler.GetIndexes(iGrainTypes[0]); // retry
-                    iUpdateGens = _iUpdateGens;
-                    AddMissingBeforeImages();
-                }
+            //success = 
+                await IndexHandler.ApplyIndexUpdates(iGrainTypes, this.AsReference<IIndexableGrain>(GrainFactory), updates, RuntimeAddress);
+            //    if (success)
+            //    {
+                UpdateBeforeImages(updates);
+            //    }
+            //    else
+            //    {
+            //        // assume that IndexHandler returned false because our list of indexes is invalid
+            //        _iUpdateGens = IndexHandler.GetIndexes(iGrainTypes[0]); // retry
+            //        iUpdateGens = _iUpdateGens;
+            //        AddMissingBeforeImages();
+            //    }
 
-            } while (!success);
-        }
-
-        /// <summary>
-        /// Updates I-indexes.
-        /// </summary>
-        protected Task UpdateInitializedIndexes(bool isOnActivate, TProperties props)
-        {
-            return TaskDone.Done;
+            //} while (!success);
         }
 
         /// <summary>
