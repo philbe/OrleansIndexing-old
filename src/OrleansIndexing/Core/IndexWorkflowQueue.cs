@@ -44,13 +44,18 @@ namespace Orleans.Indexing
 
         //the storage provider for index work-flow queue
         private IStorageProvider __storageProvider;
-        private IStorageProvider _storageProvider { get { return __storageProvider == null ? InitStorageProvider() : __storageProvider; } }
+        private IStorageProvider StorageProvider { get { return __storageProvider == null ? InitStorageProvider() : __storageProvider; } }
 
         private int _queueSeqNum;
         private Type _iGrainType;
 
+        private bool _isDefinedAsFaultTolerantGrain;
+        private sbyte __hasAnyIIndex;
+        private bool HasAnyIIndex { get { return __hasAnyIIndex == 0 ? InitHasAnyIIndex() : __hasAnyIIndex > 0; } }
+        private bool IsFaultTolerant { get { return _isDefinedAsFaultTolerantGrain && HasAnyIIndex; } }
+
         private IIndexWorkflowQueueHandler __handler;
-        private IIndexWorkflowQueueHandler _handler { get { return __handler == null ? InitWorkflowQueueHandler() : __handler; } }
+        private IIndexWorkflowQueueHandler Handler { get { return __handler == null ? InitWorkflowQueueHandler() : __handler; } }
 
         private bool _isHandlerWorkerIdle;
 
@@ -79,7 +84,7 @@ namespace Orleans.Indexing
 
         public static int NUM_AVAILABLE_INDEX_WORKFLOW_QUEUES { get { return Environment.ProcessorCount; } }
 
-        internal IndexWorkflowQueue(Type grainInterfaceType, int queueSequenceNumber, SiloAddress silo) : base(CreateIndexWorkflowQueueGrainId(grainInterfaceType, queueSequenceNumber), silo)
+        internal IndexWorkflowQueue(Type grainInterfaceType, int queueSequenceNumber, SiloAddress silo, bool isDefinedAsFaultTolerantGrain) : base(CreateIndexWorkflowQueueGrainId(grainInterfaceType, queueSequenceNumber), silo)
         {
             State = new IndexWorkflowQueueState(GrainId, silo);
             _iGrainType = grainInterfaceType;
@@ -89,6 +94,9 @@ namespace Orleans.Indexing
             __storageProvider = null;
             __handler = null;
             _isHandlerWorkerIdle = true;
+
+            _isDefinedAsFaultTolerantGrain = isDefinedAsFaultTolerantGrain;
+            __hasAnyIIndex = 0;
 
             _writeLock = new AsyncLock();
             _writeRequestIdGen = 0;
@@ -131,7 +139,14 @@ namespace Orleans.Indexing
                 _workflowRecordsTail.Append(newWorkflowNode, ref _workflowRecordsTail);
             }
 
-            return Task.WhenAll(PersistState(), InitiateWorkerThread());
+            if (IsFaultTolerant)
+            {
+                return Task.WhenAll(PersistState(), InitiateWorkerThread());
+            }
+            else
+            {
+                return InitiateWorkerThread();
+            }
         }
 
         private async Task InitiateWorkerThread()
@@ -139,7 +154,7 @@ namespace Orleans.Indexing
             if(_isHandlerWorkerIdle)
             {
                 IndexWorkflowRecordNode punctuatedHead = AddPuctuationAt(BATCH_SIZE);
-                _isHandlerWorkerIdle = !await _handler.HandleWorkflowsUntilPunctuation(punctuatedHead.AsImmutable());
+                _isHandlerWorkerIdle = !await Handler.HandleWorkflowsUntilPunctuation(punctuatedHead.AsImmutable());
             }
         }
 
@@ -234,7 +249,7 @@ namespace Orleans.Indexing
                     //clear all pending write requests, as this attempt will do them all.
                     _pendingWriteRequests.Clear();
                     //write the state back to the storage
-                    await _storageProvider.WriteStateAsync("Orleans.Indexing.IndexWorkflowQueue-" + TypeUtils.GetFullName(_iGrainType), this.AsWeaklyTypedReference(), State);
+                    await StorageProvider.WriteStateAsync("Orleans.Indexing.IndexWorkflowQueue-" + TypeUtils.GetFullName(_iGrainType), this.AsWeaklyTypedReference(), State);
                 }
                 //else
                 //{
@@ -246,7 +261,10 @@ namespace Orleans.Indexing
         public Task<Immutable<IndexWorkflowRecordNode>> GiveMoreWorkflowsOrSetAsIdle()
         {
             RemoveFromQueueUntilPunctuation(State.State.WorkflowRecordsHead);
-            var _ = Task.Factory.StartNew(PersistState);
+            if (IsFaultTolerant)
+            {
+                var _ = Task.Factory.StartNew(PersistState);
+            }
 
             if (_workflowRecordsTail == null)
             {
@@ -258,6 +276,20 @@ namespace Orleans.Indexing
                 _isHandlerWorkerIdle = false;
                 return Task.FromResult(AddPuctuationAt(BATCH_SIZE).AsImmutable());
             }
+        }
+        private bool InitHasAnyIIndex()
+        {
+            var indexes = IndexHandler.GetIndexes(_iGrainType);
+            foreach (var idxInfo in indexes.Values)
+            {
+                if (idxInfo.Item1 is InitializedIndex)
+                {
+                    __hasAnyIIndex = 1;
+                    return true;
+                }
+            }
+            __hasAnyIIndex = -1;
+            return false;
         }
 
         private IStorageProvider InitStorageProvider()

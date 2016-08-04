@@ -70,6 +70,7 @@
     <Compile Include="Core\IndexOperationType.cs" />
     <Compile Include="Core\IndexBuilder.cs" />
     <Compile Include="Core\Interfaces\IIndexWorkflowQueueHandler.cs" />
+    <Compile Include="Core\MemberUpdateReverseTentative.cs" />
     <Compile Include="Core\MemberUpdateOverridenOperation.cs" />
     <Compile Include="Core\SiloUtils.cs" />
     <Compile Include="Core\IndexUtils.cs" />
