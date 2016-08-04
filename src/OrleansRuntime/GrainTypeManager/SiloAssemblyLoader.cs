@@ -131,29 +131,21 @@ namespace Orleans.Runtime
                 ? TypeUtils.GetTypes(TypeUtils.IsConcreteGrainClass, logger).ToArray()
                 : TypeUtils.GetTypes(discoveredAssemblyLocations, TypeUtils.IsConcreteGrainClass, logger).ToArray();
 
-
-            //Type iIndexableGrainType = Type.GetType("Orleans.Indexing.IIndexableGrain, OrleansIndexing");
-            Type genericIIndexableGrainType = Type.GetType("Orleans.Indexing.IIndexableGrain`1" + AssemblySeparator + OrleansIndexingAssembly);
-            Type indexAttributeType = Type.GetType("Orleans.Indexing.IndexAttribute" + AssemblySeparator + OrleansIndexingAssembly);
-            Type indexFactoryType = Type.GetType("Orleans.Indexing.IndexFactory" + AssemblySeparator + OrleansIndexingAssembly);
-            var createIndexMethod = (Func<IGrainFactory, Type, string, bool, PropertyInfo, Tuple <object,object,object>>) Delegate.CreateDelegate(
-                                    typeof(Func<IGrainFactory, Type, string, bool, PropertyInfo, Tuple<object, object, object>>), 
-                                    indexFactoryType.GetMethod("CreateIndex", BindingFlags.Static | BindingFlags.NonPublic));
-            Type genericDefaultIndexType = Type.GetType("Orleans.Indexing.IHashIndexSingleBucket`2" + AssemblySeparator + OrleansIndexingAssembly);
-
             //for all discovered grain types
             foreach (var grainType in grainTypes)
             {
                 if (result.ContainsKey(grainType))
                     throw new InvalidOperationException(
                         string.Format("Precondition violated: GetLoadedGrainTypes should not return a duplicate type ({0})", TypeUtils.GetFullName(grainType)));
-                GetIndexesForASingleGrainType(gfactory, result, genericIIndexableGrainType, indexAttributeType, createIndexMethod, grainType);
+                GetIndexesForASingleGrainType(gfactory, result, grainType);
             }
             return result;
         }
 
+        //private static Type iIndexableGrainType = Type.GetType("Orleans.Indexing.IIndexableGrain, OrleansIndexing");
+        private static Type genericIIndexableGrainType = Type.GetType("Orleans.Indexing.IIndexableGrain`1" + AssemblySeparator + OrleansIndexingAssembly);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void GetIndexesForASingleGrainType(IGrainFactory gfactory, Dictionary<Type, IDictionary<string, Tuple<object, object, object>>> result, Type genericIIndexableGrainType, Type indexAttributeType, Func<IGrainFactory, Type, string, bool, PropertyInfo, Tuple<object, object, object>> createIndexMethod, Type grainType)
+        private static void GetIndexesForASingleGrainType(IGrainFactory gfactory, Dictionary<Type, IDictionary<string, Tuple<object, object, object>>> result, Type grainType)
         {
             Type[] interfaces = grainType.GetInterfaces();
             int numInterfaces = interfaces.Length;
@@ -176,7 +168,7 @@ namespace Orleans.Runtime
                         for (int j = 0; j < numInterfaces; ++j)
                         {
                             Type userDefinedIGrain = interfaces[j];
-                            CreateIndexesForASingleInterfaceOfAGrainType(gfactory, result, indexAttributeType, createIndexMethod, iIndexableGrain, propertiesArg, userDefinedIGrain);
+                            CreateIndexesForASingleInterfaceOfAGrainType(gfactory, result, iIndexableGrain, propertiesArg, userDefinedIGrain);
                         }
                     }
                     break;
@@ -184,13 +176,23 @@ namespace Orleans.Runtime
             }
         }
 
+        private static Type indexAttributeType = Type.GetType("Orleans.Indexing.IndexAttribute" + AssemblySeparator + OrleansIndexingAssembly);
+        private static PropertyInfo indexTypeProperty = indexAttributeType.GetProperty("IndexType");
+        private static Type indexFactoryType = Type.GetType("Orleans.Indexing.IndexFactory" + AssemblySeparator + OrleansIndexingAssembly);
+        private static Func<IGrainFactory, Type, string, bool, PropertyInfo, Tuple<object, object, object>> createIndexMethod = (Func<IGrainFactory, Type, string, bool, PropertyInfo, Tuple<object, object, object>>)Delegate.CreateDelegate(
+                                typeof(Func<IGrainFactory, Type, string, bool, PropertyInfo, Tuple<object, object, object>>),
+                                indexFactoryType.GetMethod("CreateIndex", BindingFlags.Static | BindingFlags.NonPublic));
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void CreateIndexesForASingleInterfaceOfAGrainType(IGrainFactory gfactory, Dictionary<Type, IDictionary<string, Tuple<object, object, object>>> result, Type indexAttributeType, Func<IGrainFactory, Type, string, bool, PropertyInfo, Tuple<object, object, object>> createIndexMethod, Type iIndexableGrain, Type propertiesArg, Type userDefinedIGrain)
+        private static void CreateIndexesForASingleInterfaceOfAGrainType(IGrainFactory gfactory, Dictionary<Type, IDictionary<string, Tuple<object, object, object>>> result, Type iIndexableGrain, Type propertiesArg, Type userDefinedIGrain)
         {
             //checks whether the given interface is a user-defined
             //interface extending IIndexable<TProperties>
             if (iIndexableGrain != userDefinedIGrain && iIndexableGrain.IsAssignableFrom(userDefinedIGrain) && !result.ContainsKey(userDefinedIGrain))
             {
+                //check whether all indexes are defined as lazy and none of them
+                //are I-Index, because I-Indexes cannot be lazy
+                CheckAllIndexesAreEitherLazyOrEager(propertiesArg, userDefinedIGrain, indexAttributeType);
+
                 IDictionary<string, Tuple<object, object, object>> indexesOnGrain = new Dictionary<string, Tuple<object, object, object>>();
                 //all the properties in TProperties are scanned for Index
                 //annotation and the index is created using the information
@@ -201,7 +203,7 @@ namespace Orleans.Runtime
                     foreach (var indexAttr in indexAttrs)
                     {
                         string indexName = "__" + p.Name;
-                        Type indexType = (Type)indexAttributeType.GetProperty("IndexType").GetValue(indexAttr);
+                        Type indexType = (Type)indexTypeProperty.GetValue(indexAttr);
                         if (indexType.IsGenericTypeDefinition)
                         {
                             indexType = indexType.MakeGenericType(p.PropertyType, userDefinedIGrain);
@@ -210,6 +212,38 @@ namespace Orleans.Runtime
                     }
                 }
                 result.Add(userDefinedIGrain, indexesOnGrain);
+            }
+        }
+
+        private static PropertyInfo isEagerProperty = indexAttributeType.GetProperty("IsEager");
+        private static Type initializedIndexType = Type.GetType("Orleans.Indexing.InitializedIndex" + AssemblySeparator + OrleansIndexingAssembly);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void CheckAllIndexesAreEitherLazyOrEager(Type propertiesArg, Type userDefinedIGrain, Type indexAttributeType)
+        {
+            foreach (PropertyInfo p in propertiesArg.GetProperties())
+            {
+                var indexAttrs = p.GetCustomAttributes(indexAttributeType, false);
+                bool isFirstIndexEager = false;
+                if (indexAttrs.Count() > 0)
+                {
+                    isFirstIndexEager = (bool)isEagerProperty.GetValue(indexAttrs[0]);
+                }
+                foreach (var indexAttr in indexAttrs)
+                {
+                    bool isEager = (bool)isEagerProperty.GetValue(indexAttr);
+                    Type indexType = (Type)indexTypeProperty.GetValue(indexAttr);
+                    bool isIIndex = initializedIndexType.IsAssignableFrom(indexType);
+
+                    //I-Index cannot be configured as being lazy
+                    if (isIIndex && isEager)
+                    {
+                        throw new InvalidOperationException(string.Format("An I-Index cannot be configured to be updated eagerly. The only option for updating an I-Index is lazy updating. I-Index of type {0} is defined to be updated eagerly on property {1} of class {2} on {3} grain interface.", TypeUtils.GetFullName(indexType), p.Name, TypeUtils.GetFullName(propertiesArg), TypeUtils.GetFullName(userDefinedIGrain)));
+                    }
+                    else if (isEager != isFirstIndexEager)
+                    {
+                        throw new InvalidOperationException(string.Format("Some indexes on property class {0} of {1} grain interface are defined to be updated eagerly while others are configured as lazy updating. You should fix this by configuring all indexes to be updated lazily or eagerly. If you have at least one I-Index among your indexes, then all other indexes should be configured as lazy, too.", TypeUtils.GetFullName(propertiesArg), TypeUtils.GetFullName(userDefinedIGrain)));
+                    }
+                }
             }
         }
 
