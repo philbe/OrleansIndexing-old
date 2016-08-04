@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
 using Orleans.CodeGeneration;
 using Orleans.Providers;
 
@@ -147,59 +147,70 @@ namespace Orleans.Runtime
                 if (result.ContainsKey(grainType))
                     throw new InvalidOperationException(
                         string.Format("Precondition violated: GetLoadedGrainTypes should not return a duplicate type ({0})", TypeUtils.GetFullName(grainType)));
-
-                Type[] interfaces = grainType.GetInterfaces();
-                int numInterfaces = interfaces.Length;
-                
-                //iterate over the interfaces of the grain type
-                for (int i = 0; i < numInterfaces; ++i)
-                {
-                    Type iIndexableGrain = interfaces[i];
-
-                    //if the interface extends IIndexable<TProperties> interface
-                    if (iIndexableGrain.IsGenericType && iIndexableGrain.GetGenericTypeDefinition() == genericIIndexableGrainType)
-                    {
-                        Type propertiesArg = iIndexableGrain.GetGenericArguments()[0];
-                        //and if TProperties is a class
-                        if (propertiesArg.GetTypeInfo().IsClass)
-                        {
-                            //then, the indexes are added to all the descendant
-                            //interfaces of IIndexable<TProperties>, which are
-                            //defined by end-users
-                            for (int j = 0; j < numInterfaces; ++j)
-                            {
-                                Type userDefinedIGrain = interfaces[j];
-                                //checks whether the given interface is a user-defined
-                                //interface extending IIndexable<TProperties>
-                                if (iIndexableGrain != userDefinedIGrain && iIndexableGrain.IsAssignableFrom(userDefinedIGrain) && !result.ContainsKey(userDefinedIGrain))
-                                {
-                                    IDictionary<string, Tuple<object, object, object>> indexesOnGrain = new Dictionary<string, Tuple<object, object, object>>();
-                                    //all the properties in TProperties are scanned for Index
-                                    //annotation and the index is created using the information
-                                    //provided in the annotation
-                                    foreach (PropertyInfo p in propertiesArg.GetProperties())
-                                    {
-                                        var indexAttrs = p.GetCustomAttributes(indexAttributeType, false);
-                                        foreach (var indexAttr in indexAttrs)
-                                        {
-                                            string indexName = "__" + p.Name;
-                                            Type indexType = (Type)indexAttributeType.GetProperty("IndexType").GetValue(indexAttr);
-                                            if (indexType.IsGenericTypeDefinition)
-                                            {
-                                                indexType = indexType.MakeGenericType(p.PropertyType, userDefinedIGrain);
-                                            }
-                                            indexesOnGrain.Add(indexName, createIndexMethod(gfactory, indexType, indexName, false, p));
-                                        }
-                                    }
-                                    result.Add(userDefinedIGrain, indexesOnGrain);
-                                }
-                            }
-                        }
-                        break;
-                    }
-                }
+                GetIndexesForASingleGrainType(gfactory, result, genericIIndexableGrainType, indexAttributeType, createIndexMethod, grainType);
             }
             return result;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void GetIndexesForASingleGrainType(IGrainFactory gfactory, Dictionary<Type, IDictionary<string, Tuple<object, object, object>>> result, Type genericIIndexableGrainType, Type indexAttributeType, Func<IGrainFactory, Type, string, bool, PropertyInfo, Tuple<object, object, object>> createIndexMethod, Type grainType)
+        {
+            Type[] interfaces = grainType.GetInterfaces();
+            int numInterfaces = interfaces.Length;
+
+            //iterate over the interfaces of the grain type
+            for (int i = 0; i < numInterfaces; ++i)
+            {
+                Type iIndexableGrain = interfaces[i];
+
+                //if the interface extends IIndexable<TProperties> interface
+                if (iIndexableGrain.IsGenericType && iIndexableGrain.GetGenericTypeDefinition() == genericIIndexableGrainType)
+                {
+                    Type propertiesArg = iIndexableGrain.GetGenericArguments()[0];
+                    //and if TProperties is a class
+                    if (propertiesArg.GetTypeInfo().IsClass)
+                    {
+                        //then, the indexes are added to all the descendant
+                        //interfaces of IIndexable<TProperties>, which are
+                        //defined by end-users
+                        for (int j = 0; j < numInterfaces; ++j)
+                        {
+                            Type userDefinedIGrain = interfaces[j];
+                            CreateIndexesForASingleInterfaceOfAGrainType(gfactory, result, indexAttributeType, createIndexMethod, iIndexableGrain, propertiesArg, userDefinedIGrain);
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void CreateIndexesForASingleInterfaceOfAGrainType(IGrainFactory gfactory, Dictionary<Type, IDictionary<string, Tuple<object, object, object>>> result, Type indexAttributeType, Func<IGrainFactory, Type, string, bool, PropertyInfo, Tuple<object, object, object>> createIndexMethod, Type iIndexableGrain, Type propertiesArg, Type userDefinedIGrain)
+        {
+            //checks whether the given interface is a user-defined
+            //interface extending IIndexable<TProperties>
+            if (iIndexableGrain != userDefinedIGrain && iIndexableGrain.IsAssignableFrom(userDefinedIGrain) && !result.ContainsKey(userDefinedIGrain))
+            {
+                IDictionary<string, Tuple<object, object, object>> indexesOnGrain = new Dictionary<string, Tuple<object, object, object>>();
+                //all the properties in TProperties are scanned for Index
+                //annotation and the index is created using the information
+                //provided in the annotation
+                foreach (PropertyInfo p in propertiesArg.GetProperties())
+                {
+                    var indexAttrs = p.GetCustomAttributes(indexAttributeType, false);
+                    foreach (var indexAttr in indexAttrs)
+                    {
+                        string indexName = "__" + p.Name;
+                        Type indexType = (Type)indexAttributeType.GetProperty("IndexType").GetValue(indexAttr);
+                        if (indexType.IsGenericTypeDefinition)
+                        {
+                            indexType = indexType.MakeGenericType(p.PropertyType, userDefinedIGrain);
+                        }
+                        indexesOnGrain.Add(indexName, createIndexMethod(gfactory, indexType, indexName, false, p));
+                    }
+                }
+                result.Add(userDefinedIGrain, indexesOnGrain);
+            }
         }
 
         public IEnumerable<KeyValuePair<int, Type>> GetGrainMethodInvokerTypes(bool strict)
