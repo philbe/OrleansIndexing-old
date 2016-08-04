@@ -3,6 +3,13 @@
 namespace Orleans.Indexing
 {
     /// <summary>
+    /// This is a marker interface for AHashIndexPartitionedPerSilo implementation classes
+    /// </summary>
+    public interface AHashIndexPartitionedPerSilo : IGrain
+    {
+    }
+
+    /// <summary>
     /// The interface for AHashIndexPartitionedPerSiloBucketImpl<K, V> system target,
     /// which is created in order to guide Orleans to find the grain instances
     /// more efficiently.
@@ -14,7 +21,7 @@ namespace Orleans.Indexing
     /// <typeparam name="V">type of grain that is being indexed</typeparam>
     //internal interface AHashIndexPartitionedPerSiloBucket<K, V> : ISystemTarget, HashIndexInterface<K, V> where V : IIndexableGrain
     [Unordered]
-    public interface AHashIndexPartitionedPerSilo<K, V> : IGrain, HashIndexInterface<K, V> where V : IIndexableGrain
+    public interface AHashIndexPartitionedPerSilo<K, V> : AHashIndexPartitionedPerSilo, HashIndexInterface<K, V> where V : IIndexableGrain
     {
     }
 }
