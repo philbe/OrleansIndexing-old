@@ -112,6 +112,17 @@ namespace Orleans.Runtime
         public static string OrleansIndexingAssembly = "OrleansIndexing";
         public static string AssemblySeparator = ", ";
 
+        //private static Type iIndexableGrainType = Type.GetType("Orleans.Indexing.IIndexableGrain, OrleansIndexing");
+        private static Type genericIIndexableGrainType = Type.GetType("Orleans.Indexing.IIndexableGrain`1" + AssemblySeparator + OrleansIndexingAssembly);
+        private static Type indexAttributeType = Type.GetType("Orleans.Indexing.IndexAttribute" + AssemblySeparator + OrleansIndexingAssembly);
+        private static PropertyInfo indexTypeProperty = indexAttributeType.GetProperty("IndexType");
+        private static Type indexFactoryType = Type.GetType("Orleans.Indexing.IndexFactory" + AssemblySeparator + OrleansIndexingAssembly);
+        private static Func<IGrainFactory, Type, string, bool, PropertyInfo, Tuple<object, object, object>> createIndexMethod = (Func<IGrainFactory, Type, string, bool, PropertyInfo, Tuple<object, object, object>>)Delegate.CreateDelegate(
+                                typeof(Func<IGrainFactory, Type, string, bool, PropertyInfo, Tuple<object, object, object>>),
+                                indexFactoryType.GetMethod("CreateIndex", BindingFlags.Static | BindingFlags.NonPublic));
+        private static PropertyInfo isEagerProperty = indexAttributeType.GetProperty("IsEager");
+        private static Type initializedIndexType = Type.GetType("Orleans.Indexing.InitializedIndex" + AssemblySeparator + OrleansIndexingAssembly);
+
         /// <summary>
         /// This method crawls the assemblies and looks for the index
         /// definitions (determined by extending IIndexable{TProperties}
@@ -142,8 +153,6 @@ namespace Orleans.Runtime
             return result;
         }
 
-        //private static Type iIndexableGrainType = Type.GetType("Orleans.Indexing.IIndexableGrain, OrleansIndexing");
-        private static Type genericIIndexableGrainType = Type.GetType("Orleans.Indexing.IIndexableGrain`1" + AssemblySeparator + OrleansIndexingAssembly);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void GetIndexesForASingleGrainType(IGrainFactory gfactory, Dictionary<Type, IDictionary<string, Tuple<object, object, object>>> result, Type grainType)
         {
@@ -176,12 +185,6 @@ namespace Orleans.Runtime
             }
         }
 
-        private static Type indexAttributeType = Type.GetType("Orleans.Indexing.IndexAttribute" + AssemblySeparator + OrleansIndexingAssembly);
-        private static PropertyInfo indexTypeProperty = indexAttributeType.GetProperty("IndexType");
-        private static Type indexFactoryType = Type.GetType("Orleans.Indexing.IndexFactory" + AssemblySeparator + OrleansIndexingAssembly);
-        private static Func<IGrainFactory, Type, string, bool, PropertyInfo, Tuple<object, object, object>> createIndexMethod = (Func<IGrainFactory, Type, string, bool, PropertyInfo, Tuple<object, object, object>>)Delegate.CreateDelegate(
-                                typeof(Func<IGrainFactory, Type, string, bool, PropertyInfo, Tuple<object, object, object>>),
-                                indexFactoryType.GetMethod("CreateIndex", BindingFlags.Static | BindingFlags.NonPublic));
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void CreateIndexesForASingleInterfaceOfAGrainType(IGrainFactory gfactory, Dictionary<Type, IDictionary<string, Tuple<object, object, object>>> result, Type iIndexableGrain, Type propertiesArg, Type userDefinedIGrain)
         {
@@ -215,8 +218,6 @@ namespace Orleans.Runtime
             }
         }
 
-        private static PropertyInfo isEagerProperty = indexAttributeType.GetProperty("IsEager");
-        private static Type initializedIndexType = Type.GetType("Orleans.Indexing.InitializedIndex" + AssemblySeparator + OrleansIndexingAssembly);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void CheckAllIndexesAreEitherLazyOrEager(Type propertiesArg, Type userDefinedIGrain)
         {
@@ -295,7 +296,7 @@ namespace Orleans.Runtime
                         grainClassTypeCode,
                         grainClassTypeCode.ToString("X"),
                         assemblyName);
-                    var first = true;
+                    bool first = true;
 
                     foreach (var iface in grainType.RemoteInterfaceTypes)
                     {
