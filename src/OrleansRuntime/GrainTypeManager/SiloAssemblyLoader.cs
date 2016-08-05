@@ -117,13 +117,14 @@ namespace Orleans.Runtime
         private static Type indexAttributeType = Type.GetType("Orleans.Indexing.IndexAttribute" + AssemblySeparator + OrleansIndexingAssembly);
         private static PropertyInfo indexTypeProperty = indexAttributeType.GetProperty("IndexType");
         private static Type indexFactoryType = Type.GetType("Orleans.Indexing.IndexFactory" + AssemblySeparator + OrleansIndexingAssembly);
-        private static Func<IGrainFactory, Type, string, bool, PropertyInfo, Tuple<object, object, object>> createIndexMethod = (Func<IGrainFactory, Type, string, bool, PropertyInfo, Tuple<object, object, object>>)Delegate.CreateDelegate(
-                                typeof(Func<IGrainFactory, Type, string, bool, PropertyInfo, Tuple<object, object, object>>),
+        private static Func<IGrainFactory, Type, string, bool, bool, PropertyInfo, Tuple<object, object, object>> createIndexMethod = (Func<IGrainFactory, Type, string, bool, bool, PropertyInfo, Tuple<object, object, object>>)Delegate.CreateDelegate(
+                                typeof(Func<IGrainFactory, Type, string, bool, bool, PropertyInfo, Tuple<object, object, object>>),
                                 indexFactoryType.GetMethod("CreateIndex", BindingFlags.Static | BindingFlags.NonPublic));
         private static Action<Type, Type> registerIndexWorkflowQueuesMethod = (Action<Type, Type>)Delegate.CreateDelegate(
                                 typeof(Action<Type, Type>),
                                 indexFactoryType.GetMethod("RegisterIndexWorkflowQueues", BindingFlags.Static | BindingFlags.NonPublic));
         private static PropertyInfo isEagerProperty = indexAttributeType.GetProperty("IsEager");
+        private static PropertyInfo isUniqueProperty = indexAttributeType.GetProperty("IsUnique");
         private static Type initializedIndexType = Type.GetType("Orleans.Indexing.InitializedIndex" + AssemblySeparator + OrleansIndexingAssembly);
 
         /// <summary>
@@ -203,7 +204,7 @@ namespace Orleans.Runtime
                 //all the properties in TProperties are scanned for Index
                 //annotation and the index is created using the information
                 //provided in the annotation
-                bool isLazilyUpdated = false;
+                bool isEagerlyUpdated = true;
                 foreach (PropertyInfo p in propertiesArg.GetProperties())
                 {
                     var indexAttrs = p.GetCustomAttributes(indexAttributeType, false);
@@ -215,14 +216,16 @@ namespace Orleans.Runtime
                         {
                             indexType = indexType.MakeGenericType(p.PropertyType, userDefinedIGrain);
                         }
-                        indexesOnGrain.Add(indexName, createIndexMethod(gfactory, indexType, indexName, false, p));
 
                         //if it's not eager, then it's configured to be lazily updated
-                        isLazilyUpdated = !(bool)isEagerProperty.GetValue(indexAttr);
+                        isEagerlyUpdated = (bool)isEagerProperty.GetValue(indexAttr);
+                        bool isUnique = (bool)isUniqueProperty.GetValue(indexAttr);
+                        indexesOnGrain.Add(indexName, createIndexMethod(gfactory, indexType, indexName, isUnique, isEagerlyUpdated, p));
+
                     }
                 }
                 result.Add(userDefinedIGrain, indexesOnGrain);
-                if (isLazilyUpdated)
+                if (!isEagerlyUpdated)
                 {
                     registerIndexWorkflowQueuesMethod(userDefinedIGrain, userDefinedGrainImpl);
                 }

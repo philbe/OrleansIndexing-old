@@ -16,16 +16,18 @@ namespace Orleans.Indexing
     {
         private Type _indexType;
         private bool _isUniqueIndex;
+        private bool _isEager;
 
         /// <summary>
         /// Constructs an IndexMetaData, which currently only
         /// consists of the type of the index
         /// </summary>
         /// <param name="indexType">the type of the index</param>
-        public IndexMetaData(Type indexType, bool isUniqueIndex)
+        public IndexMetaData(Type indexType, bool isUniqueIndex, bool isEager)
         {
             _indexType = indexType;
             _isUniqueIndex = isUniqueIndex;
+            _isEager = isEager;
         }
         
         /// <returns>the type of the index</returns>
@@ -63,6 +65,11 @@ namespace Orleans.Indexing
         public bool IsUniqueIndex()
         {
             return _isUniqueIndex;
+        }
+
+        public bool IsEager()
+        {
+            return _isEager;
         }
     }
 }
