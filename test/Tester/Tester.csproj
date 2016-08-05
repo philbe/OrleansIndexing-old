@@ -53,6 +53,7 @@
     <Compile Include="IndexingTests\ActiveGrainEnumerationTests.cs" />
     <Compile Include="IndexingTests\FaultTolerantIndexingTests.cs" />
     <Compile Include="IndexingTests\IndexingTestUtils.cs" />
+    <Compile Include="IndexingTests\LazyIndexingTests.cs" />
     <Compile Include="IndexingTests\SimpleIndexingTests.cs" />
     <Compile Include="MethodInterceptionTests.cs" />
     <Compile Include="BaseClusterFixture.cs" />

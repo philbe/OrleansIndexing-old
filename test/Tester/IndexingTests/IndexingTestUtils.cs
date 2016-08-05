@@ -11,8 +11,13 @@ namespace UnitTests.IndexingTests
 {
     public static class IndexingTestUtils
     {
-        public static async Task<int> CountPlayersStreamingIn<TIGrain, TProperties>(string city, ITestOutputHelper output) where TIGrain : IPlayerGrain, IIndexableGrain where TProperties : PlayerProperties
+        public static async Task<int> CountPlayersStreamingIn<TIGrain, TProperties>(string city, ITestOutputHelper output, int delayInMiliseconds = 0) where TIGrain : IPlayerGrain, IIndexableGrain where TProperties : PlayerProperties
         {
+            if(delayInMiliseconds > 0)
+            {
+                //wait for one second
+                await Task.Delay(delayInMiliseconds);
+            }
             var taskCompletionSource = new TaskCompletionSource<int>();
             Task<int> tsk = taskCompletionSource.Task;
             Action<int> responseHandler = taskCompletionSource.SetResult;
