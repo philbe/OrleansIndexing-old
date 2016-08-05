@@ -119,42 +119,33 @@ namespace Orleans.Indexing
         /// </summary>
         protected async Task UpdateIndexes(bool isOnActivate, TProperties props, bool onlyUpdateActiveIndexes = false)
         {
-            IList<Type> iGrainTypes = getIIndexableGrainTypes();
-            //bool success = false;
-            //do
-            //{
-                IDictionary<string, IMemberUpdate> updates = new Dictionary<string, IMemberUpdate>();
-                IDictionary<string, Tuple<object, object, object>> iUpdateGens = _iUpdateGens;
-                {
-                    if (iUpdateGens.Count == 0) return;
+            bool updateIndexesEagerly = false;
+            IDictionary<string, IMemberUpdate> updates = new Dictionary<string, IMemberUpdate>();
+            IDictionary<string, Tuple<object, object, object>> iUpdateGens = _iUpdateGens;
+            {
+                if (iUpdateGens.Count == 0) return;
 
-                    IDictionary<string, object> befImgs = _beforeImages.Value;
-                    foreach (KeyValuePair<string, Tuple<object, object, object>> kvp in iUpdateGens)
+                IDictionary<string, object> befImgs = _beforeImages.Value;
+                foreach (KeyValuePair<string, Tuple<object, object, object>> kvp in iUpdateGens)
+                {
+                    if (!onlyUpdateActiveIndexes || !(kvp.Value.Item1 is InitializedIndex))
                     {
-                        if (!onlyUpdateActiveIndexes || !(kvp.Value.Item1 is InitializedIndex))
+                        IMemberUpdate mu = isOnActivate ? ((IIndexUpdateGenerator)kvp.Value.Item3).CreateMemberUpdate(befImgs[kvp.Key])
+                                                        : ((IIndexUpdateGenerator)kvp.Value.Item3).CreateMemberUpdate(props, befImgs[kvp.Key]);
+                        if (mu.GetOperationType() != IndexOperationType.None)
                         {
-                            IMemberUpdate mu = isOnActivate ? ((IIndexUpdateGenerator)kvp.Value.Item3).CreateMemberUpdate(befImgs[kvp.Key])
-                                                            : ((IIndexUpdateGenerator)kvp.Value.Item3).CreateMemberUpdate(props, befImgs[kvp.Key]);
                             updates.Add(kvp.Key, mu);
+                            updateIndexesEagerly = ((IndexMetaData)kvp.Value.Item2).IsEager();
                         }
                     }
                 }
+            }
 
-            //success = 
-                await IndexHandler.ApplyIndexUpdates(iGrainTypes, this.AsReference<IIndexableGrain>(GrainFactory), updates, RuntimeAddress);
-            //    if (success)
-            //    {
+            if (updates.Count() > 0)
+            {
+                await IndexHandler.ApplyIndexUpdates(getIIndexableGrainTypes(), this.AsReference<IIndexableGrain>(GrainFactory), updates, RuntimeAddress, updateIndexesEagerly);
                 UpdateBeforeImages(updates);
-            //    }
-            //    else
-            //    {
-            //        // assume that IndexHandler returned false because our list of indexes is invalid
-            //        _iUpdateGens = IndexHandler.GetIndexes(iGrainTypes[0]); // retry
-            //        iUpdateGens = _iUpdateGens;
-            //        AddMissingBeforeImages();
-            //    }
-
-            //} while (!success);
+            }
         }
 
         /// <summary>

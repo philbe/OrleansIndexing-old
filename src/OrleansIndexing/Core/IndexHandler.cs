@@ -5,6 +5,7 @@ using Orleans.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,38 +22,66 @@ namespace Orleans.Indexing
     /// </summary>
     public static class IndexHandler
     {
-        internal static async Task<bool> ApplyIndexUpdates(IList<Type> iGrainTypes, IIndexableGrain updatedGrain, IDictionary<string, IMemberUpdate> updates, SiloAddress siloAddress)
+        internal static async Task<bool> ApplyIndexUpdates(IList<Type> iGrainTypes, IIndexableGrain updatedGrain, IDictionary<string, IMemberUpdate> updates, SiloAddress siloAddress, bool updateIndexesEagerly)
         {
+            if(updateIndexesEagerly)
+            {
+                return await ApplyIndexUpdatesEagerly(iGrainTypes, updatedGrain, updates, siloAddress, updateIndexesEagerly);
+            }
+            //TODO not implemented yet!
+            throw new NotImplementedException();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static async Task<bool> ApplyIndexUpdatesEagerly(IList<Type> iGrainTypes, IIndexableGrain updatedGrain, IDictionary<string, IMemberUpdate> updates, SiloAddress siloAddress, bool updateIndexesEagerly)
+        {
+            Task<bool>[] updateTasks = new Task<bool>[iGrainTypes.Count()];
+            int i = 0;
             foreach (Type iGrainType in iGrainTypes)
             {
-                var idxs = GetIndexes(iGrainType);
-                if (!updates.Keys.ToSet().SetEquals(idxs.Keys)) return false;
-                IList<Task<bool>> updateIndexTasks = new List<Task<bool>>();
-                foreach (KeyValuePair<string, IMemberUpdate> updt in updates)
-                {
-                    var idxInfo = idxs[updt.Key];
-                    if (updt.Value.GetOperationType() != IndexOperationType.None)
-                    {
-                        updateIndexTasks.Add(((IndexInterface)idxInfo.Item1).ApplyIndexUpdate(updatedGrain, updt.Value.AsImmutable(), ((IndexMetaData)idxInfo.Item2).IsUniqueIndex(), siloAddress));
-                    }
-                }
+                updateTasks[i++] = ApplyIndexUpdatesEagerly(iGrainType, updatedGrain, updates, siloAddress, updateIndexesEagerly);
+            }
+            return CombineResults(await Task.WhenAll(updateTasks));
+        }
 
-                bool[] updateResults = await Task.WhenAll(updateIndexTasks);
-
-                bool allSuccessful = true;
-                foreach (bool updateRes in updateResults)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static async Task<bool> ApplyIndexUpdatesEagerly(Type iGrainType, IIndexableGrain updatedGrain, IDictionary<string, IMemberUpdate> updates, SiloAddress siloAddress, bool updateIndexesEagerly)
+        {
+            var idxs = GetIndexes(iGrainType);
+            if (!updates.Keys.ToSet().SetEquals(idxs.Keys)) return false;
+            IList<Task<bool>> updateIndexTasks = new List<Task<bool>>();
+            foreach (KeyValuePair<string, IMemberUpdate> updt in updates)
+            {
+                var idxInfo = idxs[updt.Key];
+                if (updt.Value.GetOperationType() != IndexOperationType.None)
                 {
-                    allSuccessful &= updateRes;
-                    if (!allSuccessful) break;
-                }
-                if (!allSuccessful)
-                {
-                    //TODO: we should do something about the failed index updates
-                    throw new Exception(string.Format("Not all index updates where successful"));
+                    updateIndexTasks.Add(((IndexInterface)idxInfo.Item1).ApplyIndexUpdate(updatedGrain, updt.Value.AsImmutable(), ((IndexMetaData)idxInfo.Item2).IsUniqueIndex(), siloAddress));
                 }
             }
-            return true;
+
+            bool[] updateResults = await Task.WhenAll(updateIndexTasks);
+            bool allSuccessful = CombineResults(updateResults);
+            if (!allSuccessful)
+            {
+                //TODO: we should do something about the failed index updates
+                throw new Exception(string.Format("Not all index updates where successful"));
+            }
+            return allSuccessful;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool CombineResults(bool[] updateResults)
+        {
+            bool allSuccessful = true;
+            foreach (bool updateRes in updateResults)
+            {
+                allSuccessful &= updateRes;
+                if (!allSuccessful) break;
+            }
+
+            return allSuccessful;
+        }
+
 
         //internal static Task<bool> ApplyIndexUpdates<T>(IIndexableGrain updatedGrain, Immutable<IDictionary<string, IMemberUpdate>> iUpdates) where T : IIndexableGrain
         //{
