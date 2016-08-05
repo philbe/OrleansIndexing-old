@@ -14,15 +14,11 @@ namespace Orleans.Indexing
             IndexType = typeof(AHashIndexSingleBucket<,>);
         }
 
-        public IndexAttribute(Type IndexType) : this(IndexType, false)
+        public IndexAttribute(bool IsEager) : this(typeof(AHashIndexSingleBucket<,>), IsEager, false)
         {
         }
 
-        public IndexAttribute(Type IndexType, bool IsUnique) : this(IndexType, false, false)
-        {
-        }
-
-        public IndexAttribute(Type IndexType, bool IsUnique, bool IsEager)
+        public IndexAttribute(Type IndexType, bool IsEager = false, bool IsUnique = false)
         {
             this.IndexType = IndexType;
             this.IsUnique = IsUnique;
