@@ -6,6 +6,7 @@ using System;
 using Orleans.Runtime;
 using System.Reflection;
 using System.Linq;
+using Orleans.Storage;
 
 namespace Orleans.Indexing
 {
@@ -55,6 +56,19 @@ namespace Orleans.Indexing
             return _props;
         }
 
+        IDictionary<Type, IIndexWorkflowQueue> _workflowQueues;
+
+        private IIndexWorkflowQueue GetWorkflowQueue(Type iGrainType)
+        {
+            IIndexWorkflowQueue workflowQ;
+            if (!_workflowQueues.TryGetValue(iGrainType, out workflowQ))
+            {
+                workflowQ = IndexWorkflowQueue.GetIndexWorkflowQueueFromGrainHashCode(iGrainType, this.AsReference<IIndexableGrain>(GrainFactory, iGrainType).GetHashCode(), RuntimeAddress);
+                _workflowQueues.Add(iGrainType, workflowQ);
+            }
+            return workflowQ;
+        }
+
         /// <summary>
         /// Upon activation, the list of index update generators
         /// is retrieved from the index handler. It is cached in
@@ -65,6 +79,7 @@ namespace Orleans.Indexing
         /// </summary>
         public override Task OnActivateAsync()
         {
+            _workflowQueues = new Dictionary<Type, IIndexWorkflowQueue>();
             _iUpdateGens = IndexHandler.GetIndexes(getIIndexableGrainTypes()[0]);
             _beforeImages = new Dictionary<string, object>().AsImmutable<IDictionary<string, object>>();
             AddMissingBeforeImages();
@@ -120,6 +135,7 @@ namespace Orleans.Indexing
         protected async Task UpdateIndexes(bool isOnActivate, TProperties props, bool onlyUpdateActiveIndexes = false)
         {
             bool updateIndexesEagerly = false;
+            bool onlyUniqueIndexesWereUpdated = true;
             IDictionary<string, IMemberUpdate> updates = new Dictionary<string, IMemberUpdate>();
             IDictionary<string, Tuple<object, object, object>> iUpdateGens = _iUpdateGens;
             {
@@ -128,23 +144,60 @@ namespace Orleans.Indexing
                 IDictionary<string, object> befImgs = _beforeImages.Value;
                 foreach (KeyValuePair<string, Tuple<object, object, object>> kvp in iUpdateGens)
                 {
-                    if (!onlyUpdateActiveIndexes || !(kvp.Value.Item1 is InitializedIndex))
+                    var idxInfo = kvp.Value;
+                    if (!onlyUpdateActiveIndexes || !(idxInfo.Item1 is InitializedIndex))
                     {
-                        IMemberUpdate mu = isOnActivate ? ((IIndexUpdateGenerator)kvp.Value.Item3).CreateMemberUpdate(befImgs[kvp.Key])
-                                                        : ((IIndexUpdateGenerator)kvp.Value.Item3).CreateMemberUpdate(props, befImgs[kvp.Key]);
+                        IMemberUpdate mu = isOnActivate ? ((IIndexUpdateGenerator)idxInfo.Item3).CreateMemberUpdate(befImgs[kvp.Key])
+                                                        : ((IIndexUpdateGenerator)idxInfo.Item3).CreateMemberUpdate(props, befImgs[kvp.Key]);
                         if (mu.GetOperationType() != IndexOperationType.None)
                         {
                             updates.Add(kvp.Key, mu);
-                            updateIndexesEagerly = ((IndexMetaData)kvp.Value.Item2).IsEager();
+                            IndexMetaData indexMetaData = (IndexMetaData)kvp.Value.Item2;
+                            updateIndexesEagerly = indexMetaData.IsEager();
+                            onlyUniqueIndexesWereUpdated &= indexMetaData.IsUniqueIndex();
                         }
                     }
                 }
             }
 
+            await ApplyIndexUpdates(updateIndexesEagerly, onlyUniqueIndexesWereUpdated, updates);
+            UpdateBeforeImages(updates);
+        }
+
+        protected virtual async Task ApplyIndexUpdates(bool updateIndexesEagerly, bool onlyUniqueIndexesWereUpdated, IDictionary<string, IMemberUpdate> updates)
+        {
             if (updates.Count() > 0)
             {
-                await IndexHandler.ApplyIndexUpdates(getIIndexableGrainTypes(), this.AsReference<IIndexableGrain>(GrainFactory), updates, RuntimeAddress, updateIndexesEagerly);
-                UpdateBeforeImages(updates);
+                IList<Type> iGrainTypes = getIIndexableGrainTypes();
+                IIndexableGrain thisGrain = this.AsReference<IIndexableGrain>(GrainFactory);
+                if (updateIndexesEagerly || onlyUniqueIndexesWereUpdated)
+                {
+                    await IndexHandler.ApplyIndexUpdatesEagerly(iGrainTypes, thisGrain, updates, RuntimeAddress, updateIndexesEagerly);
+                }
+                else
+                {
+                    await ApplyIndexUpdatesLazily(updates, iGrainTypes, thisGrain);
+                }
+            }
+        }
+
+        private Task ApplyIndexUpdatesLazily(IDictionary<string, IMemberUpdate> updates, IList<Type> iGrainTypes, IIndexableGrain thisGrain)
+        {
+            if (iGrainTypes.Count() == 1)
+            {
+                IIndexWorkflowQueue workflowQ = GetWorkflowQueue(iGrainTypes[0]);
+                return workflowQ.AddToQueue(new IndexWorkflowRecord(thisGrain, updates).AsImmutable());
+            }
+            else
+            {
+                Task[] updateTasks = new Task[iGrainTypes.Count()];
+                int i = 0;
+                foreach (Type iGrainType in iGrainTypes)
+                {
+                    IIndexWorkflowQueue workflowQ = GetWorkflowQueue(iGrainType);
+                    updateTasks[i++] = workflowQ.AddToQueue(new IndexWorkflowRecord(thisGrain, updates).AsImmutable());
+                }
+                return Task.WhenAll(updateTasks);
             }
         }
 
@@ -254,7 +307,7 @@ namespace Orleans.Indexing
             return Task.FromResult(iUpdateGen.ExtractIndexImage(Properties));
         }
 
-        public virtual Task<Immutable<List<int>>> GetActiveWorkflowIdsList()
+        public virtual Task<Immutable<List<Guid>>> GetActiveWorkflowIdsList()
         {
             throw new NotSupportedException();
         }

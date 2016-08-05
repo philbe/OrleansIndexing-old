@@ -22,26 +22,24 @@ namespace Orleans.Indexing
     /// </summary>
     public static class IndexHandler
     {
-        internal static async Task<bool> ApplyIndexUpdates(IList<Type> iGrainTypes, IIndexableGrain updatedGrain, IDictionary<string, IMemberUpdate> updates, SiloAddress siloAddress, bool updateIndexesEagerly)
-        {
-            if(updateIndexesEagerly)
-            {
-                return await ApplyIndexUpdatesEagerly(iGrainTypes, updatedGrain, updates, siloAddress, updateIndexesEagerly);
-            }
-            //TODO not implemented yet!
-            throw new NotImplementedException();
-        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static async Task<bool> ApplyIndexUpdatesEagerly(IList<Type> iGrainTypes, IIndexableGrain updatedGrain, IDictionary<string, IMemberUpdate> updates, SiloAddress siloAddress, bool updateIndexesEagerly)
+        public static async Task<bool> ApplyIndexUpdatesEagerly(IList<Type> iGrainTypes, IIndexableGrain updatedGrain, IDictionary<string, IMemberUpdate> updates, SiloAddress siloAddress, bool updateIndexesEagerly)
         {
-            Task<bool>[] updateTasks = new Task<bool>[iGrainTypes.Count()];
-            int i = 0;
-            foreach (Type iGrainType in iGrainTypes)
+            if (iGrainTypes.Count() == 1)
             {
-                updateTasks[i++] = ApplyIndexUpdatesEagerly(iGrainType, updatedGrain, updates, siloAddress, updateIndexesEagerly);
+                return await ApplyIndexUpdatesEagerly(iGrainTypes[0], updatedGrain, updates, siloAddress, updateIndexesEagerly);
             }
-            return CombineResults(await Task.WhenAll(updateTasks));
+            else
+            {
+                Task<bool>[] updateTasks = new Task<bool>[iGrainTypes.Count()];
+                int i = 0;
+                foreach (Type iGrainType in iGrainTypes)
+                {
+                    updateTasks[i++] = ApplyIndexUpdatesEagerly(iGrainType, updatedGrain, updates, siloAddress, updateIndexesEagerly);
+                }
+                return CombineResults(await Task.WhenAll(updateTasks));
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -47,7 +47,7 @@ namespace Orleans.Indexing
 
                 while (workflows.Value != null)
                 {
-                    Dictionary<IIndexableGrain, HashSet<int>> grainsToActiveWorkflows = null;
+                    Dictionary<IIndexableGrain, HashSet<Guid>> grainsToActiveWorkflows = null;
                     if(IsFaultTolerant)
                     {
                         grainsToActiveWorkflows = await GetActiveWorkflowsListsFromGrains(workflows);
@@ -78,7 +78,7 @@ namespace Orleans.Indexing
             return updateIndexTasks;
         }
 
-        private void PopulateUpdatesToIndexes(Immutable<IndexWorkflowRecordNode> workflows, Dictionary<string, IDictionary<IIndexableGrain, IList<IMemberUpdate>>> updatesToIndexes, Dictionary<IIndexableGrain, HashSet<int>> grainsToActiveWorkflows)
+        private void PopulateUpdatesToIndexes(Immutable<IndexWorkflowRecordNode> workflows, Dictionary<string, IDictionary<IIndexableGrain, IList<IMemberUpdate>>> updatesToIndexes, Dictionary<IIndexableGrain, HashSet<Guid>> grainsToActiveWorkflows)
         {
             bool faultTolerant = IsFaultTolerant;
             IndexWorkflowRecordNode currentWorkflow = workflows.Value;
@@ -89,10 +89,10 @@ namespace Orleans.Indexing
                 bool existsInActiveWorkflows = false;
                 if (faultTolerant)
                 {
-                    HashSet<int> activeWorkflowRecs = null;
+                    HashSet<Guid> activeWorkflowRecs = null;
                     if (grainsToActiveWorkflows.TryGetValue(g, out activeWorkflowRecs))
                     {
-                        if (activeWorkflowRecs.Contains(workflowRec.SeqNum))
+                        if (activeWorkflowRecs.Contains(workflowRec.WorkflowId))
                         {
                             existsInActiveWorkflows = true;
                         }
@@ -128,14 +128,14 @@ namespace Orleans.Indexing
             }
         }
 
-        private static HashSet<int> EMPTY_HASHSET = new HashSet<int>();
-        private async Task<Dictionary<IIndexableGrain, HashSet<int>>> GetActiveWorkflowsListsFromGrains(Immutable<IndexWorkflowRecordNode> workflows)
+        private static HashSet<Guid> EMPTY_HASHSET = new HashSet<Guid>();
+        private async Task<Dictionary<IIndexableGrain, HashSet<Guid>>> GetActiveWorkflowsListsFromGrains(Immutable<IndexWorkflowRecordNode> workflows)
         {
             IndexWorkflowRecordNode currentWorkflow = workflows.Value;
-            var result = new Dictionary<IIndexableGrain, HashSet<int>>();
+            var result = new Dictionary<IIndexableGrain, HashSet<Guid>>();
             var grains = new List<IIndexableGrain>();
-            var activeWorkflowsListTasks = new List<Task<Immutable<List<int>>>>();
-            Immutable<List<int>>[] activeWorkflowsLists;
+            var activeWorkflowsListTasks = new List<Task<Immutable<List<Guid>>>>();
+            Immutable<List<Guid>>[] activeWorkflowsLists;
 
             while (!currentWorkflow.IsPunctuation())
             {
@@ -199,6 +199,14 @@ namespace Orleans.Indexing
         {
             return GrainId.GetSystemTargetGrainId(Constants.INDEX_WORKFLOW_QUEUE_HANDLER_SYSTEM_TARGET_TYPE_CODE,
                                                   IndexWorkflowQueue.CreateIndexWorkflowQueuePrimaryKey(grainInterfaceType, queueSeqNum));
+        }
+
+        public static IIndexWorkflowQueueHandler GetIndexWorkflowQueueFromGrainHashCode(Type grainInterfaceType, int grainHashCode, SiloAddress siloAddress)
+        {
+            return InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IIndexWorkflowQueueHandler>(
+                CreateIndexWorkflowQueueHandlerGrainId(grainInterfaceType, grainHashCode),
+                siloAddress
+            );
         }
     }
 }

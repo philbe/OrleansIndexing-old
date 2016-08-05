@@ -120,6 +120,14 @@ namespace Orleans.Indexing
                                                   CreateIndexWorkflowQueuePrimaryKey(grainInterfaceType, StorageProviderUtils.PositiveHash(grainHashCode, NUM_AVAILABLE_INDEX_WORKFLOW_QUEUES)));
         }
 
+        public static IIndexWorkflowQueue GetIndexWorkflowQueueFromGrainHashCode(Type grainInterfaceType, int grainHashCode, SiloAddress siloAddress)
+        {
+            return InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IIndexWorkflowQueue>(
+                GetIndexWorkflowQueueGrainIdFromGrainHashCode(grainInterfaceType, grainHashCode),
+                siloAddress
+            );
+        }
+
         private IIndexWorkflowQueueHandler InitWorkflowQueueHandler()
         {
             return __handler = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IIndexWorkflowQueueHandler>(IndexWorkflowQueueHandler.CreateIndexWorkflowQueueHandlerGrainId(_iGrainType, _queueSeqNum), Silo);

@@ -1,5 +1,6 @@
 ﻿using Orleans;
 using Orleans.Concurrency;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -25,7 +26,7 @@ namespace Orleans.Indexing
         /// <summary>
         /// This method returns the list of active work-flow IDs for an I-Index
         /// </summary>
-        Task<Immutable<List<int>>> GetActiveWorkflowIdsList();
+        Task<Immutable<List<Guid>>> GetActiveWorkflowIdsList();
     }
     public interface IIndexableGrain<TProperties> : IIndexableGrain
     {

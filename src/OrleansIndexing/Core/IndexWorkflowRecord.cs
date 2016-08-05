@@ -20,17 +20,17 @@ namespace Orleans.Indexing
         /// The sequence number of update on the Grain,
         /// which is the second part of the workflowID
         /// </summary>
-        internal int SeqNum { get; private set; }
+        internal Guid WorkflowId { get; private set; }
 
         /// <summary>
         /// The list of updates to all indexes of the Grain
         /// </summary>
         internal IDictionary<string, IMemberUpdate> MemberUpdates { get; private set; }
 
-        internal IndexWorkflowRecord(IIndexableGrain grain, int seqNum, IDictionary<string, IMemberUpdate> memberUpdates)
+        internal IndexWorkflowRecord(IIndexableGrain grain, IDictionary<string, IMemberUpdate> memberUpdates)
         {
             Grain = grain;
-            SeqNum = seqNum;
+            WorkflowId = Guid.NewGuid();
             MemberUpdates = memberUpdates;
         }
     }

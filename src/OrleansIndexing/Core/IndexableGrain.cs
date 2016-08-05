@@ -60,30 +60,16 @@ namespace Orleans.Indexing
             return IndexWorkflowQueue.CreateIndexWorkflowQueuePrimaryKey(iGrainType, StorageProviderUtils.PositiveHash(this.AsReference<IIndexableGrain>(GrainFactory, iGrainType).GetHashCode(), IndexWorkflowQueue.NUM_AVAILABLE_INDEX_WORKFLOW_QUEUES));
         }
 
-        private int GetWorkflowQueueId()
-        {
-            //does it have a designated IndexWorkflowQueue?
-            if (base.State.workflowQueueSeqNum > 0)
-            {
-                return base.State.workflowQueueSeqNum;
-            }
-            else
-            {
-                //TODO: find the designated IndexWorkflowQueue sequence number on this silo
-                return 1;
-            }
-        }
-
         private SiloAddress GetWorkflowQueueSilo()
         {
             //does it have a designated IndexWorkflowQueue?
-            if (base.State.workflowQueueSeqNum > 0)
+            if (base.State.workflowQueue == null)
             {
-                return base.State.workflowQueueSilo;
+                return RuntimeAddress;
             }
             else
             {
-                return RuntimeAddress;
+                return ((GrainReference) base.State.workflowQueue).SystemTargetSilo;
             }
         }
 
@@ -92,7 +78,7 @@ namespace Orleans.Indexing
             return GetWorkflowQueue(iGrainType) + "/" + GetWorkflowQueueSilo().ToLongString();
         }
 
-        public override Task<Immutable<List<int>>> GetActiveWorkflowIdsList()
+        public override Task<Immutable<List<Guid>>> GetActiveWorkflowIdsList()
         {
             return Task.FromResult(base.State.activeWorkflowsList.AsImmutable());
         }
@@ -107,9 +93,8 @@ namespace Orleans.Indexing
     [Serializable]
     public class IndexableExtendedState<TState>
     {
-        internal List<int> activeWorkflowsList = null;
-        internal int workflowQueueSeqNum = 0;
-        internal SiloAddress workflowQueueSilo = null;
+        internal List<Guid> activeWorkflowsList = null;
+        internal IIndexWorkflowQueue workflowQueue = null;
 
         public TState UserState = (TState)Activator.CreateInstance(typeof(TState));
     }
