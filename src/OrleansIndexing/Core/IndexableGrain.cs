@@ -55,29 +55,6 @@ namespace Orleans.Indexing
             return _props;
         }
 
-        private string GetWorkflowQueue(Type iGrainType)
-        {
-            return IndexWorkflowQueue.CreateIndexWorkflowQueuePrimaryKey(iGrainType, StorageProviderUtils.PositiveHash(this.AsReference<IIndexableGrain>(GrainFactory, iGrainType).GetHashCode(), IndexWorkflowQueue.NUM_AVAILABLE_INDEX_WORKFLOW_QUEUES));
-        }
-
-        private SiloAddress GetWorkflowQueueSilo()
-        {
-            //does it have a designated IndexWorkflowQueue?
-            if (base.State.workflowQueue == null)
-            {
-                return RuntimeAddress;
-            }
-            else
-            {
-                return ((GrainReference) base.State.workflowQueue).SystemTargetSilo;
-            }
-        }
-
-        private string GetReincarnatedWorkflowQueueId(Type iGrainType)
-        {
-            return GetWorkflowQueue(iGrainType) + "/" + GetWorkflowQueueSilo().ToLongString();
-        }
-
         public override Task<Immutable<List<Guid>>> GetActiveWorkflowIdsList()
         {
             return Task.FromResult(base.State.activeWorkflowsList.AsImmutable());

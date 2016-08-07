@@ -56,18 +56,9 @@ namespace Orleans.Indexing
             return _props;
         }
 
-        IDictionary<Type, IIndexWorkflowQueue> _workflowQueues;
-
-        private IIndexWorkflowQueue GetWorkflowQueue(Type iGrainType)
-        {
-            IIndexWorkflowQueue workflowQ;
-            if (!_workflowQueues.TryGetValue(iGrainType, out workflowQ))
-            {
-                workflowQ = IndexWorkflowQueue.GetIndexWorkflowQueueFromGrainHashCode(iGrainType, this.AsReference<IIndexableGrain>(GrainFactory, iGrainType).GetHashCode(), RuntimeAddress);
-                _workflowQueues.Add(iGrainType, workflowQ);
-            }
-            return workflowQ;
-        }
+        //a cache for the work-flow queues, one for each grain interface type
+        //that the current IndexableGrain implements
+        internal IDictionary<Type, IIndexWorkflowQueue> _workflowQueues;
 
         /// <summary>
         /// Upon activation, the list of index update generators
@@ -79,7 +70,7 @@ namespace Orleans.Indexing
         /// </summary>
         public override Task OnActivateAsync()
         {
-            _workflowQueues = new Dictionary<Type, IIndexWorkflowQueue>();
+            _workflowQueues = null;
             _iUpdateGens = IndexHandler.GetIndexes(getIIndexableGrainTypes()[0]);
             _beforeImages = new Dictionary<string, object>().AsImmutable<IDictionary<string, object>>();
             AddMissingBeforeImages();
@@ -310,6 +301,28 @@ namespace Orleans.Indexing
         public virtual Task<Immutable<List<Guid>>> GetActiveWorkflowIdsList()
         {
             throw new NotSupportedException();
+        }
+
+        /// <summary>
+        /// Find the corresponding work-flow queue for a given grain interface
+        /// type that the current IndexableGrain implements
+        /// </summary>
+        /// <param name="iGrainType">the given grain interface type</param>
+        /// <returns>the work-flow queue corresponding to the iGrainType</returns>
+        internal IIndexWorkflowQueue GetWorkflowQueue(Type iGrainType)
+        {
+            if(_workflowQueues == null)
+            {
+                _workflowQueues = new Dictionary<Type, IIndexWorkflowQueue>();
+            }
+
+            IIndexWorkflowQueue workflowQ;
+            if (!_workflowQueues.TryGetValue(iGrainType, out workflowQ))
+            {
+                workflowQ = IndexWorkflowQueue.GetIndexWorkflowQueueFromGrainHashCode(iGrainType, this.AsReference<IIndexableGrain>(GrainFactory, iGrainType).GetHashCode(), RuntimeAddress);
+                _workflowQueues.Add(iGrainType, workflowQ);
+            }
+            return workflowQ;
         }
     }
 
