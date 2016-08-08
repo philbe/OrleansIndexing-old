@@ -29,6 +29,12 @@ namespace Orleans.Indexing
         protected IDictionary<string, Tuple<object, object, object>> _iUpdateGens;
 
         /// <summary>
+        /// This flag defines whether there is any unique
+        /// index defined for this indexable grain
+        /// </summary>
+        protected bool _isThereAnyUniqueIndex;
+
+        /// <summary>
         /// an immutable copy of before-images of the indexed fields
         /// </summary>
         protected Immutable<IDictionary<string, object>> _beforeImages;
@@ -71,10 +77,20 @@ namespace Orleans.Indexing
         public override Task OnActivateAsync()
         {
             _workflowQueues = null;
-            _iUpdateGens = IndexHandler.GetIndexes(getIIndexableGrainTypes()[0]);
+            _iUpdateGens = IndexHandler.GetIndexes(GetIIndexableGrainTypes()[0]);
+            InitUniqueIndexCheck();
             _beforeImages = new Dictionary<string, object>().AsImmutable<IDictionary<string, object>>();
             AddMissingBeforeImages();
             return Task.WhenAll(InsertIntoActiveIndexes(), base.OnActivateAsync());
+        }
+
+        private void InitUniqueIndexCheck()
+        {
+            _isThereAnyUniqueIndex = false;
+            foreach (var idxInfo in _iUpdateGens.Values)
+            {
+                _isThereAnyUniqueIndex = _isThereAnyUniqueIndex || ((IndexMetaData)idxInfo.Item2).IsUniqueIndex();
+            }
         }
 
         public override Task OnDeactivateAsync()
@@ -126,7 +142,7 @@ namespace Orleans.Indexing
         protected async Task UpdateIndexes(bool isOnActivate, TProperties props, bool onlyUpdateActiveIndexes = false)
         {
             bool updateIndexesEagerly = false;
-            bool onlyUniqueIndexesWereUpdated = true;
+            bool onlyUniqueIndexesWereUpdated = _isThereAnyUniqueIndex;
             IDictionary<string, IMemberUpdate> updates = new Dictionary<string, IMemberUpdate>();
             IDictionary<string, Tuple<object, object, object>> iUpdateGens = _iUpdateGens;
             {
@@ -145,7 +161,7 @@ namespace Orleans.Indexing
                             updates.Add(kvp.Key, mu);
                             IndexMetaData indexMetaData = (IndexMetaData)kvp.Value.Item2;
                             updateIndexesEagerly = indexMetaData.IsEager();
-                            onlyUniqueIndexesWereUpdated &= indexMetaData.IsUniqueIndex();
+                            onlyUniqueIndexesWereUpdated = onlyUniqueIndexesWereUpdated && indexMetaData.IsUniqueIndex();
                         }
                     }
                 }
@@ -159,7 +175,7 @@ namespace Orleans.Indexing
         {
             if (updates.Count() > 0)
             {
-                IList<Type> iGrainTypes = getIIndexableGrainTypes();
+                IList<Type> iGrainTypes = GetIIndexableGrainTypes();
                 IIndexableGrain thisGrain = this.AsReference<IIndexableGrain>(GrainFactory);
                 if (updateIndexesEagerly || onlyUniqueIndexesWereUpdated)
                 {
@@ -198,7 +214,7 @@ namespace Orleans.Indexing
         /// </summary>
         /// <returns>lowest IGrain interface in the hierarchy
         /// that the current class implements</returns>
-        private IList<Type> getIIndexableGrainTypes()
+        protected IList<Type> GetIIndexableGrainTypes()
         {
             if (_iGrainTypes == null)
             {
