@@ -38,6 +38,7 @@ namespace UnitTests.IndexingTests
     {
 
         private readonly ITestOutputHelper output;
+        private const int DELAY_UNTIL_INDEXES_ARE_UPDATED_LAZILY = 2000; //one second delay for writes to the in-memory indexes should be enough
 
         public FaultTolerantIndexingTests(DefaultClusterFixture fixture, ITestOutputHelper output)
             : base(fixture)
@@ -86,18 +87,18 @@ namespace UnitTests.IndexingTests
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
-            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer1Grain, Player1Properties>("Seattle", output));
+            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer1Grain, Player1Properties>("Seattle",output, DELAY_UNTIL_INDEXES_ARE_UPDATED_LAZILY));
 
             await p2.Deactivate();
 
-            Thread.Sleep(1000);
+            await Task.Delay(DELAY_UNTIL_INDEXES_ARE_UPDATED_LAZILY);
 
-            Assert.Equal(1, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer1Grain, Player1Properties>("Seattle", output));
+            Assert.Equal(1, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer1Grain, Player1Properties>("Seattle",output, DELAY_UNTIL_INDEXES_ARE_UPDATED_LAZILY));
 
             p2 = GrainClient.GrainFactory.GetGrain<IPlayer1Grain>(2);
             Assert.Equal("Seattle", await p2.GetLocation());
 
-            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer1Grain, Player1Properties>("Seattle", output));
+            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer1Grain, Player1Properties>("Seattle",output, DELAY_UNTIL_INDEXES_ARE_UPDATED_LAZILY));
         }
 
         /// <summary>
@@ -129,18 +130,18 @@ namespace UnitTests.IndexingTests
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
-            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2Grain, Player2Properties>("Tehran", output));
+            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2Grain, Player2Properties>("Tehran",output, DELAY_UNTIL_INDEXES_ARE_UPDATED_LAZILY));
 
             await p2.Deactivate();
 
-            Thread.Sleep(1000);
+            await Task.Delay(DELAY_UNTIL_INDEXES_ARE_UPDATED_LAZILY);
 
-            Assert.Equal(1, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2Grain, Player2Properties>("Tehran", output));
+            Assert.Equal(1, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2Grain, Player2Properties>("Tehran",output, DELAY_UNTIL_INDEXES_ARE_UPDATED_LAZILY));
 
             p2 = GrainClient.GrainFactory.GetGrain<IPlayer2Grain>(2);
             Assert.Equal("Tehran", await p2.GetLocation());
 
-            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2Grain, Player2Properties>("Tehran", output));
+            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2Grain, Player2Properties>("Tehran",output, DELAY_UNTIL_INDEXES_ARE_UPDATED_LAZILY));
         }
 
         /// <summary>
@@ -173,18 +174,18 @@ namespace UnitTests.IndexingTests
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
-            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2Grain, Player2Properties>("Seattle", output));
+            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2Grain, Player2Properties>("Seattle",output, DELAY_UNTIL_INDEXES_ARE_UPDATED_LAZILY));
 
             await p2.Deactivate();
 
-            Thread.Sleep(1000);
+            await Task.Delay(DELAY_UNTIL_INDEXES_ARE_UPDATED_LAZILY);
 
-            Assert.Equal(1, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2Grain, Player2Properties>("Seattle", output));
+            Assert.Equal(1, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2Grain, Player2Properties>("Seattle",output, DELAY_UNTIL_INDEXES_ARE_UPDATED_LAZILY));
 
             p2 = GrainClient.GrainFactory.GetGrain<IPlayer2Grain>(2);
             Assert.Equal("Seattle", await p2.GetLocation());
 
-            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2Grain, Player2Properties>("Seattle", output));
+            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2Grain, Player2Properties>("Seattle",output, DELAY_UNTIL_INDEXES_ARE_UPDATED_LAZILY));
         }
 
         /// <summary>
@@ -211,18 +212,18 @@ namespace UnitTests.IndexingTests
 
             while (!await locIdx.IsAvailable()) Thread.Sleep(50);
 
-            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer3Grain, Player3Properties>("Seattle", output));
+            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer3Grain, Player3Properties>("Seattle",output, DELAY_UNTIL_INDEXES_ARE_UPDATED_LAZILY));
 
             await p2.Deactivate();
 
-            Thread.Sleep(1000);
+            await Task.Delay(DELAY_UNTIL_INDEXES_ARE_UPDATED_LAZILY);
 
-            Assert.Equal(1, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer3Grain, Player3Properties>("Seattle", output));
+            Assert.Equal(1, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer3Grain, Player3Properties>("Seattle",output, DELAY_UNTIL_INDEXES_ARE_UPDATED_LAZILY));
 
             p2 = GrainClient.GrainFactory.GetGrain<IPlayer3Grain>(2);
             Assert.Equal("Seattle", await p2.GetLocation());
 
-            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer3Grain, Player3Properties>("Seattle", output));
+            Assert.Equal(2, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer3Grain, Player3Properties>("Seattle",output, DELAY_UNTIL_INDEXES_ARE_UPDATED_LAZILY));
         }
     }
 }
