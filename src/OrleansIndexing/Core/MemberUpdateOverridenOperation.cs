@@ -34,5 +34,10 @@ namespace Orleans.Indexing
         {
             return _opType;
         }
+        
+        public override string ToString()
+        {
+            return MemberUpdate.ToString(this);
+        }
     }
 }

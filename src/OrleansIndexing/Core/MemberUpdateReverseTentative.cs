@@ -38,5 +38,10 @@ namespace Orleans.Indexing
                 default: return op;
             }
         }
+
+        public override string ToString()
+        {
+            return MemberUpdate.ToString(this);
+        }
     }
 }

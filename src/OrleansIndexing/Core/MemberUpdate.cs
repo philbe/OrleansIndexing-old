@@ -73,5 +73,22 @@ namespace Orleans.Indexing
         {
             return _opType;
         }
+
+        public override string ToString()
+        {
+            return ToString(this);
+        }
+
+        internal static string ToString(IMemberUpdate update)
+        {
+            switch (update.GetOperationType())
+            {
+                case IndexOperationType.None: return "No operation";
+                case IndexOperationType.Insert: return "Inserted " + update.GetAfterImage();
+                case IndexOperationType.Delete: return "Deleted " + update.GetBeforeImage();
+                case IndexOperationType.Update: return "Updated " + update.GetBeforeImage() + " into " + update.GetAfterImage();
+                default: return "Unsupported operation";
+            }
+        }
     }
 }
