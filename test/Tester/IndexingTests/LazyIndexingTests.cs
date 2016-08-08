@@ -58,7 +58,7 @@ namespace UnitTests.IndexingTests
 
             await p2.Deactivate();
 
-            Thread.Sleep(1000);
+            await Task.Delay(DELAY_UNTIL_INDEXES_ARE_UPDATED_LAZILY);
 
             Assert.Equal(1, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer1GrainNonFaultTolerantLazy, Player1PropertiesNonFaultTolerantLazy>("Seattle", output, DELAY_UNTIL_INDEXES_ARE_UPDATED_LAZILY));
 
@@ -101,7 +101,7 @@ namespace UnitTests.IndexingTests
 
             await p2.Deactivate();
 
-            Thread.Sleep(1000);
+            await Task.Delay(DELAY_UNTIL_INDEXES_ARE_UPDATED_LAZILY);
 
             Assert.Equal(1, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2GrainNonFaultTolerantLazy, Player2PropertiesNonFaultTolerantLazy>("Tehran", output, DELAY_UNTIL_INDEXES_ARE_UPDATED_LAZILY));
 
@@ -145,7 +145,7 @@ namespace UnitTests.IndexingTests
 
             await p2.Deactivate();
 
-            Thread.Sleep(1000);
+            await Task.Delay(DELAY_UNTIL_INDEXES_ARE_UPDATED_LAZILY);
 
             Assert.Equal(1, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer2GrainNonFaultTolerantLazy, Player2PropertiesNonFaultTolerantLazy>("Seattle", output, DELAY_UNTIL_INDEXES_ARE_UPDATED_LAZILY));
 
@@ -183,7 +183,7 @@ namespace UnitTests.IndexingTests
 
             await p2.Deactivate();
 
-            Thread.Sleep(1000);
+            await Task.Delay(DELAY_UNTIL_INDEXES_ARE_UPDATED_LAZILY);
 
             Assert.Equal(1, await IndexingTestUtils.CountPlayersStreamingIn<IPlayer3GrainNonFaultTolerantLazy, Player3PropertiesNonFaultTolerantLazy>("Seattle", output, DELAY_UNTIL_INDEXES_ARE_UPDATED_LAZILY));
 
