@@ -187,28 +187,25 @@ namespace Orleans.Indexing
                 }
                 else
                 {
-                    await ApplyIndexUpdatesLazily(updates, iGrainTypes, thisGrain);
+                    ApplyIndexUpdatesLazily(updates, iGrainTypes, thisGrain);
                 }
             }
         }
 
-        private Task ApplyIndexUpdatesLazily(IDictionary<string, IMemberUpdate> updates, IList<Type> iGrainTypes, IIndexableGrain thisGrain)
+        private void ApplyIndexUpdatesLazily(IDictionary<string, IMemberUpdate> updates, IList<Type> iGrainTypes, IIndexableGrain thisGrain)
         {
             if (iGrainTypes.Count() == 1)
             {
                 IIndexWorkflowQueue workflowQ = GetWorkflowQueue(iGrainTypes[0]);
-                return workflowQ.AddToQueue(new IndexWorkflowRecord(thisGrain, updates).AsImmutable());
+                workflowQ.AddToQueue(new IndexWorkflowRecord(thisGrain, updates).AsImmutable()).Ignore();
             }
             else
             {
-                Task[] updateTasks = new Task[iGrainTypes.Count()];
                 int i = 0;
                 foreach (Type iGrainType in iGrainTypes)
                 {
-                    IIndexWorkflowQueue workflowQ = GetWorkflowQueue(iGrainType);
-                    updateTasks[i++] = workflowQ.AddToQueue(new IndexWorkflowRecord(thisGrain, updates).AsImmutable());
+                    GetWorkflowQueue(iGrainType).AddToQueue(new IndexWorkflowRecord(thisGrain, updates).AsImmutable()).Ignore();
                 }
-                return Task.WhenAll(updateTasks);
             }
         }
 
