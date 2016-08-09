@@ -21,6 +21,8 @@ namespace Orleans.Indexing
     //TODO: basically, this class does not even need to be a grain, but it's not possible to call a SystemTarget from a non-grain
     public class AHashIndexPartitionedPerSiloImpl<K, V> : Grain, AHashIndexPartitionedPerSilo<K, V> where V : class, IIndexableGrain
     {
+        private static readonly Logger logger = LogManager.GetLogger(string.Format("AHashIndexPartitionedPerSiloImpl<{0},{1}>", typeof(K).Name, typeof(V).Name), LoggerType.Grain);
+
         private IndexStatus _status;
         public static void InitPerSilo(Silo silo, string indexName, bool isUnique)
         {
@@ -44,11 +46,13 @@ namespace Orleans.Indexing
         /// </summary>
         public Task<bool> DirectApplyIndexUpdateBatch(Immutable<IDictionary<IIndexableGrain, IList<IMemberUpdate>>> iUpdates, bool isUnique, SiloAddress siloAddress = null)
         {
+            //if (logger.IsVerbose) logger.Verbose("Started calling DirectApplyIndexUpdateBatch with the following parameters: isUnique = {0}, siloAddress = {1}, iUpdates = {2}", isUnique, siloAddress, MemberUpdate.UpdatesToString(iUpdates.Value));
             //AHashIndexPartitionedPerSiloBucket bucketInCurrentSilo = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<AHashIndexPartitionedPerSiloBucket>(
             //    GetGrainID(IndexUtils.GetIndexNameFromIndexGrain(this)),
             //    siloAddress
             //);
             //return bucketInCurrentSilo.DirectApplyIndexUpdateBatch(iUpdates, isUnique/*, siloAddress*/);
+            //if (logger.IsVerbose) logger.Verbose("Finished calling DirectApplyIndexUpdateBatch with the following parameters: isUnique = {0}, siloAddress = {1}, iUpdates = {2}", isUnique, siloAddress, MemberUpdate.UpdatesToString(iUpdates.Value));
             throw new NotSupportedException();
         }
 
@@ -119,6 +123,8 @@ namespace Orleans.Indexing
 
         async Task<IOrleansQueryResult<IIndexableGrain>> IndexInterface.Lookup(object key)
         {
+            if (logger.IsVerbose) logger.Verbose("Eager index lookup called for key = {0}", key);
+
             //get all silos
             Dictionary<SiloAddress, SiloStatus> hosts = await SiloUtils.GetHosts(true);
 
@@ -159,6 +165,8 @@ namespace Orleans.Indexing
 
         async Task IndexInterface.Lookup(IOrleansQueryResultStream<IIndexableGrain> result, object key)
         {
+            if (logger.IsVerbose) logger.Verbose("Streamed index lookup called for key = {0}", key);
+
             //get all silos
             Dictionary<SiloAddress, SiloStatus> hosts = await SiloUtils.GetHosts(true);
 

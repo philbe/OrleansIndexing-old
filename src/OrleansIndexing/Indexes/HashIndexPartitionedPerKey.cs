@@ -19,6 +19,8 @@ namespace Orleans.Indexing
         private string _indexName;
         //private bool _isUnique;
 
+        private static readonly Logger logger = LogManager.GetLogger(string.Format("HashIndexPartitionedPerKey<{0},{1}>", typeof(K).Name, typeof(V).Name), LoggerType.Grain);
+
         public HashIndexPartitionedPerKey(string indexName, bool isUniqueIndex)
         {
             _indexName = indexName;
@@ -27,6 +29,8 @@ namespace Orleans.Indexing
 
         public async Task<bool> DirectApplyIndexUpdateBatch(Immutable<IDictionary<IIndexableGrain, IList<IMemberUpdate>>> iUpdates, bool isUnique, SiloAddress siloAddress = null)
         {
+            if(logger.IsVerbose) logger.Verbose("Started calling DirectApplyIndexUpdateBatch with the following parameters: isUnique = {0}, siloAddress = {1}, iUpdates = {2}", isUnique, siloAddress, MemberUpdate.UpdatesToString(iUpdates.Value));
+            
             IDictionary<IIndexableGrain, IList<IMemberUpdate>> updates = iUpdates.Value;
             IDictionary<int, IDictionary<IIndexableGrain, IList<IMemberUpdate>>> bucketUpdates = new Dictionary<int, IDictionary<IIndexableGrain, IList<IMemberUpdate>>>();
             foreach (var kv in updates)
@@ -75,6 +79,8 @@ namespace Orleans.Indexing
                 ++i;
             }
             await Task.WhenAll(updateTasks);
+            if (logger.IsVerbose) logger.Verbose("Finished calling DirectApplyIndexUpdateBatch with the following parameters: isUnique = {0}, siloAddress = {1}, iUpdates = {2}", isUnique, siloAddress, MemberUpdate.UpdatesToString(iUpdates.Value));
+            
             return true;
         }
 
@@ -157,6 +163,7 @@ namespace Orleans.Indexing
 
         public Task Lookup(IOrleansQueryResultStream<V> result, K key)
         {
+            if (logger.IsVerbose) logger.Verbose("Streamed index lookup called for key = {0}", key);
             BucketT targetBucket = RuntimeClient.Current.InternalGrainFactory.GetGrain<BucketT>(
                 IndexUtils.GetIndexGrainID(typeof(V), _indexName) + "_" + key.GetHashCode()
             );
@@ -193,6 +200,7 @@ namespace Orleans.Indexing
 
         public Task<IOrleansQueryResult<V>> Lookup(K key)
         {
+            if (logger.IsVerbose) logger.Verbose("Eager index lookup called for key = {0}", key);
             BucketT targetBucket = RuntimeClient.Current.InternalGrainFactory.GetGrain<BucketT>(
                    IndexUtils.GetIndexGrainID(typeof(V), _indexName) + "_" + key.GetHashCode()
                );

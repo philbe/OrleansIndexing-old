@@ -21,6 +21,7 @@ namespace Orleans.Indexing
     [Reentrant]
     public abstract class HashIndexPartitionedPerKeyBucket<K, V> : Grain<HashIndexBucketState<K,V>>, HashIndexPartitionedPerKeyBucketInterface<K, V> where V : class, IIndexableGrain
     {
+        private static readonly Logger logger = LogManager.GetLogger(string.Format("HashIndexPartitionedPerKeyBucket<{0},{1}>", typeof(K).Name, typeof(V).Name), LoggerType.Grain);
 
         public override Task OnActivateAsync()
         {
@@ -61,6 +62,8 @@ namespace Orleans.Indexing
 
         public async Task<bool> DirectApplyIndexUpdateBatch(Immutable<IDictionary<IIndexableGrain, IList<IMemberUpdate>>> iUpdates, bool isUnique, SiloAddress siloAddress = null)
         {
+            if (logger.IsVerbose) logger.Verbose("Started calling DirectApplyIndexUpdateBatch with the following parameters: isUnique = {0}, siloAddress = {1}, iUpdates = {2}", isUnique, siloAddress, MemberUpdate.UpdatesToString(iUpdates.Value));
+
             IDictionary<IIndexableGrain, IList<IMemberUpdate>> updates = iUpdates.Value;
             Task[] updateTasks = new Task[updates.Count()];
             int i = 0;
@@ -70,6 +73,7 @@ namespace Orleans.Indexing
                 ++i;
             }
             await Task.WhenAll(updateTasks);
+            if (logger.IsVerbose) logger.Verbose("Finished calling DirectApplyIndexUpdateBatch with the following parameters: isUnique = {0}, siloAddress = {1}, iUpdates = {2}", isUnique, siloAddress, MemberUpdate.UpdatesToString(iUpdates.Value));
             return true;
         }
 
@@ -186,6 +190,7 @@ namespace Orleans.Indexing
 
         public async Task Lookup(IOrleansQueryResultStream<V> result, K key)
         {
+            if (logger.IsVerbose) logger.Verbose("Streamed index lookup called for key = {0}", key);
             if (!(State.IndexStatus == IndexStatus.Available))
             {
                 var e = new Exception(string.Format("Index is not still available."));
@@ -257,6 +262,7 @@ namespace Orleans.Indexing
 
         public Task<IOrleansQueryResult<V>> Lookup(K key)
         {
+            if (logger.IsVerbose) logger.Verbose("Eager index lookup called for key = {0}", key);
             if (!(State.IndexStatus == IndexStatus.Available))
             {
                 var e = new Exception(string.Format("Index is not still available."));

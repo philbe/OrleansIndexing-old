@@ -49,6 +49,8 @@ namespace Orleans.Indexing
 
         protected virtual TProperties Properties { get { return defaultCreatePropertiesFromState(); } }
 
+        private static readonly Logger logger = LogManager.GetLogger(string.Format("IndexableGrainNonFaultTolerant<{0},{1}>", typeof(TState).Name, typeof(TProperties).Name), LoggerType.Grain);
+
         private TProperties defaultCreatePropertiesFromState()
         {
             if (typeof(TProperties).IsAssignableFrom(typeof(TState))) return (TProperties)(object)State;
@@ -76,6 +78,7 @@ namespace Orleans.Indexing
         /// </summary>
         public override Task OnActivateAsync()
         {
+            if (logger.IsVerbose) logger.Verbose("Activating indexable grain {0} of type {1} in silo {2}.", Orleans.GrainExtensions.GetGrainId(this), GetIIndexableGrainTypes()[0], RuntimeAddress);
             _workflowQueues = null;
             _iUpdateGens = IndexHandler.GetIndexes(GetIIndexableGrainTypes()[0]);
             InitUniqueIndexCheck();
@@ -95,6 +98,7 @@ namespace Orleans.Indexing
 
         public override Task OnDeactivateAsync()
         {
+            if (logger.IsVerbose) logger.Verbose("Deactivating indexable grain {0} of type {1} in silo {2}.", Orleans.GrainExtensions.GetGrainId(this), GetIIndexableGrainTypes()[0], RuntimeAddress);
             return Task.WhenAll(RemoveFromActiveIndexes(), base.OnDeactivateAsync());
         }
 
