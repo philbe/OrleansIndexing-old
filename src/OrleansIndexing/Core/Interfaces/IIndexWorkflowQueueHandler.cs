@@ -9,6 +9,6 @@ namespace Orleans.Indexing
     [Unordered]
     internal interface IIndexWorkflowQueueHandler : ISystemTarget
     {
-        Task<bool> HandleWorkflowsUntilPunctuation(Immutable<IndexWorkflowRecordNode> immutable);
+        Task HandleWorkflowsUntilPunctuation(Immutable<IndexWorkflowRecordNode> immutable);
     }
 }

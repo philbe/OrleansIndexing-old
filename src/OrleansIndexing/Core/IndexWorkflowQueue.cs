@@ -147,39 +147,35 @@ namespace Orleans.Indexing
                 _workflowRecordsTail.Append(newWorkflowNode, ref _workflowRecordsTail);
             }
 
+            InitiateWorkerThread();
             if (IsFaultTolerant)
             {
-                return Task.WhenAll(PersistState(), InitiateWorkerThread());
+                return PersistState();
             }
-            else
-            {
-                return InitiateWorkerThread();
-            }
+            return TaskDone.Done;
         }
 
-        private async Task InitiateWorkerThread()
+        private void InitiateWorkerThread()
         {
             if(_isHandlerWorkerIdle)
             {
+                _isHandlerWorkerIdle = false;
                 IndexWorkflowRecordNode punctuatedHead = AddPuctuationAt(BATCH_SIZE);
-                _isHandlerWorkerIdle = !await Handler.HandleWorkflowsUntilPunctuation(punctuatedHead.AsImmutable());
+                Handler.HandleWorkflowsUntilPunctuation(punctuatedHead.AsImmutable()).Ignore();
             }
         }
 
         private IndexWorkflowRecordNode AddPuctuationAt(int batchSize)
         {
-            if (_workflowRecordsTail == null) return null;
+            if (_workflowRecordsTail == null) throw new Exception("Adding a punctuation to an empty work-flow queue is not possible.");
 
             var punctutationHead = State.State.WorkflowRecordsHead;
-            if (punctutationHead.IsPunctuation()) return null;
+            if (punctutationHead.IsPunctuation()) throw new Exception("The element at the head of work-flow queue cannot be a punctuation.");
 
             if (batchSize == int.MaxValue)
             {
                 var punctuation = _workflowRecordsTail.AppendPunctuation(ref _workflowRecordsTail);
-                if (punctuation == null)
-                    return null;
-                else
-                    return punctutationHead;
+                return punctutationHead;
             }
             var punctutationLoc = punctutationHead;
 
@@ -221,15 +217,16 @@ namespace Orleans.Indexing
             IndexWorkflowRecordNode tmp = from.Next;
             while (tmp != null && !tmp.IsPunctuation())
             {
-                tmp.Clean();
+                tmp = tmp.Next;
+                tmp.Prev.Clean();
             }
-            if (tmp == null) from.Remove(ref _workflowRecordsTail, ref State.State.WorkflowRecordsHead);
+            if (tmp == null) from.Remove(ref State.State.WorkflowRecordsHead, ref _workflowRecordsTail);
             else
             {
                 from.Next = tmp;
                 tmp.Prev = from;
-                from.Remove(ref _workflowRecordsTail, ref State.State.WorkflowRecordsHead);
-                tmp.Remove(ref _workflowRecordsTail, ref State.State.WorkflowRecordsHead);
+                from.Remove(ref State.State.WorkflowRecordsHead, ref _workflowRecordsTail);
+                tmp.Remove(ref State.State.WorkflowRecordsHead, ref _workflowRecordsTail);
             }
         }
 
@@ -271,7 +268,7 @@ namespace Orleans.Indexing
             RemoveFromQueueUntilPunctuation(State.State.WorkflowRecordsHead);
             if (IsFaultTolerant)
             {
-                var _ = Task.Factory.StartNew(PersistState);
+                PersistState().Ignore();
             }
 
             if (_workflowRecordsTail == null)
@@ -351,7 +348,7 @@ namespace Orleans.Indexing
         {
             //we never append a punctuation to an existing punctuation.
             //It should never be requested
-            if (IsPunctuation()) return null;
+            if (IsPunctuation()) throw new Exception("Adding a punctuation to a work-flow queue that already has a punctuation is not allowed.");
 
             var punctuation = new IndexWorkflowRecordNode();
             Append(punctuation, ref tail);

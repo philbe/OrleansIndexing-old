@@ -39,27 +39,21 @@ namespace Orleans.Indexing
             __workflowQueue = null;
         }
 
-        public Task<bool> HandleWorkflowsUntilPunctuation(Immutable<IndexWorkflowRecordNode> workflowRecords)
+        public async Task HandleWorkflowsUntilPunctuation(Immutable<IndexWorkflowRecordNode> workflowRecords)
         {
-            var _ = Task.Factory.StartNew(async input =>
+            var workflows = workflowRecords.Value;
+            while (workflows != null)
             {
-                var workflows = ((Immutable<IndexWorkflowRecordNode>)input);
-
-                while (workflows.Value != null)
+                Dictionary<IIndexableGrain, HashSet<Guid>> grainsToActiveWorkflows = null;
+                if(IsFaultTolerant)
                 {
-                    Dictionary<IIndexableGrain, HashSet<Guid>> grainsToActiveWorkflows = null;
-                    if(IsFaultTolerant)
-                    {
-                        grainsToActiveWorkflows = await GetActiveWorkflowsListsFromGrains(workflows);
-                    }
-                    var updatesToIndexes = CreateAMapForUpdatesToIndexes();
-                    PopulateUpdatesToIndexes(workflows, updatesToIndexes, grainsToActiveWorkflows);
-                    await Task.WhenAll(PrepareIndexUpdateTasks(updatesToIndexes));
-                    workflows = await WorkflowQueue.GiveMoreWorkflowsOrSetAsIdle();
+                    grainsToActiveWorkflows = await GetActiveWorkflowsListsFromGrains(workflows);
                 }
-            }, workflowRecords);
-
-            return Task.FromResult(true);
+                var updatesToIndexes = CreateAMapForUpdatesToIndexes();
+                PopulateUpdatesToIndexes(workflows, updatesToIndexes, grainsToActiveWorkflows);
+                await Task.WhenAll(PrepareIndexUpdateTasks(updatesToIndexes));
+                workflows = (await WorkflowQueue.GiveMoreWorkflowsOrSetAsIdle()).Value;
+            }
         }
 
         private IList<Task<bool>> PrepareIndexUpdateTasks(Dictionary<string, IDictionary<IIndexableGrain, IList<IMemberUpdate>>> updatesToIndexes)
@@ -78,10 +72,9 @@ namespace Orleans.Indexing
             return updateIndexTasks;
         }
 
-        private void PopulateUpdatesToIndexes(Immutable<IndexWorkflowRecordNode> workflows, Dictionary<string, IDictionary<IIndexableGrain, IList<IMemberUpdate>>> updatesToIndexes, Dictionary<IIndexableGrain, HashSet<Guid>> grainsToActiveWorkflows)
+        private void PopulateUpdatesToIndexes(IndexWorkflowRecordNode currentWorkflow, Dictionary<string, IDictionary<IIndexableGrain, IList<IMemberUpdate>>> updatesToIndexes, Dictionary<IIndexableGrain, HashSet<Guid>> grainsToActiveWorkflows)
         {
             bool faultTolerant = IsFaultTolerant;
-            IndexWorkflowRecordNode currentWorkflow = workflows.Value;
             while (!currentWorkflow.IsPunctuation())
             {
                 IndexWorkflowRecord workflowRec = currentWorkflow.WorkflowRecord;
@@ -129,9 +122,8 @@ namespace Orleans.Indexing
         }
 
         private static HashSet<Guid> EMPTY_HASHSET = new HashSet<Guid>();
-        private async Task<Dictionary<IIndexableGrain, HashSet<Guid>>> GetActiveWorkflowsListsFromGrains(Immutable<IndexWorkflowRecordNode> workflows)
+        private async Task<Dictionary<IIndexableGrain, HashSet<Guid>>> GetActiveWorkflowsListsFromGrains(IndexWorkflowRecordNode currentWorkflow)
         {
-            IndexWorkflowRecordNode currentWorkflow = workflows.Value;
             var result = new Dictionary<IIndexableGrain, HashSet<Guid>>();
             var grains = new List<IIndexableGrain>();
             var activeWorkflowsListTasks = new List<Task<Immutable<List<Guid>>>>();
