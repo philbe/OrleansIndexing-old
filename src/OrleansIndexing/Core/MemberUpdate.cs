@@ -90,5 +90,26 @@ namespace Orleans.Indexing
                 default: return "Unsupported operation";
             }
         }
+
+        internal static string UpdatesToString(IDictionary<IIndexableGrain, IList<IMemberUpdate>> iUpdates)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var grainUpdate in iUpdates)
+            {
+                sb.Append(Environment.NewLine).Append(grainUpdate.Key).Append(" =>");
+                sb.Append(UpdatesToString(grainUpdate.Value));
+            }
+            return sb.ToString();
+        }
+
+        internal static string UpdatesToString(IList<IMemberUpdate> updates)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var updt in updates)
+            {
+                sb.Append(Environment.NewLine).Append("\t").Append(updt);
+            }
+            return sb.ToString();
+        }
     }
 }
