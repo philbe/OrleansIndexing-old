@@ -1,4 +1,5 @@
-﻿using Orleans.Runtime.Configuration;
+﻿using Orleans.Runtime;
+using Orleans.Runtime.Configuration;
 using Orleans.TestingHost;
 
 namespace Tester
@@ -16,6 +17,10 @@ namespace Tester
             options.ClusterConfiguration.AddMemoryStorageProvider("IndexingStorageProvider");
             options.ClusterConfiguration.AddSimpleMessageStreamProvider("IndexingStreamProvider");
             options.ClientConfiguration.AddSimpleMessageStreamProvider("IndexingStreamProvider");
+
+            //options.ClusterConfiguration.Defaults.DefaultTraceLevel = Severity.Verbose;
+            //options.ClientConfiguration.DefaultTraceLevel = Severity.Verbose;
+            //options.ClusterConfiguration.GetOrCreateNodeConfigurationForSilo("Primary").DefaultTraceLevel = Severity.Verbose;
             return new TestCluster(options);
         }
     }
