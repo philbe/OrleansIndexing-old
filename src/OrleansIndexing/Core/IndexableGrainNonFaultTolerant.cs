@@ -81,13 +81,25 @@ namespace Orleans.Indexing
         {
             if (logger.IsVerbose) logger.Verbose("Activating indexable grain {0} of type {1} in silo {2}.", Orleans.GrainExtensions.GetGrainId(this), GetIIndexableGrainTypes()[0], RuntimeAddress);
             _workflowQueues = null;
+            //load indexes
             _iUpdateGens = IndexHandler.GetIndexes(GetIIndexableGrainTypes()[0]);
+
+            //initialized _isThereAnyUniqueIndex field
             InitUniqueIndexCheck();
+
+            //Initialize before images
             _beforeImages = new Dictionary<string, object>().AsImmutable<IDictionary<string, object>>();
             AddMissingBeforeImages();
+
+            //insert the current grain to the active indexes defined on this grain
+            //and at the same time call OnActivateAsync of the base class
             return Task.WhenAll(InsertIntoActiveIndexes(), base.OnActivateAsync());
         }
 
+        /// <summary>
+        /// initialized the flag indicating whether there is any unique index
+        /// defined on this grain
+        /// </summary>
         private void InitUniqueIndexCheck()
         {
             _isThereAnyUniqueIndex = false;
@@ -112,7 +124,10 @@ namespace Orleans.Indexing
             //check if it contains anything to be indexed
             if (_beforeImages.Value.Values.Any(e => e != null))
             {
-                return UpdateIndexes(true, Properties, true, false);
+                return UpdateIndexes(Properties,
+                                     isOnActivate: true,
+                                     onlyUpdateActiveIndexes: true,
+                                     writeStateIfConstraintsAreNotViolated: false);
             }
             return TaskDone.Done;
         }
@@ -125,7 +140,10 @@ namespace Orleans.Indexing
             //check if it has anything indexed
             if (_beforeImages.Value.Values.Any(e => e != null))
             {
-                return UpdateIndexes(false, default(TProperties), true, false);
+                return UpdateIndexes(default(TProperties),
+                                     isOnActivate: false,
+                                     onlyUpdateActiveIndexes: true,
+                                     writeStateIfConstraintsAreNotViolated: false);
             }
             return TaskDone.Done;
         }
@@ -144,14 +162,316 @@ namespace Orleans.Indexing
         /// again. In the case of a positive result from ApplyIndexUpdates,
         /// the list of before-images is replaced by the list of after-images.
         /// </summary>
-        /// <returns>true if any index gets updates, otherwise false</returns>
-        protected Task UpdateIndexes(bool isOnActivate, TProperties props, bool onlyUpdateActiveIndexes, bool writeStateIfConstraintsAreNotViolated)
+        /// <param name="indexableProperties">The properties object containing
+        /// the indexable properties of this grain</param>
+        /// <param name="isOnActivate">Determines whether this method is called
+        /// upon activation of this grain</param>
+        /// <param name="onlyUpdateActiveIndexes">whether only active indexes
+        /// should be updated</param>
+        /// <param name="writeStateIfConstraintsAreNotViolated">whether writing back
+        /// the state to the storage should be done if no constraint is violated</param>
+        protected Task UpdateIndexes(TProperties indexableProperties,
+                                     bool isOnActivate,
+                                     bool onlyUpdateActiveIndexes,
+                                     bool writeStateIfConstraintsAreNotViolated)
         {
-            if (_iUpdateGens.Count == 0) return Task.FromResult(false);
+            //if there are no indexes defined on this grain, then only the grain state
+            //should be written back to the storage (if requested, otherwise nothing
+            //should be done)
+            if (_iUpdateGens.Count == 0)
+            {
+                if (writeStateIfConstraintsAreNotViolated)
+                {
+                    return base.WriteStateAsync();
+                }
+                else
+                {
+                    return TaskDone.Done;
+                }
+            }
 
-            bool updateIndexesEagerly = false;
+            //a flag to determine whether indexes should be updated eagerly
+            //(as opposed to being updated lazily)
+            bool updateIndexesEagerly;
+
+            //a flag to determine whether only unique indexes were updated
             bool onlyUniqueIndexesWereUpdated = _isThereAnyUniqueIndex;
-            bool isAnyUniqueIndexUpdated = false;
+
+            //a flag to determine whether any unique index is updated or not
+            int numberOfUniqueIndexUpdated;
+
+            //gather the dictionary of indexes to their corresponding updates
+            IDictionary<string, IMemberUpdate> updates = 
+                GeneratMemberUpdates(indexableProperties, isOnActivate, onlyUpdateActiveIndexes,
+                out updateIndexesEagerly, ref onlyUniqueIndexesWereUpdated, out numberOfUniqueIndexUpdated);
+
+            //apply the updates to the indexes defined on this grain
+            return ApplyIndexUpdates(updates, updateIndexesEagerly,
+                onlyUniqueIndexesWereUpdated, numberOfUniqueIndexUpdated, writeStateIfConstraintsAreNotViolated);
+        }
+
+        /// <summary>
+        /// Applies a set of updates to the indexes defined on the grain
+        /// </summary>
+        /// <param name="updates">the dictionary of indexes to their corresponding updates</param>
+        /// <param name="updateIndexesEagerly">whether indexes should be
+        /// updated eagerly or lazily</param>
+        /// <param name="onlyUniqueIndexesWereUpdated">a flag to determine whether
+        /// only unique indexes were updated</param>
+        /// <param name="numberOfUniqueIndexUpdated">determine the number of
+        /// updated unique indexes</param>
+        /// <param name="writeStateIfConstraintsAreNotViolated">whether writing back
+        /// the state to the storage should be done if no constraint is violated</param>
+        protected virtual async Task ApplyIndexUpdates(IDictionary<string, IMemberUpdate> updates,
+                                                       bool updateIndexesEagerly,
+                                                       bool onlyUniqueIndexesWereUpdated,
+                                                       int numberOfUniqueIndexUpdated,
+                                                       bool writeStateIfConstraintsAreNotViolated)
+        {
+            //if there is any update to the indexes
+            //we go ahead and updates the indexes
+            if (updates.Count() > 0)
+            {
+                IList<Type> iGrainTypes = GetIIndexableGrainTypes();
+                IIndexableGrain thisGrain = this.AsReference<IIndexableGrain>(GrainFactory);
+
+                bool isThereAtMostOneUniqueIndex = numberOfUniqueIndexUpdated <= 1;
+
+                //if any unique index is defined on this grain and at least one of them is updated
+                if (numberOfUniqueIndexUpdated > 0)
+                {
+                    try
+                    {
+                        //update the unique indexes eagerly
+                        //if there were more than one unique index, the updates to
+                        //the unique indexes should be tentative in order not to
+                        //become visible to readers before making sure that all
+                        //uniqueness constraints are satisfied
+                        await ApplyIndexUpdatesEagerly(iGrainTypes, thisGrain, updates, true, false, !isThereAtMostOneUniqueIndex);
+                    }
+                    catch(UniquenessConstraintViolatedException ex)
+                    {
+                        //if any uniqueness constraint is violated and we have
+                        //more than one unique index defined, then all tentative
+                        //updates should be undone
+                        if (!isThereAtMostOneUniqueIndex)
+                        {
+                            await UndoTentativeChangesToUniqueIndexesEagerly(iGrainTypes, thisGrain, updates);
+                        }
+                        //then, the exception is thrown back to the user code.
+                        throw ex;
+                    }
+                }
+
+                //if indexes are updated eagerly
+                if (updateIndexesEagerly)
+                {
+                    //Case 1: if only unique indexes were updated, then their update
+                    //is already processed before and the only thing remaining is to
+                    //save the grain state if requested
+                    if (onlyUniqueIndexesWereUpdated && writeStateIfConstraintsAreNotViolated)
+                    {
+                        await base.WriteStateAsync();
+                    }
+                    //Case 2: if there were some non-unique indexes updates and
+                    //writing the state back to the storage is requested, then we
+                    //do these two tasks concurrently
+                    else if (writeStateIfConstraintsAreNotViolated)
+                    {
+                        await Task.WhenAll(
+                            base.WriteStateAsync(),
+                            ApplyIndexUpdatesEagerly(iGrainTypes, thisGrain, updates, false, isThereAtMostOneUniqueIndex)
+                        );
+                    }
+                    //Case 3: if there were some non-unique indexes updates, but
+                    //writing the state back to the storage is not requested, then
+                    //the only thing left is updating the remaining non-unique indexes
+                    else
+                    {
+                        await ApplyIndexUpdatesEagerly(iGrainTypes, thisGrain, updates, false, isThereAtMostOneUniqueIndex);
+                    }
+                }
+                //Otherwise, if indexes are updated lazily
+                else
+                {
+                    //update the indexes lazily
+                    ApplyIndexUpdatesLazily(updates, iGrainTypes, thisGrain);
+
+                    //final, the grain state is persisted if requested
+                    if (writeStateIfConstraintsAreNotViolated)
+                    {
+                        await base.WriteStateAsync();
+                    }
+                }
+                //if everything was successful, the before images are updated
+                UpdateBeforeImages(updates);
+            }
+            //otherwise if there is no update to the indexes, we should
+            //write back the state of the grain if requested
+            else if (writeStateIfConstraintsAreNotViolated) 
+            {
+                await base.WriteStateAsync();
+            }
+        }
+
+        private Task UndoTentativeChangesToUniqueIndexesEagerly(IList<Type> iGrainTypes,
+                                                       IIndexableGrain thisGrain,
+                                                       IDictionary<string, IMemberUpdate> updates)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Lazily Applies updates to the indexes defined on this grain
+        /// 
+        /// The lazy update involves adding a work-flow record to the
+        /// corresponding IIndexWorkflowQueue for this grain.
+        /// </summary>
+        /// <param name="updates">the dictionary of updates for each index</param>
+        /// <param name="iGrainTypes">the grain interface type implemented by this grain</param>
+        /// <param name="thisGrain">the grain reference for the current grain</param>
+        private void ApplyIndexUpdatesLazily(IDictionary<string, IMemberUpdate> updates,
+                                             IList<Type> iGrainTypes,
+                                             IIndexableGrain thisGrain)
+        {
+            if (iGrainTypes.Count() == 1)
+            {
+                IIndexWorkflowQueue workflowQ = GetWorkflowQueue(iGrainTypes[0]);
+                workflowQ.AddToQueue(new IndexWorkflowRecord(thisGrain, updates).AsImmutable()).Ignore();
+            }
+            else
+            {
+                foreach (Type iGrainType in iGrainTypes)
+                {
+                    GetWorkflowQueue(iGrainType).AddToQueue(
+                        new IndexWorkflowRecord(thisGrain, updates).AsImmutable()
+                    ).Ignore();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Eagerly Applies updates to the indexes defined on this grain
+        /// </summary>
+        /// <param name="iGrainTypes">the list of grain interface types
+        /// implemented by this grain</param>
+        /// <param name="updatedGrain">the grain reference for the current
+        /// updated grain</param>
+        /// <param name="updates">the dictionary of updates for each index</param>
+        /// <param name="onlyUpdateUniqueIndexes">a flag to determine whether
+        /// only unique indexes should be updated</param>
+        /// <param name="onlyUpdateNonUniqueIndexes">a flag to determine whether
+        /// only non-unique indexes should be updated</param>
+        /// <param name="updateIndexesTentatively">a flag to determine whether
+        /// updates to indexes should be tentatively done. That is, the update
+        /// won't be visible to readers, but prevents writers from overwriting
+        /// them an violating constraints</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private async Task ApplyIndexUpdatesEagerly(IList<Type> iGrainTypes,
+                                                    IIndexableGrain updatedGrain,
+                                                    IDictionary<string, IMemberUpdate> updates,
+                                                    bool onlyUpdateUniqueIndexes,
+                                                    bool onlyUpdateNonUniqueIndexes,
+                                                    bool updateIndexesTentatively = false)
+        {
+            if (iGrainTypes.Count() == 1)
+            {
+                await ApplyIndexUpdatesEagerly(iGrainTypes[0], updatedGrain, updates, onlyUpdateUniqueIndexes, onlyUpdateNonUniqueIndexes, updateIndexesTentatively);
+            }
+            else
+            {
+                Task[] updateTasks = new Task[iGrainTypes.Count()];
+                int i = 0;
+                foreach (Type iGrainType in iGrainTypes)
+                {
+                    updateTasks[i++] = ApplyIndexUpdatesEagerly(iGrainType, updatedGrain, updates, onlyUpdateUniqueIndexes, onlyUpdateNonUniqueIndexes, updateIndexesTentatively);
+                }
+                await Task.WhenAll(updateTasks);
+            }
+        }
+
+        /// <summary>
+        /// Eagerly Applies updates to the indexes defined on this grain for a
+        /// single grain interface type implemented by this grian
+        /// </summary>
+        /// <param name="iGrainType">a single grain interface type
+        /// implemented by this grain</param>
+        /// <param name="updatedGrain">the grain reference for the current
+        /// updated grain</param>
+        /// <param name="updates">the dictionary of updates for each index</param>
+        /// <param name="onlyUpdateUniqueIndexes">a flag to determine whether
+        /// only unique indexes should be updated</param>
+        /// <param name="onlyUpdateNonUniqueIndexes">a flag to determine whether
+        /// only non-unique indexes should be updated</param>
+        /// <param name="updateIndexesTentatively">a flag to determine whether
+        /// updates to indexes should be tentatively done. That is, the update
+        /// won't be visible to readers, but prevents writers from overwriting
+        /// them an violating constraints</param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private Task ApplyIndexUpdatesEagerly(Type iGrainType,
+                                              IIndexableGrain updatedGrain,
+                                              IDictionary<string, IMemberUpdate> updates,
+                                              bool onlyUpdateUniqueIndexes,
+                                              bool onlyUpdateNonUniqueIndexes,
+                                              bool updateIndexesTentatively)
+        {
+            IList<Task<bool>> updateIndexTasks = new List<Task<bool>>();
+            foreach (KeyValuePair<string, IMemberUpdate> updt in updates)
+            {
+                //if the update is not a no-operation
+                if (updt.Value.GetOperationType() != IndexOperationType.None)
+                {
+                    var idxInfo = _iUpdateGens[updt.Key];
+                    var isUniqueIndex = ((IndexMetaData)idxInfo.Item2).IsUniqueIndex();
+                    
+                    //the actual update happens if either the corresponding index is not a unique index
+                    //and the caller asks for only updating non-unique indexes, or the corresponding
+                    //index is a unique index and the caller asks for only updating unqiue indexes.
+                    if ((onlyUpdateNonUniqueIndexes && !isUniqueIndex) || (onlyUpdateUniqueIndexes && isUniqueIndex))
+                    {
+                        IMemberUpdate updateToIndex = updt.Value;
+                        //if the caller asks for the update to be tentative, then
+                        //it will be wrapped inside a MemberUpdateTentative
+                        if (updateIndexesTentatively)
+                        {
+                            updateToIndex = new MemberUpdateTentative(updateToIndex);
+                        }
+
+                        //the update task is added to the list of update tasks
+                        updateIndexTasks.Add(((IndexInterface)idxInfo.Item1).ApplyIndexUpdate(updatedGrain, updateToIndex.AsImmutable(), isUniqueIndex, RuntimeAddress));
+                    }
+                }
+            }
+
+            //at the end, because the index update should be eager, we wait for
+            //all index update tasks to finish
+            return Task.WhenAll(updateIndexTasks);
+        }
+
+        /// <summary>
+        /// Generates the member updates based on the index update generator
+        /// configured for the grain.
+        /// </summary>
+        /// <param name="indexableProperties">The properties object containing
+        /// the indexable properties of this grain</param>
+        /// <param name="isOnActivate">Determines whether this method is called
+        /// upon activation of this grain</param>
+        /// <param name="onlyUpdateActiveIndexes">whether only active indexes
+        /// should be updated</param>
+        /// <param name="updateIndexesEagerly">a flag to determine whether indexes
+        /// should be updated eagerly (as opposed to being updated lazily)</param>
+        /// <param name="onlyUniqueIndexesWereUpdated">a flag to determine whether
+        /// only unique indexes were updated</param>
+        /// <param name="numberOfUniqueIndexUpdated">determine the number of
+        /// updated unique indexes</param>
+        /// <returns>a dictionary of index name mapped to the update information</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private IDictionary<string, IMemberUpdate> GeneratMemberUpdates(TProperties indexableProperties, bool isOnActivate, bool onlyUpdateActiveIndexes, out bool updateIndexesEagerly, ref bool onlyUniqueIndexesWereUpdated, out int numberOfUniqueIndexUpdated)
+        {
+            updateIndexesEagerly = false;
+            numberOfUniqueIndexUpdated = 0;
+
             IDictionary<string, IMemberUpdate> updates = new Dictionary<string, IMemberUpdate>();
             IDictionary<string, Tuple<object, object, object>> iUpdateGens = _iUpdateGens;
             {
@@ -162,117 +482,27 @@ namespace Orleans.Indexing
                     if (!onlyUpdateActiveIndexes || !(idxInfo.Item1 is InitializedIndex))
                     {
                         IMemberUpdate mu = isOnActivate ? ((IIndexUpdateGenerator)idxInfo.Item3).CreateMemberUpdate(befImgs[kvp.Key])
-                                                        : ((IIndexUpdateGenerator)idxInfo.Item3).CreateMemberUpdate(props, befImgs[kvp.Key]);
+                                                        : ((IIndexUpdateGenerator)idxInfo.Item3).CreateMemberUpdate(indexableProperties, befImgs[kvp.Key]);
                         if (mu.GetOperationType() != IndexOperationType.None)
                         {
                             updates.Add(kvp.Key, mu);
                             IndexMetaData indexMetaData = (IndexMetaData)kvp.Value.Item2;
+
+                            //this flag should be the same for all indexes defined
+                            //on a grain and that's why we do not accumulate the
+                            //changes from different indexes
                             updateIndexesEagerly = indexMetaData.IsEager();
+
+                            //update unique index related output flags and counters
                             bool isUniqueIndex = indexMetaData.IsUniqueIndex();
                             onlyUniqueIndexesWereUpdated = onlyUniqueIndexesWereUpdated && isUniqueIndex;
-                            isAnyUniqueIndexUpdated = isAnyUniqueIndexUpdated || isUniqueIndex;
+                            if(isUniqueIndex) ++numberOfUniqueIndexUpdated;
                         }
                     }
                 }
             }
 
-            return ApplyIndexUpdates(updates, updateIndexesEagerly, onlyUniqueIndexesWereUpdated, isAnyUniqueIndexUpdated, writeStateIfConstraintsAreNotViolated);
-        }
-
-        /// <summary>
-        /// Applies a set of updates to the indexes defined on the grain
-        /// </summary>
-        /// <param name="updateIndexesEagerly">whether indexes should be
-        /// updated eagerly or lazily</param>
-        /// <param name="updates"></param>
-        /// <returns>true if any index is subject to updates, otherwise false.
-        /// This is regardless of whether the update actually happeneded or not,
-        /// due to a violation in uniqueness constraint.</returns>
-        protected virtual async Task ApplyIndexUpdates(IDictionary<string, IMemberUpdate> updates, bool updateIndexesEagerly, bool onlyUniqueIndexesWereUpdated, bool isAnyUniqueIndexUpdated, bool writeStateIfConstraintsAreNotViolated)
-        {
-            if (updates.Count() > 0)
-            {
-                IList<Type> iGrainTypes = GetIIndexableGrainTypes();
-                IIndexableGrain thisGrain = this.AsReference<IIndexableGrain>(GrainFactory);
-                if (updateIndexesEagerly || onlyUniqueIndexesWereUpdated)
-                {
-                    await ApplyIndexUpdatesEagerly(iGrainTypes, thisGrain, updates, RuntimeAddress, onlyUniqueIndexesWereUpdated);
-                }
-                else
-                {
-                    if (isAnyUniqueIndexUpdated)
-                    {
-                        await ApplyIndexUpdatesEagerly(iGrainTypes, thisGrain, updates, RuntimeAddress, true);
-                    }
-
-                    if (writeStateIfConstraintsAreNotViolated)
-                    {
-                        ApplyNonUniqueIndexUpdatesLazily(updates, iGrainTypes, thisGrain);
-                        await base.WriteStateAsync();
-                    }
-                    else
-                    {
-                        ApplyNonUniqueIndexUpdatesLazily(updates, iGrainTypes, thisGrain);
-                    }
-                }
-                UpdateBeforeImages(updates);
-            }
-        }
-        
-        private void ApplyNonUniqueIndexUpdatesLazily(IDictionary<string, IMemberUpdate> updates, IList<Type> iGrainTypes, IIndexableGrain thisGrain)
-        {
-            if (iGrainTypes.Count() == 1)
-            {
-                IIndexWorkflowQueue workflowQ = GetWorkflowQueue(iGrainTypes[0]);
-                workflowQ.AddToQueue(new IndexWorkflowRecord(thisGrain, updates).AsImmutable()).Ignore();
-            }
-            else
-            {
-                int i = 0;
-                foreach (Type iGrainType in iGrainTypes)
-                {
-                    GetWorkflowQueue(iGrainType).AddToQueue(new IndexWorkflowRecord(thisGrain, updates).AsImmutable()).Ignore();
-                }
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private async Task ApplyIndexUpdatesEagerly(IList<Type> iGrainTypes, IIndexableGrain updatedGrain, IDictionary<string, IMemberUpdate> updates, SiloAddress siloAddress, bool onlyUpdateUniqueIndexes)
-        {
-            if (iGrainTypes.Count() == 1)
-            {
-                await ApplyIndexUpdatesEagerly(iGrainTypes[0], updatedGrain, updates, siloAddress, onlyUpdateUniqueIndexes);
-            }
-            else
-            {
-                Task[] updateTasks = new Task[iGrainTypes.Count()];
-                int i = 0;
-                foreach (Type iGrainType in iGrainTypes)
-                {
-                    updateTasks[i++] = ApplyIndexUpdatesEagerly(iGrainType, updatedGrain, updates, siloAddress, onlyUpdateUniqueIndexes);
-                }
-                await Task.WhenAll(updateTasks);
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Task ApplyIndexUpdatesEagerly(Type iGrainType, IIndexableGrain updatedGrain, IDictionary<string, IMemberUpdate> updates, SiloAddress siloAddress, bool onlyUpdateUniqueIndexes)
-        {
-            IList<Task<bool>> updateIndexTasks = new List<Task<bool>>();
-            foreach (KeyValuePair<string, IMemberUpdate> updt in updates)
-            {
-                if (updt.Value.GetOperationType() != IndexOperationType.None)
-                {
-                    var idxInfo = _iUpdateGens[updt.Key];
-                    var isUniqueIndex = ((IndexMetaData)idxInfo.Item2).IsUniqueIndex();
-                    if (!onlyUpdateUniqueIndexes || isUniqueIndex)
-                    {
-                        updateIndexTasks.Add(((IndexInterface)idxInfo.Item1).ApplyIndexUpdate(updatedGrain, updt.Value.AsImmutable(), isUniqueIndex, siloAddress));
-                    }
-                }
-            }
-
-            return Task.WhenAll(updateIndexTasks);
+            return updates;
         }
 
         /// <summary>
@@ -373,7 +603,7 @@ namespace Orleans.Indexing
 
             // during WriteStateAsync for a stateful indexable grain,
             // the indexes get updated concurrently while base.WriteStateAsync is done.
-            await UpdateIndexes(false, Properties, false, true);
+            await UpdateIndexes(Properties, isOnActivate: false, onlyUpdateActiveIndexes: false, writeStateIfConstraintsAreNotViolated: true);
         }
 
         Task<object> IIndexableGrain.ExtractIndexImage(IIndexUpdateGenerator iUpdateGen)
@@ -427,7 +657,7 @@ namespace Orleans.Indexing
             // The only thing that should be done during
             // WriteStateAsync for a stateless indexable grain
             // is to update its indexes
-            return UpdateIndexes(false, Properties, false, false);
+            return UpdateIndexes(Properties, isOnActivate: false, onlyUpdateActiveIndexes: false, writeStateIfConstraintsAreNotViolated: false);
         }
 
         protected override Task ReadStateAsync()
