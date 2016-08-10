@@ -73,6 +73,7 @@ namespace Orleans.Indexing
                 ++i;
             }
             await Task.WhenAll(updateTasks);
+            await PersistIndex();
             if (logger.IsVerbose) logger.Verbose("Finished calling DirectApplyIndexUpdateBatch with the following parameters: isUnique = {0}, siloAddress = {1}, iUpdates = {2}", isUnique, siloAddress, MemberUpdate.UpdatesToString(iUpdates.Value));
             return true;
         }

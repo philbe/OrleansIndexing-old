@@ -76,22 +76,15 @@ namespace Orleans.Indexing
             int i = 0;
             foreach (var kv in updates)
             {
-                updateTasks[i] = DirectApplyIndexUpdates(kv.Key, kv.Value, isUnique, siloAddress);
+                updateTasks[i] = DirectApplyIndexUpdatesNonPersistent(kv.Key, kv.Value, isUnique, siloAddress);
                 ++i;
             }
             await Task.WhenAll(updateTasks);
+            await PersistIndex();
 
             if (logger.IsVerbose) logger.Verbose("Finished calling DirectApplyIndexUpdateBatch with the following parameters: isUnique = {0}, siloAddress = {1}, iUpdates = {2}", isUnique, siloAddress, MemberUpdate.UpdatesToString(iUpdates.Value));
 
             return true;
-        }
-        
-        private async Task DirectApplyIndexUpdates(IIndexableGrain g, IList<IMemberUpdate> updates, bool isUniqueIndex, SiloAddress siloAddress)
-        {
-            foreach (IMemberUpdate updt in updates)
-            {
-                await DirectApplyIndexUpdateNonPersistent(g, updt, isUniqueIndex, siloAddress);
-            }
         }
 
         /// <summary>
