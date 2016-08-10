@@ -83,11 +83,11 @@ namespace Orleans.Indexing
         {
             switch (update.GetOperationType())
             {
-                case IndexOperationType.None: return "No operation";
-                case IndexOperationType.Insert: return "Inserted " + update.GetAfterImage();
-                case IndexOperationType.Delete: return "Deleted " + update.GetBeforeImage();
-                case IndexOperationType.Update: return "Updated " + update.GetBeforeImage() + " into " + update.GetAfterImage();
-                default: return "Unsupported operation";
+                case IndexOperationType.None: return update.GetType().Name + ": No operation";
+                case IndexOperationType.Insert: return update.GetType().Name + ": Inserted " + update.GetAfterImage();
+                case IndexOperationType.Delete: return update.GetType().Name + ": Deleted " + update.GetBeforeImage();
+                case IndexOperationType.Update: return update.GetType().Name + ": Updated " + update.GetBeforeImage() + " into " + update.GetAfterImage();
+                default: return update.GetType().Name + ": Unsupported operation";
             }
         }
 
