@@ -76,7 +76,7 @@ namespace Orleans.Indexing
                         {
                             if (isUniqueIndex && aftEntry.Values.Count > 0)
                             {
-                                throw new Exception(string.Format("The uniqueness property of index is violated after an update operation for before-image = {0}, after-image = {1} and grain = {2}", befImg, aftImg, updatedGrain.GetPrimaryKey()));
+                                throw new UniquenessConstraintViolatedException(string.Format("The uniqueness property of index is violated after an update operation for before-image = {0}, after-image = {1} and grain = {2}", befImg, aftImg, updatedGrain.GetPrimaryKey()));
                             }
                             befEntry.Values.Remove(updatedGrain);
                             aftEntry.Values.Add(updatedGrain);
@@ -98,7 +98,7 @@ namespace Orleans.Indexing
                         {
                             if (isUniqueIndex && aftEntry.Values.Count > 0)
                             {
-                                throw new Exception(string.Format("The uniqueness property of index is violated after an update operation for (not found before-image = {0}), after-image = {1} and grain = {2}", befImg, aftImg, updatedGrain.GetPrimaryKey()));
+                                throw new UniquenessConstraintViolatedException(string.Format("The uniqueness property of index is violated after an update operation for (not found before-image = {0}), after-image = {1} and grain = {2}", befImg, aftImg, updatedGrain.GetPrimaryKey()));
                             }
                             aftEntry.Values.Add(updatedGrain);
                         }
@@ -120,7 +120,7 @@ namespace Orleans.Indexing
                     {
                         if (isUniqueIndex && aftEntry.Values.Count > 0)
                         {
-                            throw new Exception(string.Format("The uniqueness property of index is violated after an insert operation for after-image = {1} and grain = {2}", aftImg, updatedGrain.GetPrimaryKey()));
+                            throw new UniquenessConstraintViolatedException(string.Format("The uniqueness property of index is violated after an insert operation for after-image = {1} and grain = {2}", aftImg, updatedGrain.GetPrimaryKey()));
                         }
                         aftEntry.Values.Add(updatedGrain);
                     }
