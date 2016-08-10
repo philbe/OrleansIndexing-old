@@ -20,7 +20,7 @@ namespace Orleans.Indexing
     ///     2- the grain class is responsible for calling UpdateIndexes
     ///        whenever one or more indexes need to be updated
     /// </summary>
-    public abstract class IndexableGrainNonFaultTolerant<TState, TProperties> : Grain<TState>, IIndexableGrain<TProperties> where TProperties: new()
+    public abstract class IndexableGrainNonFaultTolerant<TState, TProperties> : Grain<TState>, IIndexableGrain<TProperties> where TProperties : new()
     {
         /// <summary>
         /// an immutable cached version of IIndexUpdateGenerator instances
@@ -201,7 +201,7 @@ namespace Orleans.Indexing
             int numberOfUniqueIndexUpdated;
 
             //gather the dictionary of indexes to their corresponding updates
-            IDictionary<string, IMemberUpdate> updates = 
+            IDictionary<string, IMemberUpdate> updates =
                 GeneratMemberUpdates(indexableProperties, isOnActivate, onlyUpdateActiveIndexes,
                 out updateIndexesEagerly, ref onlyUniqueIndexesWereUpdated, out numberOfUniqueIndexUpdated);
 
@@ -249,7 +249,7 @@ namespace Orleans.Indexing
                         //uniqueness constraints are satisfied
                         await ApplyIndexUpdatesEagerly(iGrainTypes, thisGrain, updates, true, false, !isThereAtMostOneUniqueIndex);
                     }
-                    catch(UniquenessConstraintViolatedException ex)
+                    catch (UniquenessConstraintViolatedException ex)
                     {
                         //if any uniqueness constraint is violated and we have
                         //more than one unique index defined, then all tentative
@@ -308,7 +308,7 @@ namespace Orleans.Indexing
             }
             //otherwise if there is no update to the indexes, we should
             //write back the state of the grain if requested
-            else if (writeStateIfConstraintsAreNotViolated) 
+            else if (writeStateIfConstraintsAreNotViolated)
             {
                 await base.WriteStateAsync();
             }
@@ -496,7 +496,7 @@ namespace Orleans.Indexing
                             //update unique index related output flags and counters
                             bool isUniqueIndex = indexMetaData.IsUniqueIndex();
                             onlyUniqueIndexesWereUpdated = onlyUniqueIndexesWereUpdated && isUniqueIndex;
-                            if(isUniqueIndex) ++numberOfUniqueIndexUpdated;
+                            if (isUniqueIndex) ++numberOfUniqueIndexUpdated;
                         }
                     }
                 }
@@ -586,7 +586,7 @@ namespace Orleans.Indexing
                 {
                     befImgs[indexID] = ((IIndexUpdateGenerator)iUpdateGens[indexID].Item3).ExtractIndexImage(Properties);
                 }
-                else if(opType == IndexOperationType.Delete)
+                else if (opType == IndexOperationType.Delete)
                 {
                     befImgs[indexID] = null;
                 }
@@ -624,7 +624,7 @@ namespace Orleans.Indexing
         /// <returns>the work-flow queue corresponding to the iGrainType</returns>
         internal IIndexWorkflowQueue GetWorkflowQueue(Type iGrainType)
         {
-            if(_workflowQueues == null)
+            if (_workflowQueues == null)
             {
                 _workflowQueues = new Dictionary<Type, IIndexWorkflowQueue>();
             }
