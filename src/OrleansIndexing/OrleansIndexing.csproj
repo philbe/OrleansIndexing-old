@@ -71,8 +71,8 @@
     <Compile Include="Core\IndexOperationType.cs" />
     <Compile Include="Core\IndexBuilder.cs" />
     <Compile Include="Core\Interfaces\IIndexWorkflowQueueHandler.cs" />
-    <Compile Include="Core\MemberUpdateReverseTentative.cs" />
-    <Compile Include="Core\MemberUpdateOverridenOperation.cs" />
+    <Compile Include="Core\MemberUpdateImpl\MemberUpdateReverseTentative.cs" />
+    <Compile Include="Core\MemberUpdateImpl\MemberUpdateOverridenOperation.cs" />
     <Compile Include="Core\SiloUtils.cs" />
     <Compile Include="Core\IndexUtils.cs" />
     <Compile Include="Core\IndexFactory.cs" />
@@ -83,8 +83,9 @@
     <Compile Include="Core\Interfaces\IIndexableGrain.cs" />
     <Compile Include="Core\Interfaces\IIndexUpdateGenerator.cs" />
     <Compile Include="Core\Interfaces\IMemberUpdate.cs" />
-    <Compile Include="Core\MemberUpdate.cs" />
+    <Compile Include="Core\MemberUpdateImpl\MemberUpdate.cs" />
     <Compile Include="Core\IndexWorkflowRecord.cs" />
+    <Compile Include="Exceptions\UniquenessConstraintViolatedException.cs" />
     <Compile Include="Extensions\IndexExtensions.cs" />
     <Compile Include="Extensions\GrainExtensions.cs" />
     <Compile Include="Extensions\GrainFactoryExtensions.cs" />
