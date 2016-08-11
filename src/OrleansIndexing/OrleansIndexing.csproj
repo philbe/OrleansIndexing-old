@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Annotations\IndexAttribute.cs" />
+    <Compile Include="Core\IndexWorkflowQueueHandler.cs" />
     <Compile Include="Core\Interfaces\IIndexableGrainFaultTolerant.cs" />
     <Compile Include="Core\Interfaces\IIndexWorkflowQueue.cs" />
     <Compile Include="Core\IndexableGrain.cs" />
@@ -69,6 +70,7 @@
     <Compile Include="Core\IndexWorkflowQueue.cs" />
     <Compile Include="Core\IndexOperationType.cs" />
     <Compile Include="Core\IndexBuilder.cs" />
+    <Compile Include="Core\Interfaces\IIndexWorkflowQueueHandler.cs" />
     <Compile Include="Core\MemberUpdateImpl\MemberUpdateTentative.cs" />
     <Compile Include="Core\MemberUpdateImpl\MemberUpdateReverseTentative.cs" />
     <Compile Include="Core\MemberUpdateImpl\MemberUpdateOverridenOperation.cs" />
