@@ -52,9 +52,10 @@ namespace Orleans.Indexing
         private bool _isDefinedAsFaultTolerantGrain;
         private sbyte __hasAnyIIndex;
         private bool HasAnyIIndex { get { return __hasAnyIIndex == 0 ? InitHasAnyIIndex() : __hasAnyIIndex > 0; } }
-        internal bool IsFaultTolerant { get { return _isDefinedAsFaultTolerantGrain && HasAnyIIndex; } }
-        
-        private IIndexWorkflowQueueHandler Handler { get; set; }
+        private bool IsFaultTolerant { get { return _isDefinedAsFaultTolerantGrain && HasAnyIIndex; } }
+
+        private IIndexWorkflowQueueHandler __handler;
+        private IIndexWorkflowQueueHandler Handler { get { return __handler == null ? InitWorkflowQueueHandler() : __handler; } }
 
         private bool _isHandlerWorkerIdle;
 
@@ -91,7 +92,7 @@ namespace Orleans.Indexing
 
             _workflowRecordsTail = null;
             __storageProvider = null;
-            Handler = new IndexWorkflowQueueHandler(grainInterfaceType, this, isDefinedAsFaultTolerantGrain, silo);
+            __handler = null;
             _isHandlerWorkerIdle = true;
 
             _isDefinedAsFaultTolerantGrain = isDefinedAsFaultTolerantGrain;
@@ -127,6 +128,11 @@ namespace Orleans.Indexing
             );
         }
 
+        private IIndexWorkflowQueueHandler InitWorkflowQueueHandler()
+        {
+            return __handler = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IIndexWorkflowQueueHandler>(IndexWorkflowQueueHandler.CreateIndexWorkflowQueueHandlerGrainId(_iGrainType, _queueSeqNum), Silo);
+        }
+
         public Task AddToQueue(Immutable<IndexWorkflowRecord> workflow)
         {
             IndexWorkflowRecord newWorkflow = workflow.Value;
@@ -155,7 +161,7 @@ namespace Orleans.Indexing
             {
                 _isHandlerWorkerIdle = false;
                 IndexWorkflowRecordNode punctuatedHead = AddPuctuationAt(BATCH_SIZE);
-                Handler.HandleWorkflowsUntilPunctuation(punctuatedHead).Ignore();
+                Handler.HandleWorkflowsUntilPunctuation(punctuatedHead.AsImmutable()).Ignore();
             }
         }
 
@@ -257,7 +263,7 @@ namespace Orleans.Indexing
             }
         }
 
-        public Task<IndexWorkflowRecordNode> GiveMoreWorkflowsOrSetAsIdle()
+        public Task<Immutable<IndexWorkflowRecordNode>> GiveMoreWorkflowsOrSetAsIdle()
         {
             RemoveFromQueueUntilPunctuation(State.State.WorkflowRecordsHead);
             if (IsFaultTolerant)
@@ -268,12 +274,12 @@ namespace Orleans.Indexing
             if (_workflowRecordsTail == null)
             {
                 _isHandlerWorkerIdle = true;
-                return Task.FromResult<IndexWorkflowRecordNode>(null);
+                return Task.FromResult(new Immutable<IndexWorkflowRecordNode>(null));
             }
             else
             {
                 _isHandlerWorkerIdle = false;
-                return Task.FromResult(AddPuctuationAt(BATCH_SIZE));
+                return Task.FromResult(AddPuctuationAt(BATCH_SIZE).AsImmutable());
             }
         }
         private bool InitHasAnyIIndex()
