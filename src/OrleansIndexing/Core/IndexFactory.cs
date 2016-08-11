@@ -210,13 +210,6 @@ namespace Orleans.Indexing
                     silo.SiloAddress,
                     typeof(IIndexableGrainFaultTolerant).IsAssignableFrom(grainImplType)
                 ));
-
-                silo.RegisterSystemTarget(new IndexWorkflowQueueHandler(
-                    iGrainType,
-                    i,
-                    silo.SiloAddress,
-                    typeof(IIndexableGrainFaultTolerant).IsAssignableFrom(grainImplType)
-                ));
             }
         }
 
