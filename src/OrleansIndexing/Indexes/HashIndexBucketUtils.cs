@@ -120,7 +120,7 @@ namespace Orleans.Indexing
                     {
                         if (isUniqueIndex && aftEntry.Values.Count > 0)
                         {
-                            throw new UniquenessConstraintViolatedException(string.Format("The uniqueness property of index is violated after an insert operation for after-image = {1} and grain = {2}", aftImg, updatedGrain.GetPrimaryKey()));
+                            throw new UniquenessConstraintViolatedException(string.Format("The uniqueness property of index is violated after an insert operation for after-image = {0} and grain = {1}", aftImg, updatedGrain.GetPrimaryKey()));
                         }
                         aftEntry.Values.Add(updatedGrain);
                     }

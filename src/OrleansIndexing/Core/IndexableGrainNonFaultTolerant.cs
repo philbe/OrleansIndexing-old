@@ -392,7 +392,7 @@ namespace Orleans.Indexing
 
         /// <summary>
         /// Eagerly Applies updates to the indexes defined on this grain for a
-        /// single grain interface type implemented by this grian
+        /// single grain interface type implemented by this grain
         /// </summary>
         /// <param name="iGrainType">a single grain interface type
         /// implemented by this grain</param>
