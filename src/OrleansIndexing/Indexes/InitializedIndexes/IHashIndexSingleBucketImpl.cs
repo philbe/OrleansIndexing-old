@@ -17,7 +17,7 @@ namespace Orleans.Indexing
     /// <typeparam name="V">type of grain that is being indexed</typeparam>
     [StorageProvider(ProviderName = Constants.INDEXING_STORAGE_PROVIDER_NAME)]
     [Reentrant]
-    public class IHashIndexSingleBucketImpl<K, V> : HashIndexSingleBucket<K, V>, IHashIndexSingleBucketNonIncremental<K, V> where V : class, IIndexableGrain
+    public class IHashIndexSingleBucketImpl<K, V> : HashIndexSingleBucket<K, V>, IHashIndexSingleBucket<K, V> where V : class, IIndexableGrain
     {
     }
 }
