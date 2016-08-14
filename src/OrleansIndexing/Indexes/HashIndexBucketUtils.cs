@@ -58,6 +58,7 @@ namespace Orleans.Indexing
             befImg = default(K);
             befEntry = null;
 
+            bool isTentativeUpdate = isUniqueIndex && (update is MemberUpdateTentative);
             IndexOperationType opType = update.GetOperationType();
             HashIndexSingleBucketEntry<V> aftEntry;
             if (opType == IndexOperationType.Update)
@@ -70,7 +71,15 @@ namespace Orleans.Indexing
                     {
                         if (aftEntry.Values.Contains(updatedGrain))
                         {
-                            befEntry.Values.Remove(updatedGrain);
+                            if (isTentativeUpdate)
+                            {
+                                aftEntry.setTentativeInsert();
+                            }
+                            else
+                            {
+                                aftEntry.clearTentativeFlag();
+                                befEntry.Remove(updatedGrain, isTentativeUpdate);
+                            }
                         }
                         else
                         {
@@ -78,15 +87,15 @@ namespace Orleans.Indexing
                             {
                                 throw new UniquenessConstraintViolatedException(string.Format("The uniqueness property of index is violated after an update operation for before-image = {0}, after-image = {1} and grain = {2}", befImg, aftImg, updatedGrain.GetPrimaryKey()));
                             }
-                            befEntry.Values.Remove(updatedGrain);
-                            aftEntry.Values.Add(updatedGrain);
+                            befEntry.Remove(updatedGrain, isTentativeUpdate);
+                            aftEntry.Add(updatedGrain, isTentativeUpdate);
                         }
                     }
                     else
                     {
                         aftEntry = new HashIndexSingleBucketEntry<V>();
-                        befEntry.Values.Remove(updatedGrain);
-                        aftEntry.Values.Add(updatedGrain);
+                        befEntry.Remove(updatedGrain, isTentativeUpdate);
+                        aftEntry.Add(updatedGrain, isTentativeUpdate);
                         State.IndexMap.Add(aftImg, aftEntry);
                     }
                 }
@@ -100,13 +109,21 @@ namespace Orleans.Indexing
                             {
                                 throw new UniquenessConstraintViolatedException(string.Format("The uniqueness property of index is violated after an update operation for (not found before-image = {0}), after-image = {1} and grain = {2}", befImg, aftImg, updatedGrain.GetPrimaryKey()));
                             }
-                            aftEntry.Values.Add(updatedGrain);
+                            aftEntry.Add(updatedGrain, isTentativeUpdate);
+                        }
+                        else if (isTentativeUpdate)
+                        {
+                            aftEntry.setTentativeInsert();
+                        }
+                        else
+                        {
+                            aftEntry.clearTentativeFlag();
                         }
                     }
                     else
                     {
                         aftEntry = new HashIndexSingleBucketEntry<V>();
-                        aftEntry.Values.Add(updatedGrain);
+                        aftEntry.Add(updatedGrain, isTentativeUpdate);
                         State.IndexMap.Add(aftImg, aftEntry);
                     }
                 }
@@ -122,13 +139,21 @@ namespace Orleans.Indexing
                         {
                             throw new UniquenessConstraintViolatedException(string.Format("The uniqueness property of index is violated after an insert operation for after-image = {0} and grain = {1}", aftImg, updatedGrain.GetPrimaryKey()));
                         }
-                        aftEntry.Values.Add(updatedGrain);
+                        aftEntry.Add(updatedGrain, isTentativeUpdate);
+                    }
+                    else if (isTentativeUpdate)
+                    {
+                        aftEntry.setTentativeInsert();
+                    }
+                    else
+                    {
+                        aftEntry.clearTentativeFlag();
                     }
                 }
                 else
                 {
                     aftEntry = new HashIndexSingleBucketEntry<V>();
-                    aftEntry.Values.Add(updatedGrain);
+                    aftEntry.Add(updatedGrain, isTentativeUpdate);
                     State.IndexMap.Add(aftImg, aftEntry);
                 }
             }
@@ -138,7 +163,7 @@ namespace Orleans.Indexing
 
                 if (State.IndexMap.TryGetValue(befImg, out befEntry) && befEntry.Values.Contains(updatedGrain))
                 {
-                    befEntry.Values.Remove(updatedGrain);
+                    befEntry.Remove(updatedGrain, isTentativeUpdate);
                     if (State.IndexStatus != IndexStatus.Available)
                     {
                         fixIndexUnavailableOnDelete = true;

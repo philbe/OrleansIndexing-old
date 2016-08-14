@@ -106,7 +106,7 @@ namespace Orleans.Indexing
                 throw e;
             }
             HashIndexSingleBucketEntry<V> entry;
-            if (State.IndexMap.TryGetValue(key, out entry))
+            if (State.IndexMap.TryGetValue(key, out entry) && !entry.isTentative())
             {
                 await result.OnNextBatchAsync(entry.Values);
                 await result.OnCompletedAsync();
@@ -133,7 +133,7 @@ namespace Orleans.Indexing
                 throw e;
             }
             HashIndexSingleBucketEntry<V> entry;
-            if (State.IndexMap.TryGetValue(key, out entry))
+            if (State.IndexMap.TryGetValue(key, out entry) && !entry.isTentative())
             {
                 return Task.FromResult((IOrleansQueryResult<V>)new OrleansQueryResult<V>(entry.Values));
             }
@@ -152,7 +152,7 @@ namespace Orleans.Indexing
                 throw e;
             }
             HashIndexSingleBucketEntry<V> entry;
-            if (State.IndexMap.TryGetValue(key, out entry))
+            if (State.IndexMap.TryGetValue(key, out entry) && !entry.isTentative())
             {
                 if (entry.Values.Count() == 1)
                 {

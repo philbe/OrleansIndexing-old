@@ -48,5 +48,66 @@ namespace Orleans.Indexing
         /// on the hash-index
         /// </summary>
         public HashSet<T> Values = new HashSet<T>();
+
+        public const byte TENTATIVE_TYPE_NONE = 0;
+        public const byte TENTATIVE_TYPE_DELETE = 1;
+        public const byte TENTATIVE_TYPE_INSERT = 2;
+        public byte tentativeOperationType = TENTATIVE_TYPE_NONE;
+
+        public void Remove(T item, bool isTentative)
+        {
+            if (isTentative)
+            {
+                setTentativeDelete();
+            }
+            else
+            {
+                clearTentativeFlag();
+                Values.Remove(item);
+            }
+        }
+
+        public void Add(T item, bool isTentative)
+        {
+            Values.Add(item);
+            if (isTentative)
+            {
+                setTentativeInsert();
+            }
+            else
+            {
+                clearTentativeFlag();
+            }
+        }
+
+        internal bool isTentative()
+        {
+            return isTentativeDelete() || isTentativeInsert();
+        }
+
+        internal bool isTentativeDelete()
+        {
+            return tentativeOperationType == TENTATIVE_TYPE_DELETE;
+        }
+
+        internal bool isTentativeInsert()
+        {
+            return tentativeOperationType == TENTATIVE_TYPE_INSERT;
+        }
+
+        internal void setTentativeDelete()
+        {
+            tentativeOperationType = TENTATIVE_TYPE_DELETE;
+        }
+
+        internal void setTentativeInsert()
+        {
+            tentativeOperationType = TENTATIVE_TYPE_INSERT;
+        }
+
+        internal void clearTentativeFlag()
+        {
+            tentativeOperationType = TENTATIVE_TYPE_NONE;
+        }
     }
 }
