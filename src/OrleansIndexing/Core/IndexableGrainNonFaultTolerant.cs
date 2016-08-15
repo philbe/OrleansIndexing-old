@@ -198,16 +198,16 @@ namespace Orleans.Indexing
             bool onlyUniqueIndexesWereUpdated = _isThereAnyUniqueIndex;
 
             //a flag to determine whether any unique index is updated or not
-            int numberOfUniqueIndexUpdated;
+            int numberOfUniqueIndexesUpdated;
 
             //gather the dictionary of indexes to their corresponding updates
             IDictionary<string, IMemberUpdate> updates =
                 GeneratMemberUpdates(indexableProperties, isOnActivate, onlyUpdateActiveIndexes,
-                out updateIndexesEagerly, ref onlyUniqueIndexesWereUpdated, out numberOfUniqueIndexUpdated);
+                out updateIndexesEagerly, ref onlyUniqueIndexesWereUpdated, out numberOfUniqueIndexesUpdated);
 
             //apply the updates to the indexes defined on this grain
             return ApplyIndexUpdates(updates, updateIndexesEagerly,
-                onlyUniqueIndexesWereUpdated, numberOfUniqueIndexUpdated, writeStateIfConstraintsAreNotViolated);
+                onlyUniqueIndexesWereUpdated, numberOfUniqueIndexesUpdated, writeStateIfConstraintsAreNotViolated);
         }
 
         /// <summary>
@@ -218,14 +218,14 @@ namespace Orleans.Indexing
         /// updated eagerly or lazily</param>
         /// <param name="onlyUniqueIndexesWereUpdated">a flag to determine whether
         /// only unique indexes were updated</param>
-        /// <param name="numberOfUniqueIndexUpdated">determine the number of
+        /// <param name="numberOfUniqueIndexesUpdated">determine the number of
         /// updated unique indexes</param>
         /// <param name="writeStateIfConstraintsAreNotViolated">whether writing back
         /// the state to the storage should be done if no constraint is violated</param>
         protected virtual async Task ApplyIndexUpdates(IDictionary<string, IMemberUpdate> updates,
                                                        bool updateIndexesEagerly,
                                                        bool onlyUniqueIndexesWereUpdated,
-                                                       int numberOfUniqueIndexUpdated,
+                                                       int numberOfUniqueIndexesUpdated,
                                                        bool writeStateIfConstraintsAreNotViolated)
         {
             //if there is any update to the indexes
@@ -235,10 +235,10 @@ namespace Orleans.Indexing
                 IList<Type> iGrainTypes = GetIIndexableGrainTypes();
                 IIndexableGrain thisGrain = this.AsReference<IIndexableGrain>(GrainFactory);
 
-                bool isThereAtMostOneUniqueIndex = numberOfUniqueIndexUpdated <= 1;
+                bool isThereAtMostOneUniqueIndex = numberOfUniqueIndexesUpdated <= 1;
 
                 //if any unique index is defined on this grain and at least one of them is updated
-                if (numberOfUniqueIndexUpdated > 0)
+                if (numberOfUniqueIndexesUpdated > 0)
                 {
                     try
                     {
@@ -463,14 +463,14 @@ namespace Orleans.Indexing
         /// should be updated eagerly (as opposed to being updated lazily)</param>
         /// <param name="onlyUniqueIndexesWereUpdated">a flag to determine whether
         /// only unique indexes were updated</param>
-        /// <param name="numberOfUniqueIndexUpdated">determine the number of
+        /// <param name="numberOfUniqueIndexesUpdated">determine the number of
         /// updated unique indexes</param>
         /// <returns>a dictionary of index name mapped to the update information</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private IDictionary<string, IMemberUpdate> GeneratMemberUpdates(TProperties indexableProperties, bool isOnActivate, bool onlyUpdateActiveIndexes, out bool updateIndexesEagerly, ref bool onlyUniqueIndexesWereUpdated, out int numberOfUniqueIndexUpdated)
+        private IDictionary<string, IMemberUpdate> GeneratMemberUpdates(TProperties indexableProperties, bool isOnActivate, bool onlyUpdateActiveIndexes, out bool updateIndexesEagerly, ref bool onlyUniqueIndexesWereUpdated, out int numberOfUniqueIndexesUpdated)
         {
             updateIndexesEagerly = false;
-            numberOfUniqueIndexUpdated = 0;
+            numberOfUniqueIndexesUpdated = 0;
 
             IDictionary<string, IMemberUpdate> updates = new Dictionary<string, IMemberUpdate>();
             IDictionary<string, Tuple<object, object, object>> iUpdateGens = _iUpdateGens;
@@ -496,7 +496,7 @@ namespace Orleans.Indexing
                             //update unique index related output flags and counters
                             bool isUniqueIndex = indexMetaData.IsUniqueIndex();
                             onlyUniqueIndexesWereUpdated = onlyUniqueIndexesWereUpdated && isUniqueIndex;
-                            if (isUniqueIndex) ++numberOfUniqueIndexUpdated;
+                            if (isUniqueIndex) ++numberOfUniqueIndexesUpdated;
                         }
                     }
                 }
