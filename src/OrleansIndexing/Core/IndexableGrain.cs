@@ -62,7 +62,17 @@ namespace Orleans.Indexing
             return Task.FromResult(workflows.AsImmutable());
         }
 
-
+        public override Task RemoveFromActiveWorkflowIds(Guid removedWorkflowId)
+        {
+            if (base.State.activeWorkflowsList.Remove(removedWorkflowId))
+            {
+                return BaseWriteStateAsync();
+            }
+            else
+            {
+                return TaskDone.Done;
+            }
+        }
 
         /// <summary>
         /// Applies a set of updates to the indexes defined on the grain

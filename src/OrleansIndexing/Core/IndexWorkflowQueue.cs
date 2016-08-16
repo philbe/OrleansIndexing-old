@@ -212,14 +212,22 @@ namespace Orleans.Indexing
         //    await PersistState();
         //}
 
-        private void RemoveFromQueueUntilPunctuation(IndexWorkflowRecordNode from)
+        private List<IndexWorkflowRecord> RemoveFromQueueUntilPunctuation(IndexWorkflowRecordNode from)
         {
+            List<IndexWorkflowRecord> workflowRecords = new List<IndexWorkflowRecord>();
+            if(from != null && !from.IsPunctuation())
+            {
+                workflowRecords.Add(from.WorkflowRecord);
+            }
+
             IndexWorkflowRecordNode tmp = from.Next;
             while (tmp != null && !tmp.IsPunctuation())
             {
+                workflowRecords.Add(tmp.WorkflowRecord);
                 tmp = tmp.Next;
                 tmp.Prev.Clean();
             }
+
             if (tmp == null) from.Remove(ref State.State.WorkflowRecordsHead, ref _workflowRecordsTail);
             else
             {
@@ -228,6 +236,8 @@ namespace Orleans.Indexing
                 from.Remove(ref State.State.WorkflowRecordsHead, ref _workflowRecordsTail);
                 tmp.Remove(ref State.State.WorkflowRecordsHead, ref _workflowRecordsTail);
             }
+
+            return workflowRecords;
         }
 
         //public Task RemoveFromQueueAndPersist(IndexWorkflowRecordNode from, IndexWorkflowRecordNode to)
@@ -265,10 +275,23 @@ namespace Orleans.Indexing
 
         public Task<Immutable<IndexWorkflowRecordNode>> GiveMoreWorkflowsOrSetAsIdle()
         {
-            RemoveFromQueueUntilPunctuation(State.State.WorkflowRecordsHead);
+            List<IndexWorkflowRecord> removedWorkflows = RemoveFromQueueUntilPunctuation(State.State.WorkflowRecordsHead);
             if (IsFaultTolerant)
             {
-                PersistState().Ignore();
+                //The task of removing the work-flow record IDs from the grain
+                //runs in parallel with persisting the state. At this point, there
+                //is a possibility that some work-flow record IDs do not get removed
+                //from the indexable grains while the work-flow record is removed
+                //from the queue. This is fine, because having some dangling work-flow
+                //IDs in some indexable grains is harmless.
+                //TODO: add a garbage collector that runs once in a while and removes
+                //      the dangling work-flow IDs (i.e., the work-flow IDs that exist in the
+                //      indexable grain, but its corresponding work-flow record does not exist
+                //      in the work-flow queue.
+                Task.WhenAll(
+                    RemoveWorkflowRecordsFromIndexableGrains(removedWorkflows),
+                    PersistState()
+                ).Ignore();
             }
 
             if (_workflowRecordsTail == null)
@@ -282,6 +305,17 @@ namespace Orleans.Indexing
                 return Task.FromResult(AddPuctuationAt(BATCH_SIZE).AsImmutable());
             }
         }
+
+        private Task RemoveWorkflowRecordsFromIndexableGrains(List<IndexWorkflowRecord> removedWorkflows)
+        {
+            return Task.WhenAll(removedWorkflows.Select(wfRec => RemoveWorkflowRecordFromIndexableGrain(wfRec)));
+        }
+
+        private Task RemoveWorkflowRecordFromIndexableGrain(IndexWorkflowRecord removedWorkflow)
+        {
+            return removedWorkflow.Grain.AsReference<IIndexableGrain>(InsideRuntimeClient.Current.GrainFactory, _iGrainType).RemoveFromActiveWorkflowIds(removedWorkflow.WorkflowId);
+        }
+
         private bool InitHasAnyIIndex()
         {
             var indexes = IndexHandler.GetIndexes(_iGrainType);

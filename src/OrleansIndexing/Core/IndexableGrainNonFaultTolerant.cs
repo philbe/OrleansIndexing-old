@@ -649,6 +649,11 @@ namespace Orleans.Indexing
             throw new NotSupportedException();
         }
 
+        public virtual Task RemoveFromActiveWorkflowIds(Guid removedWorkflowId)
+        {
+            throw new NotSupportedException();
+        }
+
         /// <summary>
         /// Find the corresponding work-flow queue for a given grain interface
         /// type that the current IndexableGrain implements
