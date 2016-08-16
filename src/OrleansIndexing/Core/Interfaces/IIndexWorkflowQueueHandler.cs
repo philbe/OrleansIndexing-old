@@ -6,8 +6,9 @@ namespace Orleans.Indexing
     /// <summary>
     /// The interface for IndexWorkflowQueue system-target.
     /// </summary>
-    internal interface IIndexWorkflowQueueHandler
+    [Unordered]
+    internal interface IIndexWorkflowQueueHandler : ISystemTarget
     {
-        Task HandleWorkflowsUntilPunctuation(IndexWorkflowRecordNode immutable);
+        Task HandleWorkflowsUntilPunctuation(Immutable<IndexWorkflowRecordNode> immutable);
     }
 }
