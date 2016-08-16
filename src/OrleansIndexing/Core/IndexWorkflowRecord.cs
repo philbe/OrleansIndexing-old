@@ -27,10 +27,10 @@ namespace Orleans.Indexing
         /// </summary>
         internal IDictionary<string, IMemberUpdate> MemberUpdates { get; private set; }
 
-        internal IndexWorkflowRecord(IIndexableGrain grain, IDictionary<string, IMemberUpdate> memberUpdates)
+        internal IndexWorkflowRecord(Guid workflowId, IIndexableGrain grain, IDictionary<string, IMemberUpdate> memberUpdates)
         {
             Grain = grain;
-            WorkflowId = Guid.NewGuid();
+            WorkflowId = workflowId;
             MemberUpdates = memberUpdates;
         }
     }

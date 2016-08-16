@@ -295,7 +295,7 @@ namespace Orleans.Indexing
                 else
                 {
                     //update the indexes lazily
-                    ApplyIndexUpdatesLazily(updates, iGrainTypes, thisGrain);
+                    ApplyIndexUpdatesLazilyWithoutWait(updates, iGrainTypes, thisGrain, Guid.NewGuid());
 
                     //final, the grain state is persisted if requested
                     if (writeStateIfConstraintsAreNotViolated)
@@ -330,23 +330,46 @@ namespace Orleans.Indexing
         /// <param name="updates">the dictionary of updates for each index</param>
         /// <param name="iGrainTypes">the grain interface type implemented by this grain</param>
         /// <param name="thisGrain">the grain reference for the current grain</param>
-        private void ApplyIndexUpdatesLazily(IDictionary<string, IMemberUpdate> updates,
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void ApplyIndexUpdatesLazilyWithoutWait(IDictionary<string, IMemberUpdate> updates,
                                              IList<Type> iGrainTypes,
-                                             IIndexableGrain thisGrain)
+                                             IIndexableGrain thisGrain,
+                                             Guid workflowID)
+        {
+            ApplyIndexUpdatesLazily(updates, iGrainTypes, thisGrain, workflowID).Ignore();
+        }
+
+        /// <summary>
+        /// Lazily Applies updates to the indexes defined on this grain
+        /// 
+        /// The lazy update involves adding a work-flow record to the
+        /// corresponding IIndexWorkflowQueue for this grain.
+        /// </summary>
+        /// <param name="updates">the dictionary of updates for each index</param>
+        /// <param name="iGrainTypes">the grain interface type implemented by this grain</param>
+        /// <param name="thisGrain">the grain reference for the current grain</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected Task ApplyIndexUpdatesLazily(IDictionary<string, IMemberUpdate> updates,
+                                             IList<Type> iGrainTypes,
+                                             IIndexableGrain thisGrain,
+                                             Guid workflowID)
         {
             if (iGrainTypes.Count() == 1)
             {
                 IIndexWorkflowQueue workflowQ = GetWorkflowQueue(iGrainTypes[0]);
-                workflowQ.AddToQueue(new IndexWorkflowRecord(thisGrain, updates).AsImmutable()).Ignore();
+                return workflowQ.AddToQueue(new IndexWorkflowRecord(workflowID, thisGrain, updates).AsImmutable());
             }
             else
             {
+                Task[] tasks = new Task[iGrainTypes.Count];
+                int i = 0;
                 foreach (Type iGrainType in iGrainTypes)
                 {
-                    GetWorkflowQueue(iGrainType).AddToQueue(
-                        new IndexWorkflowRecord(thisGrain, updates).AsImmutable()
-                    ).Ignore();
+                    tasks[i++] = GetWorkflowQueue(iGrainType).AddToQueue(
+                        new IndexWorkflowRecord(workflowID, thisGrain, updates).AsImmutable()
+                    );
                 }
+                return Task.WhenAll(tasks);
             }
         }
 
@@ -367,7 +390,7 @@ namespace Orleans.Indexing
         /// won't be visible to readers, but prevents writers from overwriting
         /// them an violating constraints</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private async Task ApplyIndexUpdatesEagerly(IList<Type> iGrainTypes,
+        protected async Task ApplyIndexUpdatesEagerly(IList<Type> iGrainTypes,
                                                     IIndexableGrain updatedGrain,
                                                     IDictionary<string, IMemberUpdate> updates,
                                                     bool onlyUpdateUniqueIndexes,
@@ -604,6 +627,16 @@ namespace Orleans.Indexing
             // during WriteStateAsync for a stateful indexable grain,
             // the indexes get updated concurrently while base.WriteStateAsync is done.
             await UpdateIndexes(Properties, isOnActivate: false, onlyUpdateActiveIndexes: false, writeStateIfConstraintsAreNotViolated: true);
+        }
+
+        /// <summary>
+        /// Writes the state of the grain back to the storage
+        /// without updating the indexes
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected Task BaseWriteStateAsync()
+        {
+            return base.WriteStateAsync();
         }
 
         Task<object> IIndexableGrain.ExtractIndexImage(IIndexUpdateGenerator iUpdateGen)

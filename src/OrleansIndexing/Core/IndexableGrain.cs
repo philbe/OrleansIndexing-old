@@ -57,7 +57,141 @@ namespace Orleans.Indexing
 
         public override Task<Immutable<List<Guid>>> GetActiveWorkflowIdsList()
         {
-            return Task.FromResult(base.State.activeWorkflowsList.AsImmutable());
+            var workflows = base.State.activeWorkflowsList;
+            if(workflows == null) return Task.FromResult(new List<Guid>().AsImmutable());
+            return Task.FromResult(workflows.AsImmutable());
+        }
+
+
+
+        /// <summary>
+        /// Applies a set of updates to the indexes defined on the grain
+        /// </summary>
+        /// <param name="updates">the dictionary of indexes to their corresponding updates</param>
+        /// <param name="updateIndexesEagerly">whether indexes should be
+        /// updated eagerly or lazily</param>
+        /// <param name="onlyUniqueIndexesWereUpdated">a flag to determine whether
+        /// only unique indexes were updated</param>
+        /// <param name="numberOfUniqueIndexesUpdated">determine the number of
+        /// updated unique indexes</param>
+        /// <param name="writeStateIfConstraintsAreNotViolated">whether writing back
+        /// the state to the storage should be done if no constraint is violated</param>
+        protected override async Task ApplyIndexUpdates(IDictionary<string, IMemberUpdate> updates,
+                                                       bool updateIndexesEagerly,
+                                                       bool onlyUniqueIndexesWereUpdated,
+                                                       int numberOfUniqueIndexesUpdated,
+                                                       bool writeStateIfConstraintsAreNotViolated)
+        {
+            //if there is any update to the indexes
+            //we go ahead and updates the indexes
+            if (updates.Count() > 0)
+            {
+                IList<Type> iGrainTypes = GetIIndexableGrainTypes();
+                IIndexableGrain thisGrain = this.AsReference<IIndexableGrain>(GrainFactory);
+                Guid workflowId = GenerateUniqueWorkflowId();
+
+                //if indexes are updated eagerly
+                if (updateIndexesEagerly)
+                {
+                    throw new InvalidOperationException("Fault tolerant indexes cannot be updated eagerly. This misconfiguration should have been cur on silo startup. Check SiloAssemblyLoader for the reason.");
+                }
+                //Otherwise, if indexes are updated lazily
+                else
+                {
+                    //update the indexes lazily
+                    //updating indexes lazily is the first step, because
+                    //workflow record should be persisted in the workflow-queue first.
+                    //The reason for waiting here is to make sure that the workflow record
+                    //in the workflow queue is correctly persisted.
+                    await ApplyIndexUpdatesLazily(updates, iGrainTypes, thisGrain, workflowId);
+                }
+
+                //if any unique index is defined on this grain and at least one of them is updated
+                if (numberOfUniqueIndexesUpdated > 0)
+                {
+                    //try
+                    //{
+                    //    //update the unique indexes eagerly
+                    //    //if there were more than one unique index, the updates to
+                    //    //the unique indexes should be tentative in order not to
+                    //    //become visible to readers before making sure that all
+                    //    //uniqueness constraints are satisfied
+                          await ApplyIndexUpdatesEagerly(iGrainTypes, thisGrain, updates, true, false, true);
+                    //}
+                    //catch (UniquenessConstraintViolatedException ex)
+                    //{
+                    //    //nothing should be done as tentative records are going to
+                    //    //be removed by WorkflowQueueHandler
+                    //    //the exception is thrown back to the user code.
+                    //    throw ex;
+                    //}
+                }
+
+
+                //there is no constraint violation and the workflow ID
+                //can be a part of the list of active workflows
+                AddWorkdlowIdToActiveWorkflows(workflowId);
+
+                //final, the grain state is persisted if requested
+                if (writeStateIfConstraintsAreNotViolated)
+                {
+                    await BaseWriteStateAsync();
+                }
+
+                //if everything was successful, the before images are updated
+                UpdateBeforeImages(updates);
+            }
+            //otherwise if there is no update to the indexes, we should
+            //write back the state of the grain if requested
+            else if (writeStateIfConstraintsAreNotViolated)
+            {
+                await BaseWriteStateAsync();
+            }
+        }
+
+        /// <summary>
+        /// Adds a workflow ID to the list of active workflows
+        /// for this fault-tolerant indexable grain
+        /// </summary>
+        /// <param name="workflowId">the workflow ID to be added</param>
+        private void AddWorkdlowIdToActiveWorkflows(Guid workflowId)
+        {
+            if (base.State.activeWorkflowsList == null)
+            {
+                base.State.activeWorkflowsList = new List<Guid>();
+            }
+            base.State.activeWorkflowsList.Add(workflowId);
+        }
+
+        /// <summary>
+        /// Generates a unique Guid that does not exist in the
+        /// list of active workflows.
+        /// 
+        /// Actually, there is a very unlikely possibility that
+        /// we end up with a duplicate workflow ID in the following
+        /// scenario:
+        /// 1- IndexableGrain G is updated and assigned workflow ID = A
+        /// 2- workflow record with ID = A is added to the index workflow queue
+        /// 3- G fails and its state (including its active workflow list) is thrown away
+        /// 4- G is re-activated and reads it state from storage (which does
+        ///    not include A in its active workflow list)
+        /// 5- G gets updated and a new workflow with ID = A is generated for it.
+        ///    This ID is assumed to be unique, while it actually is not unique
+        ///    and already exists in the workflow queue.
+        /// 
+        /// The only way to avoid it is using a centralized unique
+        /// workflow ID generator, which can be added if necessary.
+        /// </summary>
+        /// <returns>a new unique workflow ID</returns>
+        private Guid GenerateUniqueWorkflowId()
+        {
+            Guid workflowId = Guid.NewGuid();
+            while (base.State.activeWorkflowsList != null && base.State.activeWorkflowsList.Contains(workflowId))
+            {
+                workflowId = Guid.NewGuid();
+            }
+
+            return workflowId;
         }
     }
 
