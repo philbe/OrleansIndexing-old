@@ -54,27 +54,36 @@ namespace Orleans.Indexing
         public const byte TENTATIVE_TYPE_INSERT = 2;
         public byte tentativeOperationType = TENTATIVE_TYPE_NONE;
 
-        public void Remove(T item, bool isTentative)
+        internal void Remove(T item, bool isTentativeRequest, bool isUniqueIndex)
         {
-            if (isTentative)
+            if (isTentativeRequest)
             {
                 setTentativeDelete();
             }
-            else
+            //in order to make the index update operations idempotent, the unique
+            //indexes can only do their action if the index entry is still marked
+            //as tentative. Otherwise, it means that tentative flag is removed
+            //by an earlier attempt and should not be done again.
+            //There is no concern about non-unique indexes, because they cannot
+            //affect the operations among different grains and fail the operations
+            //on other grains.
+            else if (!isUniqueIndex || isTentative())
             {
                 clearTentativeFlag();
                 Values.Remove(item);
             }
         }
 
-        public void Add(T item, bool isTentative)
+        internal void Add(T item, bool isTentative, bool isUniqueIndex)
         {
             Values.Add(item);
             if (isTentative)
             {
                 setTentativeInsert();
             }
-            else
+            //this condition check is not necessary, because if the flag is set,
+            //we will unset it, and if it's unset, we will unset it again, which is a no-op
+            else ///if(!isUniqueIndex || isTentative())
             {
                 clearTentativeFlag();
             }
