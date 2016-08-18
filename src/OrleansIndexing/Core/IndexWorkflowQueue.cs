@@ -1,5 +1,6 @@
 ﻿using Orleans.Concurrency;
 using Orleans.Core;
+using Orleans.Providers;
 using Orleans.Runtime;
 using Orleans.Storage;
 using System;
@@ -31,6 +32,7 @@ namespace Orleans.Indexing
     ///   in-memory dictionary that maps each grain G to the workflowRecords for G
     ///   that are waiting for be updated
     /// </summary>
+    [StorageProvider(ProviderName = Constants.INDEXING_WORKFLOWQUEUE_STORAGE_PROVIDER_NAME)]
     [Reentrant]
     internal class IndexWorkflowQueue : SystemTarget, IIndexWorkflowQueue
     {
@@ -43,8 +45,8 @@ namespace Orleans.Indexing
         internal IndexWorkflowRecordNode _workflowRecordsTail;
 
         //the storage provider for index work-flow queue
-        private IStorageProvider __storageProvider;
-        private IStorageProvider StorageProvider { get { return __storageProvider == null ? InitStorageProvider() : __storageProvider; } }
+        private IStorageProvider _storageProvider;
+        private IStorageProvider StorageProvider { get { return _storageProvider == null ? InitStorageProvider() : _storageProvider; } }
 
         private int _queueSeqNum;
         private Type _iGrainType;
@@ -91,7 +93,7 @@ namespace Orleans.Indexing
             _queueSeqNum = queueSequenceNumber;
 
             _workflowRecordsTail = null;
-            __storageProvider = null;
+            _storageProvider = null;
             __handler = null;
             _isHandlerWorkerIdle = true;
 
@@ -333,7 +335,7 @@ namespace Orleans.Indexing
 
         private IStorageProvider InitStorageProvider()
         {
-            throw new NotImplementedException();
+            return _storageProvider = InsideRuntimeClient.Current.Catalog.SetupStorageProvider(typeof(IndexWorkflowQueue));
         }
     }
 
