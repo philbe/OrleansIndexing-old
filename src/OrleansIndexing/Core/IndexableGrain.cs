@@ -61,13 +61,36 @@ namespace Orleans.Indexing
             set { base.State.workflowQueues = value; }
         }
 
+        private sbyte __hasAnyIIndex;
+        private bool HasAnyIIndex { get { return __hasAnyIIndex == 0 ? InitHasAnyIIndex() : __hasAnyIIndex > 0; } }
+
+        private bool InitHasAnyIIndex()
+        {
+            IList<Type> iGrainTypes = GetIIndexableGrainTypes();
+            foreach (var iGrainType in iGrainTypes)
+            {
+                var indexes = IndexHandler.GetIndexes(iGrainType);
+                foreach (var idxInfo in indexes.Values)
+                {
+                    if (idxInfo.Item1 is InitializedIndex)
+                    {
+                        __hasAnyIIndex = 1;
+                        return true;
+                    }
+                }
+            }
+            __hasAnyIIndex = -1;
+            return false;
+        }
 
         public override Task OnActivateAsync()
         {
+            __hasAnyIIndex = 0;
+
             //if the list of active work-flows is null or empty
             //we can assume that we did not contact any work-flow
             //queue before in a possible prior activation
-            if(base.State.activeWorkflowsList == null || base.State.activeWorkflowsList.Count() == 0)
+            if (base.State.activeWorkflowsList == null || base.State.activeWorkflowsList.Count() == 0)
             {
                 WorkflowQueues = null;
             }
@@ -139,70 +162,77 @@ namespace Orleans.Indexing
                                                        int numberOfUniqueIndexesUpdated,
                                                        bool writeStateIfConstraintsAreNotViolated)
         {
-            //if there is any update to the indexes
-            //we go ahead and updates the indexes
-            if (updates.Count() > 0)
+            if (HasAnyIIndex)
             {
-                IList<Type> iGrainTypes = GetIIndexableGrainTypes();
-                IIndexableGrain thisGrain = this.AsReference<IIndexableGrain>(GrainFactory);
-                Guid workflowId = GenerateUniqueWorkflowId();
-
-                //if indexes are updated eagerly
-                if (updateIndexesEagerly)
+                //if there is any update to the indexes
+                //we go ahead and updates the indexes
+                if (updates.Count() > 0)
                 {
-                    throw new InvalidOperationException("Fault tolerant indexes cannot be updated eagerly. This misconfiguration should have been cur on silo startup. Check SiloAssemblyLoader for the reason.");
+                    IList<Type> iGrainTypes = GetIIndexableGrainTypes();
+                    IIndexableGrain thisGrain = this.AsReference<IIndexableGrain>(GrainFactory);
+                    Guid workflowId = GenerateUniqueWorkflowId();
+
+                    //if indexes are updated eagerly
+                    if (updateIndexesEagerly)
+                    {
+                        throw new InvalidOperationException("Fault tolerant indexes cannot be updated eagerly. This misconfiguration should have been cur on silo startup. Check SiloAssemblyLoader for the reason.");
+                    }
+                    //Otherwise, if indexes are updated lazily
+                    else
+                    {
+                        //update the indexes lazily
+                        //updating indexes lazily is the first step, because
+                        //workflow record should be persisted in the workflow-queue first.
+                        //The reason for waiting here is to make sure that the workflow record
+                        //in the workflow queue is correctly persisted.
+                        await ApplyIndexUpdatesLazily(updates, iGrainTypes, thisGrain, workflowId);
+                    }
+
+                    //if any unique index is defined on this grain and at least one of them is updated
+                    if (numberOfUniqueIndexesUpdated > 0)
+                    {
+                        //try
+                        //{
+                        //    //update the unique indexes eagerly
+                        //    //if there were more than one unique index, the updates to
+                        //    //the unique indexes should be tentative in order not to
+                        //    //become visible to readers before making sure that all
+                        //    //uniqueness constraints are satisfied
+                        await ApplyIndexUpdatesEagerly(iGrainTypes, thisGrain, updates, true, false, true);
+                        //}
+                        //catch (UniquenessConstraintViolatedException ex)
+                        //{
+                        //    //nothing should be done as tentative records are going to
+                        //    //be removed by WorkflowQueueHandler
+                        //    //the exception is thrown back to the user code.
+                        //    throw ex;
+                        //}
+                    }
+
+
+                    //there is no constraint violation and the workflow ID
+                    //can be a part of the list of active workflows
+                    AddWorkdlowIdToActiveWorkflows(workflowId);
+
+                    //final, the grain state is persisted if requested
+                    if (writeStateIfConstraintsAreNotViolated)
+                    {
+                        await BaseWriteStateAsync();
+                    }
+
+                    //if everything was successful, the before images are updated
+                    UpdateBeforeImages(updates);
                 }
-                //Otherwise, if indexes are updated lazily
-                else
-                {
-                    //update the indexes lazily
-                    //updating indexes lazily is the first step, because
-                    //workflow record should be persisted in the workflow-queue first.
-                    //The reason for waiting here is to make sure that the workflow record
-                    //in the workflow queue is correctly persisted.
-                    await ApplyIndexUpdatesLazily(updates, iGrainTypes, thisGrain, workflowId);
-                }
-
-                //if any unique index is defined on this grain and at least one of them is updated
-                if (numberOfUniqueIndexesUpdated > 0)
-                {
-                    //try
-                    //{
-                    //    //update the unique indexes eagerly
-                    //    //if there were more than one unique index, the updates to
-                    //    //the unique indexes should be tentative in order not to
-                    //    //become visible to readers before making sure that all
-                    //    //uniqueness constraints are satisfied
-                          await ApplyIndexUpdatesEagerly(iGrainTypes, thisGrain, updates, true, false, true);
-                    //}
-                    //catch (UniquenessConstraintViolatedException ex)
-                    //{
-                    //    //nothing should be done as tentative records are going to
-                    //    //be removed by WorkflowQueueHandler
-                    //    //the exception is thrown back to the user code.
-                    //    throw ex;
-                    //}
-                }
-
-
-                //there is no constraint violation and the workflow ID
-                //can be a part of the list of active workflows
-                AddWorkdlowIdToActiveWorkflows(workflowId);
-
-                //final, the grain state is persisted if requested
-                if (writeStateIfConstraintsAreNotViolated)
+                //otherwise if there is no update to the indexes, we should
+                //write back the state of the grain if requested
+                else if (writeStateIfConstraintsAreNotViolated)
                 {
                     await BaseWriteStateAsync();
                 }
-
-                //if everything was successful, the before images are updated
-                UpdateBeforeImages(updates);
             }
-            //otherwise if there is no update to the indexes, we should
-            //write back the state of the grain if requested
-            else if (writeStateIfConstraintsAreNotViolated)
+            else
             {
-                await BaseWriteStateAsync();
+                await base.ApplyIndexUpdates(updates, updateIndexesEagerly, onlyUniqueIndexesWereUpdated, numberOfUniqueIndexesUpdated, writeStateIfConstraintsAreNotViolated);
             }
         }
 
