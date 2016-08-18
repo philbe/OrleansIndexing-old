@@ -55,6 +55,53 @@ namespace Orleans.Indexing
             return _props;
         }
 
+        internal override IDictionary<Type, IIndexWorkflowQueue> WorkflowQueues
+        {
+            get { return base.State.workflowQueues; }
+            set { base.State.workflowQueues = value; }
+        }
+
+
+        public override Task OnActivateAsync()
+        {
+            //if the list of active work-flows is null or empty
+            //we can assume that we did not contact any work-flow
+            //queue before in a possible prior activation
+            if(base.State.activeWorkflowsList == null || base.State.activeWorkflowsList.Count() == 0)
+            {
+                WorkflowQueues = null;
+            }
+            //if there are some remaining active work-flows
+            //they should be handled first
+            else
+            {
+                PruneWorkflowQueuesForMissingTypes();
+
+                return HandleRemainingWorkflows().ContinueWith(t => base.OnActivateAsync());
+            }
+            return base.OnActivateAsync();
+        }
+
+        private Task HandleRemainingWorkflows()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void PruneWorkflowQueuesForMissingTypes()
+        {
+            var oldQueues = WorkflowQueues;
+            WorkflowQueues = new Dictionary<Type, IIndexWorkflowQueue>();
+            IList<Type> iGrainTypes = GetIIndexableGrainTypes();
+            IIndexWorkflowQueue q;
+            foreach (var grainType in iGrainTypes)
+            {
+                if(oldQueues.TryGetValue(grainType, out q))
+                {
+                    WorkflowQueues.Add(grainType, q);
+                }
+            }
+        }
+
         public override Task<Immutable<List<Guid>>> GetActiveWorkflowIdsList()
         {
             var workflows = base.State.activeWorkflowsList;
@@ -215,7 +262,7 @@ namespace Orleans.Indexing
     public class IndexableExtendedState<TState>
     {
         internal List<Guid> activeWorkflowsList = null;
-        internal IIndexWorkflowQueue workflowQueue = null;
+        internal IDictionary<Type, IIndexWorkflowQueue> workflowQueues = null;
 
         public TState UserState = (TState)Activator.CreateInstance(typeof(TState));
     }

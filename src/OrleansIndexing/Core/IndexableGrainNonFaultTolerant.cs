@@ -67,7 +67,7 @@ namespace Orleans.Indexing
 
         //a cache for the work-flow queues, one for each grain interface type
         //that the current IndexableGrain implements
-        internal IDictionary<Type, IIndexWorkflowQueue> _workflowQueues;
+        internal virtual IDictionary<Type, IIndexWorkflowQueue> WorkflowQueues { get; set; }
 
         /// <summary>
         /// Upon activation, the list of index update generators
@@ -80,7 +80,6 @@ namespace Orleans.Indexing
         public override Task OnActivateAsync()
         {
             if (logger.IsVerbose) logger.Verbose("Activating indexable grain {0} of type {1} in silo {2}.", Orleans.GrainExtensions.GetGrainId(this), GetIIndexableGrainTypes()[0], RuntimeAddress);
-            _workflowQueues = null;
             //load indexes
             _iUpdateGens = IndexHandler.GetIndexes(GetIIndexableGrainTypes()[0]);
 
@@ -662,16 +661,16 @@ namespace Orleans.Indexing
         /// <returns>the work-flow queue corresponding to the iGrainType</returns>
         internal IIndexWorkflowQueue GetWorkflowQueue(Type iGrainType)
         {
-            if (_workflowQueues == null)
+            if (WorkflowQueues == null)
             {
-                _workflowQueues = new Dictionary<Type, IIndexWorkflowQueue>();
+                WorkflowQueues = new Dictionary<Type, IIndexWorkflowQueue>();
             }
 
             IIndexWorkflowQueue workflowQ;
-            if (!_workflowQueues.TryGetValue(iGrainType, out workflowQ))
+            if (!WorkflowQueues.TryGetValue(iGrainType, out workflowQ))
             {
                 workflowQ = IndexWorkflowQueue.GetIndexWorkflowQueueFromGrainHashCode(iGrainType, this.AsReference<IIndexableGrain>(GrainFactory, iGrainType).GetHashCode(), RuntimeAddress);
-                _workflowQueues.Add(iGrainType, workflowQ);
+                WorkflowQueues.Add(iGrainType, workflowQ);
             }
             return workflowQ;
         }
