@@ -11,7 +11,7 @@ namespace Orleans.Indexing
     /// <summary>
     /// Enumeration of all index update operation types
     /// </summary>
-    public enum IndexOperationType { None, Insert, Update, Delete };
+    public enum IndexOperationType { None, Insert, Update, Delete }
 
     public static class IndexOperationTypeExtensions
     {

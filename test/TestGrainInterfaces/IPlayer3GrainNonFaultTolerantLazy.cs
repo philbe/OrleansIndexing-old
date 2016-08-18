@@ -10,7 +10,7 @@ namespace UnitTests.GrainInterfaces
     {
         public int Score { get; set; }
 
-        [Index(typeof(AHashIndexPartitionedPerKey<string, IPlayer3GrainNonFaultTolerantLazy>)/*, IsEager: false*/)]
+        [AIndex(IndexType.HashIndexPartitionedByKeyHash/*, IsEager: false*/)]
         public string Location { get; set; }
     }
 

@@ -10,7 +10,7 @@ namespace UnitTests.GrainInterfaces
     {
         public int Score { get; set; }
 
-        [Index/*(IsEager : false)*/]
+        [AIndex/*(IsEager : false)*/]
         public string Location { get; set; }
     }
 

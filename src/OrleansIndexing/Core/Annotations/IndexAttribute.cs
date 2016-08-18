@@ -3,15 +3,14 @@
 namespace Orleans.Indexing
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public sealed class IndexAttribute : Attribute
+    public class IndexAttribute : Attribute
     {
-        public Type IndexType { get; private set; }
-        public bool IsUnique { get; private set; }
-        public bool IsEager { get; private set; }
+        public Type IndexType { get; protected set; }
+        public bool IsUnique { get; protected set; }
+        public bool IsEager { get; protected set; }
 
-        public IndexAttribute()
+        public IndexAttribute() : this(false)
         {
-            IndexType = typeof(AHashIndexSingleBucket<,>);
         }
 
         public IndexAttribute(bool IsEager) : this(typeof(AHashIndexSingleBucket<,>), IsEager, false)
