@@ -43,5 +43,21 @@ namespace Orleans.Indexing
         {
             return MemberUpdate.ToString(this);
         }
+
+        /// <summary>
+        /// Reverses a dictionary of updates by converting all
+        /// updates to MemberUpdateReverseTentative
+        /// </summary>
+        /// <param name="updates">the dictionary of updates to be reverse</param>
+        /// <returns>the reversed dictionary of updates</returns>
+        internal static IDictionary<string, IMemberUpdate> Reverse(IDictionary<string, IMemberUpdate> updates)
+        {
+            var result = new Dictionary<string, IMemberUpdate>();
+            foreach (var updt in updates)
+            {
+                result.Add(updt.Key, new MemberUpdateReverseTentative(updt.Value));
+            }
+            return result;
+        }
     }
 }

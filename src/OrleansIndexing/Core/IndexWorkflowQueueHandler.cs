@@ -110,6 +110,9 @@ namespace Orleans.Indexing
                         {
                             updatesList.Add(updt);
                         }
+                        //if the workflow record does not exist in the list of active work-flows
+                        //and the index is fault-tolerant, we should make sure that tentative updates
+                        //to unique indexes are undone
                         else if (((IndexMetaData)Indexes[index].Item2).IsUniqueIndex())
                         {
                             //reverse a possible remaining tentative record from the index

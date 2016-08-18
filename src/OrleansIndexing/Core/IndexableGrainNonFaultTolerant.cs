@@ -318,7 +318,7 @@ namespace Orleans.Indexing
                                                        IIndexableGrain thisGrain,
                                                        IDictionary<string, IMemberUpdate> updates)
         {
-            throw new NotImplementedException();
+            return ApplyIndexUpdatesEagerly(iGrainTypes, thisGrain, MemberUpdateReverseTentative.Reverse(updates), true, false, false);
         }
 
         /// <summary>
