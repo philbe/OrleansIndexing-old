@@ -18,8 +18,8 @@ namespace Orleans.Indexing
     [Serializable]
     public class MemberUpdate : IMemberUpdate
     {
-        private Immutable<object> _befImg;
-        private Immutable<object> _aftImg;
+        private object _befImg;
+        private object _aftImg;
         private IndexOperationType _opType;
 
         public MemberUpdate(object befImg, object aftImg, IndexOperationType opType)
@@ -27,11 +27,11 @@ namespace Orleans.Indexing
             _opType = opType;
             if (opType == IndexOperationType.Update || opType == IndexOperationType.Delete)
             {
-                _befImg = befImg.AsImmutable();
+                _befImg = befImg;
             }
             if (opType == IndexOperationType.Update || opType == IndexOperationType.Insert)
             {
-                _aftImg = aftImg.AsImmutable();
+                _aftImg = aftImg;
             }
         }
 
@@ -61,12 +61,12 @@ namespace Orleans.Indexing
         /// that is before applying the current update</returns>
         public object GetBeforeImage()
         {
-            return (_opType == IndexOperationType.Update || _opType == IndexOperationType.Delete) ? _befImg.Value : null;
+            return (_opType == IndexOperationType.Update || _opType == IndexOperationType.Delete) ? _befImg : null;
         }
 
         public object GetAfterImage()
         {
-            return (_opType == IndexOperationType.Update || _opType == IndexOperationType.Insert) ? _aftImg.Value : null;
+            return (_opType == IndexOperationType.Update || _opType == IndexOperationType.Insert) ? _aftImg : null;
         }
 
         public IndexOperationType GetOperationType()
