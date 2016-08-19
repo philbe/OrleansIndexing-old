@@ -8,6 +8,7 @@ namespace Orleans.Indexing
     ///    - workflowID: grainID + a sequence number
     ///    - memberUpdates: the updated values of indexed fields
     /// </summary>
+    [Serializable]
     internal class IndexWorkflowRecord
     {
         /// <summary>

@@ -344,6 +344,7 @@ namespace Orleans.Indexing
     /// 
     /// This linked list makes the traversal more efficient.
     /// </summary>
+    [Serializable]
     internal class IndexWorkflowRecordNode
     {
         internal IndexWorkflowRecord WorkflowRecord;
@@ -440,6 +441,7 @@ namespace Orleans.Indexing
     /// <summary>
     /// All the information stored for a single IndexWorkflowQueue
     /// </summary>
+    [Serializable]
     internal class IndexWorkflowQueueEntry
     {
         //updates that must be propagated to indexes.
@@ -460,29 +462,11 @@ namespace Orleans.Indexing
     /// <summary>
     /// The persistent unit for storing the information for a IndexWorkflowQueue
     /// </summary>
-    internal class IndexWorkflowQueueState : IGrainState
+    [Serializable]
+    internal class IndexWorkflowQueueState : GrainState<IndexWorkflowQueueEntry>
     {
-        public IndexWorkflowQueueEntry State;
-
-        public IndexWorkflowQueueState(GrainId g, SiloAddress silo)
+        public IndexWorkflowQueueState(GrainId g, SiloAddress silo) : base(new IndexWorkflowQueueEntry(g, silo))
         {
-            State = new IndexWorkflowQueueEntry(g, silo);
-            ETag = null;
-        }
-
-        public string ETag { get; set; }
-
-        object IGrainState.State
-        {
-            get
-            {
-                return State;
-            }
-
-            set
-            {
-                State = (IndexWorkflowQueueEntry) value;
-            }
         }
     }
 }

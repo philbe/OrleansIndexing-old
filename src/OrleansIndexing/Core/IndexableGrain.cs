@@ -105,45 +105,6 @@ namespace Orleans.Indexing
             return base.OnActivateAsync();
         }
 
-        private Task HandleRemainingWorkflows()
-        {
-            throw new NotImplementedException();
-        }
-
-        private void PruneWorkflowQueuesForMissingTypes()
-        {
-            var oldQueues = WorkflowQueues;
-            WorkflowQueues = new Dictionary<Type, IIndexWorkflowQueue>();
-            IList<Type> iGrainTypes = GetIIndexableGrainTypes();
-            IIndexWorkflowQueue q;
-            foreach (var grainType in iGrainTypes)
-            {
-                if(oldQueues.TryGetValue(grainType, out q))
-                {
-                    WorkflowQueues.Add(grainType, q);
-                }
-            }
-        }
-
-        public override Task<Immutable<List<Guid>>> GetActiveWorkflowIdsList()
-        {
-            var workflows = base.State.activeWorkflowsList;
-            if(workflows == null) return Task.FromResult(new List<Guid>().AsImmutable());
-            return Task.FromResult(workflows.AsImmutable());
-        }
-
-        public override Task RemoveFromActiveWorkflowIds(Guid removedWorkflowId)
-        {
-            if (base.State.activeWorkflowsList.Remove(removedWorkflowId))
-            {
-                return BaseWriteStateAsync();
-            }
-            else
-            {
-                return TaskDone.Done;
-            }
-        }
-
         /// <summary>
         /// Applies a set of updates to the indexes defined on the grain
         /// </summary>
@@ -209,14 +170,13 @@ namespace Orleans.Indexing
                         //}
                     }
 
-
-                    //there is no constraint violation and the workflow ID
-                    //can be a part of the list of active workflows
-                    AddWorkdlowIdToActiveWorkflows(workflowId);
-
                     //final, the grain state is persisted if requested
                     if (writeStateIfConstraintsAreNotViolated)
                     {
+                        //there is no constraint violation and the workflow ID
+                        //can be a part of the list of active workflows
+                        //Here, we add the work-flow to the list of committed/in-flight work-flows
+                        AddWorkdlowIdToActiveWorkflows(workflowId);
                         await BaseWriteStateAsync();
                     }
 
@@ -233,6 +193,45 @@ namespace Orleans.Indexing
             else
             {
                 await base.ApplyIndexUpdates(updates, updateIndexesEagerly, onlyUniqueIndexesWereUpdated, numberOfUniqueIndexesUpdated, writeStateIfConstraintsAreNotViolated);
+            }
+        }
+
+        private Task HandleRemainingWorkflows()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void PruneWorkflowQueuesForMissingTypes()
+        {
+            var oldQueues = WorkflowQueues;
+            WorkflowQueues = new Dictionary<Type, IIndexWorkflowQueue>();
+            IList<Type> iGrainTypes = GetIIndexableGrainTypes();
+            IIndexWorkflowQueue q;
+            foreach (var grainType in iGrainTypes)
+            {
+                if(oldQueues.TryGetValue(grainType, out q))
+                {
+                    WorkflowQueues.Add(grainType, q);
+                }
+            }
+        }
+
+        public override Task<Immutable<List<Guid>>> GetActiveWorkflowIdsList()
+        {
+            var workflows = base.State.activeWorkflowsList;
+            if(workflows == null) return Task.FromResult(new List<Guid>().AsImmutable());
+            return Task.FromResult(workflows.AsImmutable());
+        }
+
+        public override Task RemoveFromActiveWorkflowIds(Guid removedWorkflowId)
+        {
+            if (base.State.activeWorkflowsList != null && base.State.activeWorkflowsList.Remove(removedWorkflowId))
+            {
+                return BaseWriteStateAsync();
+            }
+            else
+            {
+                return TaskDone.Done;
             }
         }
 
