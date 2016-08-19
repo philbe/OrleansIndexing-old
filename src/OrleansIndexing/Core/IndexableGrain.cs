@@ -90,7 +90,7 @@ namespace Orleans.Indexing
             //if the list of active work-flows is null or empty
             //we can assume that we did not contact any work-flow
             //queue before in a possible prior activation
-            if (base.State.activeWorkflowsList == null || base.State.activeWorkflowsList.Count() == 0)
+            if (base.State.activeWorkflowsSet == null || base.State.activeWorkflowsSet.Count() == 0)
             {
                 WorkflowQueues = null;
             }
@@ -216,16 +216,16 @@ namespace Orleans.Indexing
             }
         }
 
-        public override Task<Immutable<List<Guid>>> GetActiveWorkflowIdsList()
+        public override Task<Immutable<HashSet<Guid>>> GetActiveWorkflowIdsList()
         {
-            var workflows = base.State.activeWorkflowsList;
-            if(workflows == null) return Task.FromResult(new List<Guid>().AsImmutable());
+            var workflows = base.State.activeWorkflowsSet;
+            if(workflows == null) return Task.FromResult(new HashSet<Guid>().AsImmutable());
             return Task.FromResult(workflows.AsImmutable());
         }
 
         public override Task RemoveFromActiveWorkflowIds(Guid removedWorkflowId)
         {
-            if (base.State.activeWorkflowsList != null && base.State.activeWorkflowsList.Remove(removedWorkflowId))
+            if (base.State.activeWorkflowsSet != null && base.State.activeWorkflowsSet.Remove(removedWorkflowId))
             {
                 return BaseWriteStateAsync();
             }
@@ -242,11 +242,11 @@ namespace Orleans.Indexing
         /// <param name="workflowId">the workflow ID to be added</param>
         private void AddWorkdlowIdToActiveWorkflows(Guid workflowId)
         {
-            if (base.State.activeWorkflowsList == null)
+            if (base.State.activeWorkflowsSet == null)
             {
-                base.State.activeWorkflowsList = new List<Guid>();
+                base.State.activeWorkflowsSet = new HashSet<Guid>();
             }
-            base.State.activeWorkflowsList.Add(workflowId);
+            base.State.activeWorkflowsSet.Add(workflowId);
         }
 
         /// <summary>
@@ -272,7 +272,7 @@ namespace Orleans.Indexing
         private Guid GenerateUniqueWorkflowId()
         {
             Guid workflowId = Guid.NewGuid();
-            while (base.State.activeWorkflowsList != null && base.State.activeWorkflowsList.Contains(workflowId))
+            while (base.State.activeWorkflowsSet != null && base.State.activeWorkflowsSet.Contains(workflowId))
             {
                 workflowId = Guid.NewGuid();
             }
@@ -290,7 +290,7 @@ namespace Orleans.Indexing
     [Serializable]
     public class IndexableExtendedState<TState>
     {
-        internal List<Guid> activeWorkflowsList = null;
+        internal HashSet<Guid> activeWorkflowsSet = null;
         internal IDictionary<Type, IIndexWorkflowQueue> workflowQueues = null;
 
         public TState UserState = (TState)Activator.CreateInstance(typeof(TState));

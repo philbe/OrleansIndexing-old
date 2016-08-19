@@ -26,7 +26,7 @@ namespace Orleans.Indexing
         /// <summary>
         /// This method returns the list of active work-flow IDs for an I-Index
         /// </summary>
-        Task<Immutable<List<Guid>>> GetActiveWorkflowIdsList();
+        Task<Immutable<HashSet<Guid>>> GetActiveWorkflowIdsList();
 
         /// <summary>
         /// This method removes a work-flow ID from the list of active work-flow IDs for an I-Index

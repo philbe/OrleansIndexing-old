@@ -643,7 +643,7 @@ namespace Orleans.Indexing
             return Task.FromResult(iUpdateGen.ExtractIndexImage(Properties));
         }
 
-        public virtual Task<Immutable<List<Guid>>> GetActiveWorkflowIdsList()
+        public virtual Task<Immutable<HashSet<Guid>>> GetActiveWorkflowIdsList()
         {
             throw new NotSupportedException();
         }

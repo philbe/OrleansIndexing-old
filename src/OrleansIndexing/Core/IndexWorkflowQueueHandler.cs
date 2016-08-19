@@ -129,8 +129,7 @@ namespace Orleans.Indexing
         {
             var result = new Dictionary<IIndexableGrain, HashSet<Guid>>();
             var grains = new List<IIndexableGrain>();
-            var activeWorkflowsListTasks = new List<Task<Immutable<List<Guid>>>>();
-            Immutable<List<Guid>>[] activeWorkflowsLists;
+            var activeWorkflowsSetsTasks = new List<Task<Immutable<HashSet<Guid>>>>();
 
             while (!currentWorkflow.IsPunctuation())
             {
@@ -142,18 +141,18 @@ namespace Orleans.Indexing
                     {
                         result.Add(g, EMPTY_HASHSET);
                         grains.Add(g);
-                        activeWorkflowsListTasks.Add(g.AsReference<IIndexableGrain>(InsideRuntimeClient.Current.GrainFactory, _iGrainType).GetActiveWorkflowIdsList());
+                        activeWorkflowsSetsTasks.Add(g.AsReference<IIndexableGrain>(InsideRuntimeClient.Current.GrainFactory, _iGrainType).GetActiveWorkflowIdsList());
                     }
                 }
                 currentWorkflow = currentWorkflow.Next;
             }
 
-            if (activeWorkflowsListTasks.Count() > 0)
+            if (activeWorkflowsSetsTasks.Count() > 0)
             {
-                activeWorkflowsLists = await Task.WhenAll(activeWorkflowsListTasks);
-                for(int i = 0; i < activeWorkflowsLists.Length; ++i)
+                Immutable<HashSet<Guid>>[] activeWorkflowsSets = await Task.WhenAll(activeWorkflowsSetsTasks);
+                for(int i = 0; i < activeWorkflowsSets.Length; ++i)
                 {
-                    result[grains[i]] = activeWorkflowsLists[i].Value.ToSet();
+                    result[grains[i]] = activeWorkflowsSets[i].Value;
                 }
             }
 
