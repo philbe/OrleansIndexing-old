@@ -15,6 +15,7 @@ namespace Tester
             //Required for IndexingTests
             options.ClusterConfiguration.AddMemoryStorageProvider("PubSubStore");
             options.ClusterConfiguration.AddMemoryStorageProvider("IndexingStorageProvider");
+            options.ClusterConfiguration.AddMemoryStorageProvider("IndexingWorkflowQueueStorageProvider");
             options.ClusterConfiguration.AddSimpleMessageStreamProvider("IndexingStreamProvider");
             options.ClientConfiguration.AddSimpleMessageStreamProvider("IndexingStreamProvider");
 
