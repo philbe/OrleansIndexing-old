@@ -55,6 +55,12 @@
     <Compile Include="IPlayer3Grain.cs" />
     <Compile Include="IPlayer3GrainNonFaultTolerantLazy.cs" />
     <Compile Include="IPlayer3GrainNonFaultTolerant.cs" />
+    <Compile Include="IPlayer4Grain.cs" />
+    <Compile Include="IPlayer4GrainNonFaultTolerant.cs" />
+    <Compile Include="IPlayer4rainNonFaultTolerantLazy.cs" />
+    <Compile Include="IPlayer5Grain.cs" />
+    <Compile Include="IPlayer5GrainNonFaultTolerant.cs" />
+    <Compile Include="IPlayer5rainNonFaultTolerantLazy.cs" />
     <Compile Include="IPlayerGrain.cs" />
     <Compile Include="IChainedGrain.cs" />
     <Compile Include="ICircularStateTestGrain.cs" />
