@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 
 namespace Orleans.Indexing
 {
-    [Reentrant]
     internal class IndexWorkflowQueueHandlerBase : IIndexWorkflowQueueHandler
     {
         private IIndexWorkflowQueue __workflowQueue;
@@ -30,8 +29,9 @@ namespace Orleans.Indexing
         private IDictionary<string, Tuple<object, object, object>> Indexes { get { return __indexes == null ? InitIndexes() : __indexes; } }
 
         private SiloAddress _silo;
+        private GrainReference _parent;
 
-        internal IndexWorkflowQueueHandlerBase(Type iGrainType, int queueSeqNum, SiloAddress silo, bool isDefinedAsFaultTolerantGrain)
+        internal IndexWorkflowQueueHandlerBase(Type iGrainType, int queueSeqNum, SiloAddress silo, bool isDefinedAsFaultTolerantGrain, GrainReference parent)
         {
             _iGrainType = iGrainType;
             _queueSeqNum = queueSeqNum;
@@ -40,6 +40,7 @@ namespace Orleans.Indexing
             __indexes = null;
             __workflowQueue = null;
             _silo = silo;
+            _parent = parent;
         }
 
         public async Task HandleWorkflowsUntilPunctuation(Immutable<IndexWorkflowRecordNode> workflowRecords)
@@ -189,7 +190,10 @@ namespace Orleans.Indexing
 
         private IIndexWorkflowQueue InitIndexWorkflowQueue()
         {
-            return __workflowQueue = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IIndexWorkflowQueue>(IndexWorkflowQueueBase.CreateIndexWorkflowQueueGrainId(_iGrainType, _queueSeqNum), _silo);
+            if (_parent.IsSystemTarget)
+                return __workflowQueue = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IIndexWorkflowQueue>(IndexWorkflowQueueBase.CreateIndexWorkflowQueueGrainId(_iGrainType, _queueSeqNum), _silo);
+            else
+                return __workflowQueue = InsideRuntimeClient.Current.InternalGrainFactory.GetGrain<IIndexWorkflowQueue>(IndexWorkflowQueueBase.CreateIndexWorkflowQueuePrimaryKey(_iGrainType, _queueSeqNum));
         }
 
         public static GrainId CreateIndexWorkflowQueueHandlerGrainId(Type grainInterfaceType, int queueSeqNum)

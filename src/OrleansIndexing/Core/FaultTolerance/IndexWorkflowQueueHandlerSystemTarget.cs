@@ -18,7 +18,7 @@ namespace Orleans.Indexing
 
         internal IndexWorkflowQueueHandlerSystemTarget(Type iGrainType, int queueSeqNum, SiloAddress silo, bool isDefinedAsFaultTolerantGrain) : base(IndexWorkflowQueueHandlerBase.CreateIndexWorkflowQueueHandlerGrainId(iGrainType, queueSeqNum), silo)
         {
-            _base = new IndexWorkflowQueueHandlerBase(iGrainType, queueSeqNum, silo, isDefinedAsFaultTolerantGrain);
+            _base = new IndexWorkflowQueueHandlerBase(iGrainType, queueSeqNum, silo, isDefinedAsFaultTolerantGrain, this.AsWeaklyTypedReference());
         }
 
         public Task HandleWorkflowsUntilPunctuation(Immutable<IndexWorkflowRecordNode> workflowRecordsHead)

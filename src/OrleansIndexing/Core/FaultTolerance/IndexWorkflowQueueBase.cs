@@ -15,7 +15,7 @@ namespace Orleans.Indexing
     /// <summary>
     /// To minimize the number of RPCs, we process index updates for each grain
     /// on the silo where the grain is active. To do this processing, each silo
-    /// has one or more IndexWorkflowQueueSystemTarget system-targets for each grain class,
+    /// has one or more IndexWorkflowQueue system-targets for each grain class,
     /// up to the number of hardware threads. A system-target is a grain that
     /// belongs to a specific silo.
     /// + Each of these system-targets has a queue of workflowRecords, which describe
@@ -25,18 +25,18 @@ namespace Orleans.Indexing
     ///    - memberUpdates: the updated values of indexed fields
     ///  
     ///   Ordinarily, these workflowRecords are for grains that are active on
-    ///   IndexWorkflowQueueSystemTarget's silo. (This may not be true for short periods when
+    ///   IndexWorkflowQueue's silo. (This may not be true for short periods when
     ///   a grain migrates to another silo or after the silo recovers from failure).
     /// 
-    /// + The IndexWorkflowQueueSystemTarget grain Q has a dictionary updatesOnWait is an
+    /// + The IndexWorkflowQueue grain Q has a dictionary updatesOnWait is an
     ///   in-memory dictionary that maps each grain G to the workflowRecords for G
     ///   that are waiting for be updated
     /// </summary>
     internal class IndexWorkflowQueueBase : IIndexWorkflowQueue
     {
-        //the persistent state of IndexWorkflowQueueSystemTarget, including:
+        //the persistent state of IndexWorkflowQueue, including:
         // - doubly linked list of workflowRecordds
-        // - the identity of the IndexWorkflowQueueSystemTarget system target
+        // - the identity of the IndexWorkflowQueue system target
         protected IndexWorkflowQueueState State;
 
         //the tail of workflowRecords doubly linked list
@@ -110,34 +110,12 @@ namespace Orleans.Indexing
             _parent = parent;
         }
 
-        public static GrainId CreateIndexWorkflowQueueGrainId(Type grainInterfaceType, int queueSeqNum)
-        {
-            return GrainId.GetSystemTargetGrainId(Constants.INDEX_WORKFLOW_QUEUE_SYSTEM_TARGET_TYPE_CODE,
-                                                  CreateIndexWorkflowQueuePrimaryKey(grainInterfaceType, queueSeqNum));
-        }
-
-        public static string CreateIndexWorkflowQueuePrimaryKey(Type grainInterfaceType, int queueSeqNum)
-        {
-            return TypeUtils.GetFullName(grainInterfaceType) + "-" + queueSeqNum;
-        }
-
-        public static GrainId GetIndexWorkflowQueueGrainIdFromGrainHashCode(Type grainInterfaceType, int grainHashCode)
-        {
-            return GrainId.GetSystemTargetGrainId(Constants.INDEX_WORKFLOW_QUEUE_SYSTEM_TARGET_TYPE_CODE,
-                                                  CreateIndexWorkflowQueuePrimaryKey(grainInterfaceType, StorageProviderUtils.PositiveHash(grainHashCode, NUM_AVAILABLE_INDEX_WORKFLOW_QUEUES)));
-        }
-
-        public static IIndexWorkflowQueue GetIndexWorkflowQueueFromGrainHashCode(Type grainInterfaceType, int grainHashCode, SiloAddress siloAddress)
-        {
-            return InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IIndexWorkflowQueue>(
-                GetIndexWorkflowQueueGrainIdFromGrainHashCode(grainInterfaceType, grainHashCode),
-                siloAddress
-            );
-        }
-
         private IIndexWorkflowQueueHandler InitWorkflowQueueHandler()
         {
-            return __handler = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IIndexWorkflowQueueHandler>(IndexWorkflowQueueHandlerBase.CreateIndexWorkflowQueueHandlerGrainId(_iGrainType, _queueSeqNum), _silo);
+            if(_parent.IsSystemTarget)
+                return __handler = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IIndexWorkflowQueueHandler>(IndexWorkflowQueueHandlerBase.CreateIndexWorkflowQueueHandlerGrainId(_iGrainType, _queueSeqNum), _silo);
+            else
+                return __handler = InsideRuntimeClient.Current.InternalGrainFactory.GetGrain<IIndexWorkflowQueueHandler>(CreateIndexWorkflowQueuePrimaryKey(_iGrainType, _queueSeqNum));
         }
 
         public Task AddAllToQueue(Immutable<List<IndexWorkflowRecord>> workflowRecords)
@@ -324,7 +302,7 @@ namespace Orleans.Indexing
                     //clear all pending write requests, as this attempt will do them all.
                     _pendingWriteRequests.Clear();
                     //write the state back to the storage
-                    await StorageProvider.WriteStateAsync("Orleans.Indexing.IndexWorkflowQueueSystemTarget-" + TypeUtils.GetFullName(_iGrainType), _parent, State);
+                    await StorageProvider.WriteStateAsync("Orleans.Indexing.IndexWorkflowQueue-" + TypeUtils.GetFullName(_iGrainType), _parent, State);
                 }
                 //else
                 //{
@@ -415,5 +393,32 @@ namespace Orleans.Indexing
         {
             throw new NotSupportedException();
         }
+
+        #region STATIC HELPER FUNCTIONS
+        public static GrainId CreateIndexWorkflowQueueGrainId(Type grainInterfaceType, int queueSeqNum)
+        {
+            return GrainId.GetSystemTargetGrainId(Constants.INDEX_WORKFLOW_QUEUE_SYSTEM_TARGET_TYPE_CODE,
+                                                  CreateIndexWorkflowQueuePrimaryKey(grainInterfaceType, queueSeqNum));
+        }
+
+        public static string CreateIndexWorkflowQueuePrimaryKey(Type grainInterfaceType, int queueSeqNum)
+        {
+            return TypeUtils.GetFullName(grainInterfaceType) + "-" + queueSeqNum;
+        }
+
+        public static GrainId GetIndexWorkflowQueueGrainIdFromGrainHashCode(Type grainInterfaceType, int grainHashCode)
+        {
+            return GrainId.GetSystemTargetGrainId(Constants.INDEX_WORKFLOW_QUEUE_SYSTEM_TARGET_TYPE_CODE,
+                                                  CreateIndexWorkflowQueuePrimaryKey(grainInterfaceType, StorageProviderUtils.PositiveHash(grainHashCode, NUM_AVAILABLE_INDEX_WORKFLOW_QUEUES)));
+        }
+
+        public static IIndexWorkflowQueue GetIndexWorkflowQueueFromGrainHashCode(Type grainInterfaceType, int grainHashCode, SiloAddress siloAddress)
+        {
+            return InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IIndexWorkflowQueue>(
+                GetIndexWorkflowQueueGrainIdFromGrainHashCode(grainInterfaceType, grainHashCode),
+                siloAddress
+            );
+        }
+        #endregion STATIC HELPER FUNCTIONS
     }
 }
