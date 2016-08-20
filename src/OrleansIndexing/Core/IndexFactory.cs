@@ -211,7 +211,7 @@ namespace Orleans.Indexing
                     typeof(IIndexableGrainFaultTolerant).IsAssignableFrom(grainImplType)
                 ));
 
-                silo.RegisterSystemTarget(new IndexWorkflowQueueHandler(
+                silo.RegisterSystemTarget(new IndexWorkflowQueueHandlerSystemTarget(
                     iGrainType,
                     i,
                     silo.SiloAddress,

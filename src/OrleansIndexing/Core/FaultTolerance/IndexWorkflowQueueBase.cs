@@ -137,7 +137,7 @@ namespace Orleans.Indexing
 
         private IIndexWorkflowQueueHandler InitWorkflowQueueHandler()
         {
-            return __handler = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IIndexWorkflowQueueHandler>(IndexWorkflowQueueHandler.CreateIndexWorkflowQueueHandlerGrainId(_iGrainType, _queueSeqNum), _silo);
+            return __handler = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IIndexWorkflowQueueHandler>(IndexWorkflowQueueHandlerBase.CreateIndexWorkflowQueueHandlerGrainId(_iGrainType, _queueSeqNum), _silo);
         }
 
         public Task AddAllToQueue(Immutable<List<IndexWorkflowRecord>> workflowRecords)

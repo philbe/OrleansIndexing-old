@@ -66,9 +66,10 @@
     <Compile Include="Core\Annotations\AIndexAttribute.cs" />
     <Compile Include="Core\Annotations\IndexAttribute.cs" />
     <Compile Include="Core\FaultTolerance\IndexWorkflowQueueBase.cs" />
+    <Compile Include="Core\FaultTolerance\IndexWorkflowQueueHandlerBase.cs" />
     <Compile Include="Core\FaultTolerance\IndexWorkflowQueueState.cs" />
     <Compile Include="Core\FaultTolerance\IndexWorkflowRecordNode.cs" />
-    <Compile Include="Core\FaultTolerance\IndexWorkflowQueueHandler.cs" />
+    <Compile Include="Core\FaultTolerance\IndexWorkflowQueueHandlerSystemTarget.cs" />
     <Compile Include="Core\Interfaces\IIndexableGrainFaultTolerant.cs" />
     <Compile Include="Core\Interfaces\IIndexWorkflowQueue.cs" />
     <Compile Include="Core\FaultTolerance\IndexableGrain.cs" />

@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace Orleans.Indexing
 {
     [Reentrant]
-    internal class IndexWorkflowQueueHandler : SystemTarget, IIndexWorkflowQueueHandler
+    internal class IndexWorkflowQueueHandlerBase : IIndexWorkflowQueueHandler
     {
         private IIndexWorkflowQueue __workflowQueue;
         private IIndexWorkflowQueue WorkflowQueue { get { return __workflowQueue == null ? InitIndexWorkflowQueue() : __workflowQueue; } }
@@ -29,7 +29,9 @@ namespace Orleans.Indexing
 
         private IDictionary<string, Tuple<object, object, object>> Indexes { get { return __indexes == null ? InitIndexes() : __indexes; } }
 
-        internal IndexWorkflowQueueHandler(Type iGrainType, int queueSeqNum, SiloAddress silo, bool isDefinedAsFaultTolerantGrain) : base(CreateIndexWorkflowQueueHandlerGrainId(iGrainType, queueSeqNum), silo)
+        private SiloAddress _silo;
+
+        internal IndexWorkflowQueueHandlerBase(Type iGrainType, int queueSeqNum, SiloAddress silo, bool isDefinedAsFaultTolerantGrain)
         {
             _iGrainType = iGrainType;
             _queueSeqNum = queueSeqNum;
@@ -37,6 +39,7 @@ namespace Orleans.Indexing
             _hasAnyIIndex = false;
             __indexes = null;
             __workflowQueue = null;
+            _silo = silo;
         }
 
         public async Task HandleWorkflowsUntilPunctuation(Immutable<IndexWorkflowRecordNode> workflowRecords)
@@ -65,7 +68,7 @@ namespace Orleans.Indexing
                 var updatesToIndex = updatesToIndexes[indexEntry.Key];
                 if (updatesToIndex.Count() > 0)
                 {
-                    updateIndexTasks.Add(((IndexInterface)idxInfo.Item1).ApplyIndexUpdateBatch(updatesToIndex.AsImmutable(), ((IndexMetaData)idxInfo.Item2).IsUniqueIndex(), Silo));
+                    updateIndexTasks.Add(((IndexInterface)idxInfo.Item1).ApplyIndexUpdateBatch(updatesToIndex.AsImmutable(), ((IndexMetaData)idxInfo.Item2).IsUniqueIndex(), _silo));
                 }
             }
 
@@ -186,7 +189,7 @@ namespace Orleans.Indexing
 
         private IIndexWorkflowQueue InitIndexWorkflowQueue()
         {
-            return __workflowQueue = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IIndexWorkflowQueue>(IndexWorkflowQueueBase.CreateIndexWorkflowQueueGrainId(_iGrainType, _queueSeqNum), Silo);
+            return __workflowQueue = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IIndexWorkflowQueue>(IndexWorkflowQueueBase.CreateIndexWorkflowQueueGrainId(_iGrainType, _queueSeqNum), _silo);
         }
 
         public static GrainId CreateIndexWorkflowQueueHandlerGrainId(Type grainInterfaceType, int queueSeqNum)
