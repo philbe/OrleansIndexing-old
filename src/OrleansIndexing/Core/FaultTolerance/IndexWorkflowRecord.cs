@@ -34,5 +34,16 @@ namespace Orleans.Indexing
             WorkflowId = workflowId;
             MemberUpdates = memberUpdates;
         }
+
+        public override bool Equals(object other)
+        {
+            var otherW = other as IndexWorkflowRecord;
+            return otherW != null ? WorkflowId.Equals(otherW.WorkflowId) : false;
+        }
+
+        public override int GetHashCode()
+        {
+            return WorkflowId.GetHashCode();
+        }
     }
 }
