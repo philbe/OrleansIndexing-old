@@ -48,11 +48,13 @@ namespace Orleans.Indexing
             set { base.State.workflowQueues = value; }
         }
 
+        //0: uninitialized, 1: has some I-Indexes, 2: does not have any I-Index
         private sbyte __hasAnyIIndex;
         private bool HasAnyIIndex { get { return __hasAnyIIndex == 0 ? InitHasAnyIIndex() : __hasAnyIIndex > 0; } }
 
         public override Task OnActivateAsync()
         {
+            //set it as un-initialized
             __hasAnyIIndex = 0;
 
             //if the list of active work-flows is null or empty
