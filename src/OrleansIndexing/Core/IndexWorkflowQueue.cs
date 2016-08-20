@@ -135,9 +135,39 @@ namespace Orleans.Indexing
             return __handler = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IIndexWorkflowQueueHandler>(IndexWorkflowQueueHandler.CreateIndexWorkflowQueueHandlerGrainId(_iGrainType, _queueSeqNum), Silo);
         }
 
+        public Task AddAllToQueue(Immutable<List<IndexWorkflowRecord>> workflowRecords)
+        {
+            List<IndexWorkflowRecord> newWorkflows = workflowRecords.Value;
+
+            foreach (IndexWorkflowRecord newWorkflow in newWorkflows)
+            {
+                AddToQueueNonPersistent(newWorkflow);
+            }
+
+            InitiateWorkerThread();
+            if (IsFaultTolerant)
+            {
+                return PersistState();
+            }
+            return TaskDone.Done;
+        }
+
         public Task AddToQueue(Immutable<IndexWorkflowRecord> workflow)
         {
             IndexWorkflowRecord newWorkflow = workflow.Value;
+
+            AddToQueueNonPersistent(newWorkflow);
+
+            InitiateWorkerThread();
+            if (IsFaultTolerant)
+            {
+                return PersistState();
+            }
+            return TaskDone.Done;
+        }
+
+        private void AddToQueueNonPersistent(IndexWorkflowRecord newWorkflow)
+        {
             IndexWorkflowRecordNode newWorkflowNode = new IndexWorkflowRecordNode(newWorkflow);
             if (_workflowRecordsTail == null) //if the list is empty
             {
@@ -148,13 +178,6 @@ namespace Orleans.Indexing
             {
                 _workflowRecordsTail.Append(newWorkflowNode, ref _workflowRecordsTail);
             }
-
-            InitiateWorkerThread();
-            if (IsFaultTolerant)
-            {
-                return PersistState();
-            }
-            return TaskDone.Done;
         }
 
         private void InitiateWorkerThread()
@@ -336,6 +359,21 @@ namespace Orleans.Indexing
         private IStorageProvider InitStorageProvider()
         {
             return _storageProvider = InsideRuntimeClient.Current.Catalog.SetupStorageProvider(typeof(IndexWorkflowQueue));
+        }
+
+        public Task<Immutable<List<IndexWorkflowRecord>>> GetRemainingWorkflowsIn(HashSet<Guid> activeWorkflowsSet)
+        {
+            var result = new List<IndexWorkflowRecord>();
+            IndexWorkflowRecordNode current = State.State.WorkflowRecordsHead;
+            while(current != null)
+            {
+                if (activeWorkflowsSet.Contains(current.WorkflowRecord.WorkflowId))
+                {
+                    result.Add(current.WorkflowRecord);
+                }
+                current = current.Next;
+            }
+            return Task.FromResult(result.AsImmutable());
         }
     }
 

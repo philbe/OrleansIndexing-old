@@ -42,19 +42,6 @@ namespace Orleans.Indexing
 
         protected override TProperties Properties { get { return defaultCreatePropertiesFromState(); } }
 
-        private TProperties defaultCreatePropertiesFromState()
-        {
-            if (typeof(TProperties).IsAssignableFrom(typeof(TState))) return (TProperties)(object)(base.State.UserState);
-
-            if (_props == null) _props = new TProperties();
-
-            foreach (PropertyInfo p in typeof(TProperties).GetProperties())
-            {
-                p.SetValue(_props, typeof(TState).GetProperty(p.Name).GetValue(base.State.UserState));
-            }
-            return _props;
-        }
-
         internal override IDictionary<Type, IIndexWorkflowQueue> WorkflowQueues
         {
             get { return base.State.workflowQueues; }
@@ -63,25 +50,6 @@ namespace Orleans.Indexing
 
         private sbyte __hasAnyIIndex;
         private bool HasAnyIIndex { get { return __hasAnyIIndex == 0 ? InitHasAnyIIndex() : __hasAnyIIndex > 0; } }
-
-        private bool InitHasAnyIIndex()
-        {
-            IList<Type> iGrainTypes = GetIIndexableGrainTypes();
-            foreach (var iGrainType in iGrainTypes)
-            {
-                var indexes = IndexHandler.GetIndexes(iGrainType);
-                foreach (var idxInfo in indexes.Values)
-                {
-                    if (idxInfo.Item1 is InitializedIndex)
-                    {
-                        __hasAnyIIndex = 1;
-                        return true;
-                    }
-                }
-            }
-            __hasAnyIIndex = -1;
-            return false;
-        }
 
         public override Task OnActivateAsync()
         {
@@ -100,7 +68,7 @@ namespace Orleans.Indexing
             {
                 PruneWorkflowQueuesForMissingTypes();
 
-                return HandleRemainingWorkflows().ContinueWith(t => base.OnActivateAsync());
+                return HandleRemainingWorkflows().ContinueWith(t => Task.WhenAll(PruneActiveWorkflowsSetFromAlreadyHandledWorkflows(t.Result), base.OnActivateAsync()));
             }
             return base.OnActivateAsync();
         }
@@ -196,9 +164,62 @@ namespace Orleans.Indexing
             }
         }
 
-        private Task HandleRemainingWorkflows()
+        /// <summary>
+        /// Handles the remaining work-flows of the grain 
+        /// </summary>
+        /// <returns>the actual list of work-flow record IDs that were
+        /// available in the queue</returns>
+        private Task<IEnumerable<Guid>> HandleRemainingWorkflows()
+        {
+            var copyOfWorkflowQueues = new Dictionary<Type, IIndexWorkflowQueue>(WorkflowQueues);
+            var tasks = new List<Task<IEnumerable<Guid>>>();
+            foreach (var wfqEntry in copyOfWorkflowQueues)
+            {
+                tasks.Add(HandleRemainingWorkflows(wfqEntry.Key, wfqEntry.Value));
+            }
+            return Task.WhenAll(tasks).ContinueWith(t => t.Result.SelectMany(res => res));
+        }
+
+        private async Task<IEnumerable<Guid>> HandleRemainingWorkflows(Type iGrainType, IIndexWorkflowQueue workflowQ)
+        {
+            Immutable<List<IndexWorkflowRecord>> remainingWorkflows;
+            try
+            {
+                remainingWorkflows = await workflowQ.GetRemainingWorkflowsIn(base.State.activeWorkflowsSet);
+            }
+            catch //the corresponding workflowQ is down, we should ask its reincarnated version
+            {
+                IIndexWorkflowQueue reincarnatedWorkflowQ = GetReincarnatedWorkflowQueue(workflowQ);
+                remainingWorkflows = await reincarnatedWorkflowQ.GetRemainingWorkflowsIn(base.State.activeWorkflowsSet);
+            }
+            WorkflowQueues.Remove(iGrainType);
+            if (remainingWorkflows.Value != null && remainingWorkflows.Value.Count() > 0)
+            {
+                IIndexWorkflowQueue newWorkflowQ = GetWorkflowQueue(iGrainType);
+                await newWorkflowQ.AddAllToQueue(remainingWorkflows);
+                return remainingWorkflows.Value.Select(w => w.WorkflowId);
+            }
+            return Enumerable.Empty<Guid>();
+        }
+
+        private IIndexWorkflowQueue GetReincarnatedWorkflowQueue(IIndexWorkflowQueue workflowQ)
         {
             throw new NotImplementedException();
+        }
+
+        private Task PruneActiveWorkflowsSetFromAlreadyHandledWorkflows(IEnumerable<Guid> workflowsInProgress)
+        {
+            var initialSize = base.State.activeWorkflowsSet.Count();
+            base.State.activeWorkflowsSet.Clear();
+            foreach (Guid workflowId in workflowsInProgress)
+            {
+                base.State.activeWorkflowsSet.Add(workflowId);
+            }
+            if (base.State.activeWorkflowsSet.Count() != initialSize)
+            {
+                return BaseWriteStateAsync();
+            }
+            return TaskDone.Done;
         }
 
         private void PruneWorkflowQueuesForMissingTypes()
@@ -278,6 +299,38 @@ namespace Orleans.Indexing
             }
 
             return workflowId;
+        }
+
+        private TProperties defaultCreatePropertiesFromState()
+        {
+            if (typeof(TProperties).IsAssignableFrom(typeof(TState))) return (TProperties)(object)(base.State.UserState);
+
+            if (_props == null) _props = new TProperties();
+
+            foreach (PropertyInfo p in typeof(TProperties).GetProperties())
+            {
+                p.SetValue(_props, typeof(TState).GetProperty(p.Name).GetValue(base.State.UserState));
+            }
+            return _props;
+        }
+
+        private bool InitHasAnyIIndex()
+        {
+            IList<Type> iGrainTypes = GetIIndexableGrainTypes();
+            foreach (var iGrainType in iGrainTypes)
+            {
+                var indexes = IndexHandler.GetIndexes(iGrainType);
+                foreach (var idxInfo in indexes.Values)
+                {
+                    if (idxInfo.Item1 is InitializedIndex)
+                    {
+                        __hasAnyIIndex = 1;
+                        return true;
+                    }
+                }
+            }
+            __hasAnyIIndex = -1;
+            return false;
         }
     }
 
