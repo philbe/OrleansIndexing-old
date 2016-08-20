@@ -172,6 +172,8 @@ namespace Orleans.Indexing
         /// <returns>the actual list of work-flow record IDs that were available in the queue(s)</returns>
         private Task<IEnumerable<Guid>> HandleRemainingWorkflows()
         {
+            //a copy of WorkflowQueues is required, because we want to
+            //iterate over it and add/remove elements from/to it
             var copyOfWorkflowQueues = new Dictionary<Type, IIndexWorkflowQueue>(WorkflowQueues);
             var tasks = new List<Task<IEnumerable<Guid>>>();
             foreach (var wfqEntry in copyOfWorkflowQueues)
@@ -185,27 +187,67 @@ namespace Orleans.Indexing
         /// Handles the remaining work-flows of a specific grain interface of the grain
         /// </summary>
         /// <param name="iGrainType">the grain interface type being indexed</param>
-        /// <param name="workflowQ">the previous work-flow queue responsible for handling the updates</param>
+        /// <param name="oldWorkflowQ">the previous work-flow queue responsible for handling the updates</param>
         /// <returns>the actual list of work-flow record IDs that were available in this queue</returns>
-        private async Task<IEnumerable<Guid>> HandleRemainingWorkflows(Type iGrainType, IIndexWorkflowQueue workflowQ)
+        private async Task<IEnumerable<Guid>> HandleRemainingWorkflows(Type iGrainType, IIndexWorkflowQueue oldWorkflowQ)
         {
+            //keeps the reference to the reincarnated work-flow queue,
+            //if the original work-flow queue (system target) did not respond.
+            IIndexWorkflowQueue reincarnatedOldWorkflowQ = null;
+
+            //keeps the list of work-flow records from the old work-flow queue
             Immutable<List<IndexWorkflowRecord>> remainingWorkflows;
-            try
-            {
-                remainingWorkflows = await workflowQ.GetRemainingWorkflowsIn(base.State.activeWorkflowsSet);
-            }
-            catch //the corresponding workflowQ is down, we should ask its reincarnated version
-            {
-                IIndexWorkflowQueue reincarnatedWorkflowQ = GetReincarnatedWorkflowQueue(workflowQ);
-                remainingWorkflows = await reincarnatedWorkflowQ.GetRemainingWorkflowsIn(base.State.activeWorkflowsSet);
-            }
+
+            //first, we remove the work-flow queue associated with iGrainType (i.e., oldWorkflowQ)
+            //so that another call to get the work-flow queue for iGrainType
+            //gets the new work-flow queue responsible for iGrainType (otherwise oldWorkflowQ is returned)
             WorkflowQueues.Remove(iGrainType);
-            if (remainingWorkflows.Value != null && remainingWorkflows.Value.Count() > 0)
+            IIndexWorkflowQueue newWorkflowQ = GetWorkflowQueue(iGrainType);
+
+            //if the same work-flow queue is responsible we just check
+            //what work-flow records are still in process
+            if (newWorkflowQ.Equals(oldWorkflowQ))
             {
-                IIndexWorkflowQueue newWorkflowQ = GetWorkflowQueue(iGrainType);
-                await newWorkflowQ.AddAllToQueue(remainingWorkflows);
-                return remainingWorkflows.Value.Select(w => w.WorkflowId);
+                remainingWorkflows = await oldWorkflowQ.GetRemainingWorkflowsIn(base.State.activeWorkflowsSet);
+                if (remainingWorkflows.Value != null && remainingWorkflows.Value.Count() > 0)
+                {
+                    return remainingWorkflows.Value.Select(w => w.WorkflowId);
+                }
             }
+            else //the work-flow queue responsible for iGrainType has changed
+            {
+                try
+                {
+                    //we try to contact the original oldWorkflowQ to
+                    //get the list of remaining work-flow records
+                    //in order to pass their responsibility to newWorkflowQ
+                    remainingWorkflows = await oldWorkflowQ.GetRemainingWorkflowsIn(base.State.activeWorkflowsSet);
+                }
+                catch //the corresponding workflowQ is down, we should ask its reincarnated version
+                {
+                    //if anything bad happened, it means that oldWorkflowQ is not reachable.
+                    //Then we get our hands to reincarnatedOldWorkflowQ to get the  list of remaining work-flow records
+                    reincarnatedOldWorkflowQ = GetReincarnatedWorkflowQueue(oldWorkflowQ);
+                    remainingWorkflows = await reincarnatedOldWorkflowQ.GetRemainingWorkflowsIn(base.State.activeWorkflowsSet);
+                }
+                //if any work-flow is remaining unprocessed
+                if (remainingWorkflows.Value != null && remainingWorkflows.Value.Count() > 0)
+                {
+                    //give the responsibility of handling the remaining
+                    //work -flow records to the newWorkflowQ
+                    await newWorkflowQ.AddAllToQueue(remainingWorkflows);
+
+                    //check which was the target old work-flow queue that responded to our request
+                    var targetOldWorkflowQueue = reincarnatedOldWorkflowQ != null ? reincarnatedOldWorkflowQ : oldWorkflowQ;
+
+                    //it's good that we remove the work-flows from the queue,
+                    //but we really don't have to wait for them
+                    //worst-case, it will be processed again by the old-queue
+                    targetOldWorkflowQueue.RemoveAllFromQueue(remainingWorkflows).Ignore();
+                    return remainingWorkflows.Value.Select(w => w.WorkflowId);
+                }
+            }
+            //if there are no remaining work-flow records, an empty Enumerable is returned
             return Enumerable.Empty<Guid>();
         }
 
