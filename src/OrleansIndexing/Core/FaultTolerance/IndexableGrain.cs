@@ -169,8 +169,7 @@ namespace Orleans.Indexing
         /// <summary>
         /// Handles the remaining work-flows of the grain 
         /// </summary>
-        /// <returns>the actual list of work-flow record IDs that were
-        /// available in the queue</returns>
+        /// <returns>the actual list of work-flow record IDs that were available in the queue(s)</returns>
         private Task<IEnumerable<Guid>> HandleRemainingWorkflows()
         {
             var copyOfWorkflowQueues = new Dictionary<Type, IIndexWorkflowQueue>(WorkflowQueues);
@@ -182,6 +181,12 @@ namespace Orleans.Indexing
             return Task.WhenAll(tasks).ContinueWith(t => t.Result.SelectMany(res => res));
         }
 
+        /// <summary>
+        /// Handles the remaining work-flows of a specific grain interface of the grain
+        /// </summary>
+        /// <param name="iGrainType">the grain interface type being indexed</param>
+        /// <param name="workflowQ">the previous work-flow queue responsible for handling the updates</param>
+        /// <returns>the actual list of work-flow record IDs that were available in this queue</returns>
         private async Task<IEnumerable<Guid>> HandleRemainingWorkflows(Type iGrainType, IIndexWorkflowQueue workflowQ)
         {
             Immutable<List<IndexWorkflowRecord>> remainingWorkflows;
