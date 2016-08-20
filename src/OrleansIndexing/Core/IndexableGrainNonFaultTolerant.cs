@@ -669,7 +669,7 @@ namespace Orleans.Indexing
             IIndexWorkflowQueue workflowQ;
             if (!WorkflowQueues.TryGetValue(iGrainType, out workflowQ))
             {
-                workflowQ = IndexWorkflowQueue.GetIndexWorkflowQueueFromGrainHashCode(iGrainType, this.AsReference<IIndexableGrain>(GrainFactory, iGrainType).GetHashCode(), RuntimeAddress);
+                workflowQ = IndexWorkflowQueueBase.GetIndexWorkflowQueueFromGrainHashCode(iGrainType, this.AsReference<IIndexableGrain>(GrainFactory, iGrainType).GetHashCode(), RuntimeAddress);
                 WorkflowQueues.Add(iGrainType, workflowQ);
             }
             return workflowQ;

@@ -186,13 +186,13 @@ namespace Orleans.Indexing
 
         private IIndexWorkflowQueue InitIndexWorkflowQueue()
         {
-            return __workflowQueue = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IIndexWorkflowQueue>(IndexWorkflowQueue.CreateIndexWorkflowQueueGrainId(_iGrainType, _queueSeqNum), Silo);
+            return __workflowQueue = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IIndexWorkflowQueue>(IndexWorkflowQueueBase.CreateIndexWorkflowQueueGrainId(_iGrainType, _queueSeqNum), Silo);
         }
 
         public static GrainId CreateIndexWorkflowQueueHandlerGrainId(Type grainInterfaceType, int queueSeqNum)
         {
             return GrainId.GetSystemTargetGrainId(Constants.INDEX_WORKFLOW_QUEUE_HANDLER_SYSTEM_TARGET_TYPE_CODE,
-                                                  IndexWorkflowQueue.CreateIndexWorkflowQueuePrimaryKey(grainInterfaceType, queueSeqNum));
+                                                  IndexWorkflowQueueBase.CreateIndexWorkflowQueuePrimaryKey(grainInterfaceType, queueSeqNum));
         }
 
         public static IIndexWorkflowQueueHandler GetIndexWorkflowQueueFromGrainHashCode(Type grainInterfaceType, int grainHashCode, SiloAddress siloAddress)

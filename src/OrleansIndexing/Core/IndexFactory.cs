@@ -202,9 +202,9 @@ namespace Orleans.Indexing
         internal static void RegisterIndexWorkflowQueues(Type iGrainType, Type grainImplType)
         {
             Silo silo = Silo.CurrentSilo;
-            for (int i = 0; i < IndexWorkflowQueue.NUM_AVAILABLE_INDEX_WORKFLOW_QUEUES; ++i)
+            for (int i = 0; i < IndexWorkflowQueueBase.NUM_AVAILABLE_INDEX_WORKFLOW_QUEUES; ++i)
             {
-                silo.RegisterSystemTarget(new IndexWorkflowQueue(
+                silo.RegisterSystemTarget(new IndexWorkflowQueueSystemTarget(
                     iGrainType,
                     i,
                     silo.SiloAddress,

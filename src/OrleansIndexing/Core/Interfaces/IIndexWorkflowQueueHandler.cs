@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace Orleans.Indexing
 {
     /// <summary>
-    /// The interface for IndexWorkflowQueue system-target.
+    /// The interface for IndexWorkflowQueueSystemTarget system-target.
     /// </summary>
     [Unordered]
     internal interface IIndexWorkflowQueueHandler : ISystemTarget

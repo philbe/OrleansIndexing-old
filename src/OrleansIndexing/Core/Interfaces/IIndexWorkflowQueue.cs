@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace Orleans.Indexing
 {
     /// <summary>
-    /// The interface for IndexWorkflowQueue system-target.
+    /// The interface for IndexWorkflowQueueSystemTarget system-target.
     /// </summary>
     [Unordered]
     internal interface IIndexWorkflowQueue : ISystemTarget
@@ -20,6 +20,11 @@ namespace Orleans.Indexing
         /// Adds a list of workflowRecords, created by an indexable grain, to the queue
         /// </summary>
         Task AddAllToQueue(Immutable<List<IndexWorkflowRecord>> workflowRecords);
+
+        /// <summary>
+        /// Removes a list of workflowRecords, created by an indexable grain, from the queue
+        /// </summary>
+        Task RemoveAllFromQueue(Immutable<List<IndexWorkflowRecord>> workflowRecords);
 
         /// <summary>
         /// If there is more work to do, hands it to the queue handler,

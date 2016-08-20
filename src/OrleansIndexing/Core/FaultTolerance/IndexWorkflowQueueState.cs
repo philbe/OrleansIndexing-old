@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace Orleans.Indexing
 {
     /// <summary>
-    /// The persistent unit for storing the information for a IndexWorkflowQueue
+    /// The persistent unit for storing the information for a IndexWorkflowQueueSystemTarget
     /// </summary>
     [Serializable]
     internal class IndexWorkflowQueueState : GrainState<IndexWorkflowQueueEntry>
@@ -24,7 +24,7 @@ namespace Orleans.Indexing
     }
 
     /// <summary>
-    /// All the information stored for a single IndexWorkflowQueue
+    /// All the information stored for a single IndexWorkflowQueueSystemTarget
     /// </summary>
     [Serializable]
     internal class IndexWorkflowQueueEntry

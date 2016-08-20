@@ -15,7 +15,7 @@ namespace Orleans.Indexing
     /// <summary>
     /// To minimize the number of RPCs, we process index updates for each grain
     /// on the silo where the grain is active. To do this processing, each silo
-    /// has one or more IndexWorkflowQueue system-targets for each grain class,
+    /// has one or more IndexWorkflowQueueSystemTarget system-targets for each grain class,
     /// up to the number of hardware threads. A system-target is a grain that
     /// belongs to a specific silo.
     /// + Each of these system-targets has a queue of workflowRecords, which describe
@@ -25,20 +25,18 @@ namespace Orleans.Indexing
     ///    - memberUpdates: the updated values of indexed fields
     ///  
     ///   Ordinarily, these workflowRecords are for grains that are active on
-    ///   IndexWorkflowQueue's silo. (This may not be true for short periods when
+    ///   IndexWorkflowQueueSystemTarget's silo. (This may not be true for short periods when
     ///   a grain migrates to another silo or after the silo recovers from failure).
     /// 
-    /// + The IndexWorkflowQueue grain Q has a dictionary updatesOnWait is an
+    /// + The IndexWorkflowQueueSystemTarget grain Q has a dictionary updatesOnWait is an
     ///   in-memory dictionary that maps each grain G to the workflowRecords for G
     ///   that are waiting for be updated
     /// </summary>
-    [StorageProvider(ProviderName = Constants.INDEXING_WORKFLOWQUEUE_STORAGE_PROVIDER_NAME)]
-    [Reentrant]
-    internal class IndexWorkflowQueue : SystemTarget, IIndexWorkflowQueue
+    internal class IndexWorkflowQueueBase : IIndexWorkflowQueue
     {
-        //the persistent state of IndexWorkflowQueue, including:
+        //the persistent state of IndexWorkflowQueueSystemTarget, including:
         // - doubly linked list of workflowRecordds
-        // - the identity of the IndexWorkflowQueue system target
+        // - the identity of the IndexWorkflowQueueSystemTarget system target
         protected IndexWorkflowQueueState State;
 
         //the tail of workflowRecords doubly linked list
@@ -86,9 +84,13 @@ namespace Orleans.Indexing
 
         public static int NUM_AVAILABLE_INDEX_WORKFLOW_QUEUES { get { return Environment.ProcessorCount; } }
 
-        internal IndexWorkflowQueue(Type grainInterfaceType, int queueSequenceNumber, SiloAddress silo, bool isDefinedAsFaultTolerantGrain) : base(CreateIndexWorkflowQueueGrainId(grainInterfaceType, queueSequenceNumber), silo)
+        private SiloAddress _silo;
+
+        private IIndexWorkflowQueue _parent;
+
+        internal IndexWorkflowQueueBase(Type grainInterfaceType, int queueSequenceNumber, SiloAddress silo, bool isDefinedAsFaultTolerantGrain, GrainId grainId, IIndexWorkflowQueue parent)
         {
-            State = new IndexWorkflowQueueState(GrainId, silo);
+            State = new IndexWorkflowQueueState(grainId, silo);
             _iGrainType = grainInterfaceType;
             _queueSeqNum = queueSequenceNumber;
 
@@ -103,6 +105,9 @@ namespace Orleans.Indexing
             _writeLock = new AsyncLock();
             _writeRequestIdGen = 0;
             _pendingWriteRequests = new HashSet<int>();
+
+            _silo = silo;
+            _parent = parent;
         }
 
         public static GrainId CreateIndexWorkflowQueueGrainId(Type grainInterfaceType, int queueSeqNum)
@@ -132,7 +137,7 @@ namespace Orleans.Indexing
 
         private IIndexWorkflowQueueHandler InitWorkflowQueueHandler()
         {
-            return __handler = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IIndexWorkflowQueueHandler>(IndexWorkflowQueueHandler.CreateIndexWorkflowQueueHandlerGrainId(_iGrainType, _queueSeqNum), Silo);
+            return __handler = InsideRuntimeClient.Current.InternalGrainFactory.GetSystemTarget<IIndexWorkflowQueueHandler>(IndexWorkflowQueueHandler.CreateIndexWorkflowQueueHandlerGrainId(_iGrainType, _queueSeqNum), _silo);
         }
 
         public Task AddAllToQueue(Immutable<List<IndexWorkflowRecord>> workflowRecords)
@@ -177,6 +182,36 @@ namespace Orleans.Indexing
             else // otherwise append to the end of the list
             {
                 _workflowRecordsTail.Append(newWorkflowNode, ref _workflowRecordsTail);
+            }
+        }
+
+        public Task RemoveAllFromQueue(Immutable<List<IndexWorkflowRecord>> workflowRecords)
+        {
+            List<IndexWorkflowRecord> newWorkflows = workflowRecords.Value;
+
+            foreach (IndexWorkflowRecord newWorkflow in newWorkflows)
+            {
+                RemoveFromQueueNonPersistent(newWorkflow);
+            }
+            
+            if (IsFaultTolerant)
+            {
+                return PersistState();
+            }
+            return TaskDone.Done;
+        }
+
+        private void RemoveFromQueueNonPersistent(IndexWorkflowRecord newWorkflow)
+        {
+            IndexWorkflowRecordNode current = State.State.WorkflowRecordsHead;
+            while (current != null)
+            {
+                if (newWorkflow.Equals(current.WorkflowRecord))
+                {
+                    current.Remove(ref State.State.WorkflowRecordsHead, ref _workflowRecordsTail);
+                    return;
+                }
+                current = current.Next;
             }
         }
 
@@ -289,7 +324,7 @@ namespace Orleans.Indexing
                     //clear all pending write requests, as this attempt will do them all.
                     _pendingWriteRequests.Clear();
                     //write the state back to the storage
-                    await StorageProvider.WriteStateAsync("Orleans.Indexing.IndexWorkflowQueue-" + TypeUtils.GetFullName(_iGrainType), this.AsWeaklyTypedReference(), State);
+                    await StorageProvider.WriteStateAsync("Orleans.Indexing.IndexWorkflowQueueSystemTarget-" + TypeUtils.GetFullName(_iGrainType), _parent.AsWeaklyTypedReference(), State);
                 }
                 //else
                 //{
@@ -358,7 +393,7 @@ namespace Orleans.Indexing
 
         private IStorageProvider InitStorageProvider()
         {
-            return _storageProvider = InsideRuntimeClient.Current.Catalog.SetupStorageProvider(typeof(IndexWorkflowQueue));
+            return _storageProvider = InsideRuntimeClient.Current.Catalog.SetupStorageProvider(typeof(IndexWorkflowQueueSystemTarget));
         }
 
         public Task<Immutable<List<IndexWorkflowRecord>>> GetRemainingWorkflowsIn(HashSet<Guid> activeWorkflowsSet)

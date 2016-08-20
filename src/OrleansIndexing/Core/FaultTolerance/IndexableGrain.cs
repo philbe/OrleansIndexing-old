@@ -27,9 +27,9 @@ namespace Orleans.Indexing
     /// the actual user-grain that extends it. It adds the following information to it:
     ///  - a list called activeWorkflowsList to the State,
     ///    which points to the in-flight indexing workflowsIds.
-    ///  - There's a fixed mapping (e.g., a hash function) from grain id to IndexWorkflowQueue
+    ///  - There's a fixed mapping (e.g., a hash function) from grain id to IndexWorkflowQueueSystemTarget
     ///    instance. Each IndexableGrain G has a property workflowQueue whose value,
-    ///    [grain-type-name + sequence number], identifies the IndexWorkflowQueue grain
+    ///    [grain-type-name + sequence number], identifies the IndexWorkflowQueueSystemTarget grain
     ///    that processes index updates on G's behalf.
     /// </summary>
     public abstract class IndexableGrain<TState, TProperties> : IndexableGrainNonFaultTolerant<IndexableExtendedState<TState>, TProperties>, IIndexableGrainFaultTolerant where TProperties: new()
