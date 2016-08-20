@@ -9,7 +9,7 @@ namespace Orleans.Indexing
     /// The interface for IndexWorkflowQueueSystemTarget system-target.
     /// </summary>
     [Unordered]
-    internal interface IIndexWorkflowQueue : ISystemTarget
+    internal interface IIndexWorkflowQueue : ISystemTarget, IGrainWithStringKey
     {
         /// <summary>
         /// Adds a workflowRecord, created by an indexable grain, to the queue
@@ -39,5 +39,11 @@ namespace Orleans.Indexing
         /// <param name="activeWorkflowsSet">the set of requested work-flow IDs</param>
         /// <returns>the work-flow records that their ID match one in the set of input</returns>
         Task<Immutable<List<IndexWorkflowRecord>>> GetRemainingWorkflowsIn(HashSet<Guid> activeWorkflowsSet);
+
+        /// <summary>
+        /// This method is called for initializing the ReincarnatedIndexWorkflowQueue
+        /// </summary>
+        /// <param name="oldParentSystemTarget"></param>
+        Task Initialize(IIndexWorkflowQueue oldParentSystemTarget);
     }
 }

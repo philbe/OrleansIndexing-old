@@ -205,5 +205,10 @@ namespace Orleans.Indexing
                 siloAddress
             );
         }
+
+        public Task Initialize(IIndexWorkflowQueue oldParentSystemTarget)
+        {
+            throw new NotSupportedException();
+        }
     }
 }

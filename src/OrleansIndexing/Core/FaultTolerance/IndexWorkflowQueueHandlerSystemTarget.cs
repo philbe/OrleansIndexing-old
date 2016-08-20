@@ -25,5 +25,10 @@ namespace Orleans.Indexing
         {
             return _base.HandleWorkflowsUntilPunctuation(workflowRecordsHead);
         }
+
+        public Task Initialize(IIndexWorkflowQueue oldParentSystemTarget)
+        {
+            throw new NotSupportedException();
+        }
     }
 }

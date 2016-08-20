@@ -227,7 +227,7 @@ namespace Orleans.Indexing
                 {
                     //if anything bad happened, it means that oldWorkflowQ is not reachable.
                     //Then we get our hands to reincarnatedOldWorkflowQ to get the  list of remaining work-flow records
-                    reincarnatedOldWorkflowQ = GetReincarnatedWorkflowQueue(oldWorkflowQ);
+                    reincarnatedOldWorkflowQ = await GetReincarnatedWorkflowQueue(oldWorkflowQ);
                     remainingWorkflows = await reincarnatedOldWorkflowQ.GetRemainingWorkflowsIn(base.State.activeWorkflowsSet);
                 }
                 //if any work-flow is remaining unprocessed
@@ -251,9 +251,13 @@ namespace Orleans.Indexing
             return Enumerable.Empty<Guid>();
         }
 
-        private IIndexWorkflowQueue GetReincarnatedWorkflowQueue(IIndexWorkflowQueue workflowQ)
+        private async Task<IIndexWorkflowQueue> GetReincarnatedWorkflowQueue(IIndexWorkflowQueue workflowQ)
         {
-            throw new NotImplementedException();
+            string primaryKey = workflowQ.GetPrimaryKeyString();
+            IIndexWorkflowQueue reincarnatedQ = InsideRuntimeClient.Current.InternalGrainFactory.GetGrain<IIndexWorkflowQueue>(primaryKey);
+            IIndexWorkflowQueueHandler reincarnatedQHandler = InsideRuntimeClient.Current.InternalGrainFactory.GetGrain<IIndexWorkflowQueueHandler>(primaryKey);
+            await Task.WhenAll(reincarnatedQ.Initialize(workflowQ), reincarnatedQHandler.Initialize(workflowQ));
+            return reincarnatedQ;
         }
 
         private Task PruneActiveWorkflowsSetFromAlreadyHandledWorkflows(IEnumerable<Guid> workflowsInProgress)

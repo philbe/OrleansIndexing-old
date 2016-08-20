@@ -86,9 +86,9 @@ namespace Orleans.Indexing
 
         private SiloAddress _silo;
 
-        private IIndexWorkflowQueue _parent;
+        private GrainReference _parent;
 
-        internal IndexWorkflowQueueBase(Type grainInterfaceType, int queueSequenceNumber, SiloAddress silo, bool isDefinedAsFaultTolerantGrain, GrainId grainId, IIndexWorkflowQueue parent)
+        internal IndexWorkflowQueueBase(Type grainInterfaceType, int queueSequenceNumber, SiloAddress silo, bool isDefinedAsFaultTolerantGrain, GrainId grainId, GrainReference parent)
         {
             State = new IndexWorkflowQueueState(grainId, silo);
             _iGrainType = grainInterfaceType;
@@ -324,7 +324,7 @@ namespace Orleans.Indexing
                     //clear all pending write requests, as this attempt will do them all.
                     _pendingWriteRequests.Clear();
                     //write the state back to the storage
-                    await StorageProvider.WriteStateAsync("Orleans.Indexing.IndexWorkflowQueueSystemTarget-" + TypeUtils.GetFullName(_iGrainType), _parent.AsWeaklyTypedReference(), State);
+                    await StorageProvider.WriteStateAsync("Orleans.Indexing.IndexWorkflowQueueSystemTarget-" + TypeUtils.GetFullName(_iGrainType), _parent, State);
                 }
                 //else
                 //{
@@ -409,6 +409,11 @@ namespace Orleans.Indexing
                 current = current.Next;
             }
             return Task.FromResult(result.AsImmutable());
+        }
+
+        public Task Initialize(IIndexWorkflowQueue oldParentSystemTarget)
+        {
+            throw new NotSupportedException();
         }
     }
 }
