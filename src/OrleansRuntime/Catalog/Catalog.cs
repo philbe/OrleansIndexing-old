@@ -681,14 +681,13 @@ namespace Orleans.Runtime
 
         private void SetupStorageProvider(Type grainType, ActivationData data)
         {
-            var grainInstanceType = data.GrainInstanceType;
-            
-            data.StorageProvider = SetupStorageProvider(grainInstanceType);
+            data.StorageProvider = SetupStorageProvider(grainType);
 
             if (logger.IsVerbose2)
             {
-                string grainTypeName = grainInstanceType.FullName;
-                var attrs = grainInstanceType.GetCustomAttributes(typeof(StorageProviderAttribute), true);
+                string grainTypeName = grainType.FullName;
+
+                var attrs = grainType.GetCustomAttributes(typeof(StorageProviderAttribute), true);
                 var attr = attrs.FirstOrDefault() as StorageProviderAttribute;
                 string storageProviderName = attr != null ? attr.ProviderName : Constants.DEFAULT_STORAGE_PROVIDER_NAME;
 
