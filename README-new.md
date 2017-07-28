@@ -2,7 +2,7 @@
 
 > This project is has undergone a modest amount of testing and code review, and is NOT READY for production use. It is published to collect community feedback and attract others to make it production-ready. 
 
-Enable grains to be indexed and queried by scalar properties. A [research paper](http://cidrdb.org/cidr2017/papers/p29-bernstein-cidr17.pdf) describing the interface and implementation was published at [CIDR 2017] (http://cidrdb.org/cidr2017/index.html).
+Enable grains to be indexed and queried by scalar properties. A [research paper](http://cidrdb.org/cidr2017/papers/p29-bernstein-cidr17.pdf) describing the interface and implementation was published at [CIDR 2017](http://cidrdb.org/cidr2017/index.html).
 
 ## Features
 
